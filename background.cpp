@@ -256,8 +256,10 @@ int check_keys(XEvent *e)
 void physics()
 {
 	//move the background
-	g.tex.xc[0] += 0.001;
-	g.tex.xc[1] += 0.001;
+    //changed g.tex.xc to g.tex.yc
+    //+= 0.001 to -= 0.01
+	g.tex.yc[0] += 0.01;
+	g.tex.yc[1] += 0.01;
 }
 
 void render()
