@@ -15,6 +15,8 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
+#include "fonts.h"
+
 
 class Image {
 public:
@@ -240,6 +242,8 @@ void check_mouse(XEvent *e)
 		savey = e->xbutton.y;
 	}
 }
+// Inside of crodriguez.cpp
+extern void show_credits();
 
 int check_keys(XEvent *e)
 {
@@ -248,6 +252,10 @@ int check_keys(XEvent *e)
 		int key = XLookupKeysym(&e->xkey, 0);
 		if (key == XK_Escape) {
 			return 1;
+		}
+		// If 'c' pressed, show credits
+        if (key == XK_c) {
+			show_credits();
 		}
 	}
 	return 0;
@@ -274,17 +282,4 @@ void render()
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
 	glEnd();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
