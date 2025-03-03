@@ -159,8 +159,3 @@ void drawReels() {
 	    gluCylinder(quadratic,1.0f,1.0f,0.6f,9,3);
 	glPopMatrix();
 }
-
-int main(int argc, char *argv[] ) {
-
-  return 0;
-}
