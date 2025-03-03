@@ -23,6 +23,13 @@ using namespace std;
 
 std::chrono::time_point<std::chrono::high_resolution_clock> last_time = std::chrono::high_resolution_clock::now();
 
+struct Surface {
+    unsigned int width;
+    unsigned int height;
+    unsigned char* data;
+};
+Surface *surface;
+
 GLUquadricObj *quadratic;     // Storage object
 GLuint cylinder_side_tex;
 GLuint cylinder_spinner_tex;
@@ -41,12 +48,70 @@ struct Reel {
     }
 };
 
+void calculate_framerate();
+Surface* loadBMP(const char *fp);
+bool initGLTexture(const char *name, GLuint *addr);
+int loadGLTextures();
+void drawReels();
+
 void calculate_framerate() {
     auto current_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> elapsed = current_time - last_time;
     last_time = current_time;
     float fps = 1.0f / elapsed.count();
     cout << "FPS: " << fps << endl;
+}
+
+Surface* loadBMP(const char *fp) {
+	FILE *f = fopen(fp, "r");
+	if (!f) {
+		cout << "Image can't be opened!" << endl;
+		fclose(f);
+		return 0;
+	}
+	unsigned char header[54];	// Each BMP file has a 54-byte header
+	fread(header, 1, 54, f);
+	if (header[0] != 'B' || header[1] != 'M') {
+        cout << "Not a BMP file" << endl;	// BMP header signature field
+		fclose(f);
+        return 0;
+    }
+	//unsigned int dataPos = *(int*)&(header[0x0A]);		// BMP data offset
+	unsigned int width = *(int*)&(header[0x12]);		// BMP width
+	unsigned int height = *(int*)&(header[0x16]);		// BMP height
+	unsigned int imageSize = *(int*)&(header[0x22]);	// BMP image size
+
+	unsigned char *data = new unsigned char[imageSize];
+	fread(data, 1, imageSize, f);
+	fclose(f);
+
+	Surface *surface = new Surface();
+	surface->width = width;
+	surface->height = height;
+	surface->data = data;
+
+	return surface;
+}
+
+bool initGLTexture(const char *name, GLuint *addr) {
+	Surface *surface;
+	surface = loadBMP(name);
+	glGenTextures(1, addr);
+	glBindTexture(GL_TEXTURE_2D, *addr);
+	// Stretch Property
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// Texture Image Data
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->width, surface->height, 0, GL_BGR, GL_UNSIGNED_BYTE, surface->data);
+	return true;
+}
+
+int loadGLTextures() {
+	initGLTexture("cyl_side_tex.bmp", &cylinder_side_tex);
+	initGLTexture("cyl_spinner_tex.bmp", &cylinder_spinner_tex);
+	initGLTexture("reels_tex.bmp", &reels_tex);
+	
+	return 1;
 }
 
 void drawReels() {
@@ -95,7 +160,7 @@ void drawReels() {
 	glPopMatrix();
 }
 
-// int main(int argc, char *argv[] ) {
+int main(int argc, char *argv[] ) {
 
-//   return 0;
-// }
+  return 0;
+}
