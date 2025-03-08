@@ -1,5 +1,7 @@
 // Phillip Lakes (Koli)
 // CS 3350 Software Engineering
+// g++ main.cpp stest.cpp -o stest -Wall -lX11 -lGLU -lm -lGL
+// "There is only one good, knowledge, and one evil, ignorance." - Socrates
 //
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,7 +54,10 @@ void calculate_framerate();
 Surface* loadBMP(const char *fp);
 bool initGLTexture(const char *name, GLuint *addr);
 int loadGLTextures();
+int initGL(GLvoid);
+int resize(int width, int height);
 void drawReels();
+int draw(GLvoid);
 
 void calculate_framerate() {
     auto current_time = std::chrono::high_resolution_clock::now();
@@ -114,6 +119,47 @@ int loadGLTextures() {
 	return 1;
 }
 
+int initGL(GLvoid) {
+	loadGLTextures();
+	// background
+	glShadeModel(GL_SMOOTH);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	// depth
+	glClearDepth(1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LINE_SMOOTH);
+	glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+	glLineWidth(1.5);
+	// QoL stuff
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+	glEnable(GL_TEXTURE_2D);
+	// Quadratic Object
+	quadratic = gluNewQuadric();
+	gluQuadricDrawStyle(quadratic, GLU_FILL);
+	gluQuadricNormals(quadratic, GLU_SMOOTH);
+	gluQuadricTexture(quadratic, GL_TRUE);
+	return 1;
+}
+
+int resize(int width, int height) {
+	// width : height
+	GLfloat ratio;
+	if (height == 0) {
+		height = 1;
+	}
+	ratio = GLfloat(width) / GLfloat(height);
+	// Switch to projection matrix, set view
+	glViewport(0, 0, (GLint)width, (GLint)height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.0f, ratio, 0.1f, 100.0f);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	return 1;
+}
+
+
 void drawReels() {
 	glEnable( GL_LIGHTING );
 	glDisable( GL_BLEND );
@@ -158,4 +204,13 @@ void drawReels() {
 	    glBindTexture( GL_TEXTURE_2D, reels_tex );
 	    gluCylinder(quadratic,1.0f,1.0f,0.6f,9,3);
 	glPopMatrix();
+}
+
+int draw(GLvoid) {
+	// Clear && Reset View
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+
+	drawReels();
+	return 1;
 }
