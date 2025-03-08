@@ -1,6 +1,8 @@
 // Phillip Lakes (Koli)
 // CS 3350 Software Engineering
-// g++ main.cpp stest.cpp -o stest -Wall -lX11 -lGLU -lm -lGL
+// Slot Machine
+// 03/03/2025
+// g++ main.cpp akoli.cpp -o slot -Wall -lX11 -lGLU -lm -lGL
 // "There is only one good, knowledge, and one evil, ignorance." - Socrates
 //
 #include <stdio.h>
@@ -8,14 +10,13 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include "time.h"
+#include "phil_funcs.h"
 #include <vector>
 #include <iostream>
 #include <math.h>
 #include <fstream>
 #include <map>
 #include <chrono>
-
-using namespace std;
 
 #define TRUE  1
 #define FALSE 0
@@ -25,11 +26,6 @@ using namespace std;
 
 std::chrono::time_point<std::chrono::high_resolution_clock> last_time = std::chrono::high_resolution_clock::now();
 
-struct Surface {
-    unsigned int width;
-    unsigned int height;
-    unsigned char* data;
-};
 Surface *surface;
 
 GLUquadricObj *quadratic;     // Storage object
@@ -37,20 +33,8 @@ GLuint cylinder_side_tex;
 GLuint cylinder_spinner_tex;
 GLuint reels_tex;
 
-struct Reel;
-static Reel* reels[3];
-
-struct Reel {
-    GLfloat speed;
-	GLfloat degree;
-	bool stopped;
-	GLfloat begin;
-    Reel() {
-
-    }
-};
-
 void calculate_framerate();
+GLfloat get_rand( GLfloat max );
 Surface* loadBMP(const char *fp);
 bool initGLTexture(const char *name, GLuint *addr);
 int loadGLTextures();
@@ -64,20 +48,24 @@ void calculate_framerate() {
     std::chrono::duration<float> elapsed = current_time - last_time;
     last_time = current_time;
     float fps = 1.0f / elapsed.count();
-    cout << "FPS: " << fps << endl;
+    std::cout << "FPS: " << fps << std::endl;
+}
+
+GLfloat get_rand( GLfloat max ){
+	return ( 1 + (float) ( max * (rand() / (RAND_MAX + 1.0))) );
 }
 
 Surface* loadBMP(const char *fp) {
 	FILE *f = fopen(fp, "r");
 	if (!f) {
-		cout << "Image can't be opened!" << endl;
+		std::cout << "Image can't be opened!" << std::endl;
 		fclose(f);
 		return 0;
 	}
 	unsigned char header[54];	// Each BMP file has a 54-byte header
 	fread(header, 1, 54, f);
 	if (header[0] != 'B' || header[1] != 'M') {
-        cout << "Not a BMP file" << endl;	// BMP header signature field
+        std::cout << "Not a BMP file" << std::endl;	// BMP header signature field
 		fclose(f);
         return 0;
     }
