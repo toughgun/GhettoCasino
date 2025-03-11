@@ -1,5 +1,5 @@
 //
-//program: background.cpp
+//program: background.cpp --> main.cpp
 //author:  Gordon Griesel
 //date:    2017 - 2018
 //
@@ -16,7 +16,17 @@
 #include <X11/keysym.h>
 #include <GL/glx.h>
 #include "fonts.h"
+#include "phil_funcs.h"
 
+printf("```Welcome to the Ghetto```\n");
+for(int x=0;x<3;++x) {
+    reels[x] = new Reel();
+    }
+    //int done = 0;
+    //int winactive = 0;
+    if (initGL() == 1) {
+        printf("Successfully initialized OpenGL\n");
+    }
 
 class Image {
 public:
