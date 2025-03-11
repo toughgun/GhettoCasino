@@ -18,16 +18,6 @@
 #include "fonts.h"
 #include "phil_funcs.h"
 
-printf("```Welcome to the Ghetto```\n");
-for(int x=0;x<3;++x) {
-    reels[x] = new Reel();
-    }
-    //int done = 0;
-    //int winactive = 0;
-    if (initGL() == 1) {
-        printf("Successfully initialized OpenGL\n");
-    }
-
 class Image {
 public:
 	int width, height;
@@ -177,8 +167,16 @@ void render(void);
 
 //===========================================================================
 //===========================================================================
-int main()
-{
+int main() {
+    printf("```Welcome to the Ghetto```\n");
+    for(int x=0;x<3;++x) {
+    	reels[x] = new Reel();
+    }
+    //int done = 0;
+    //int winactive = 0;
+    if (initGL() == 1) {
+        printf("Successfully initialized OpenGL\n");
+    }
 	init_opengl();
 	int done=0;
 	while (!done) {
