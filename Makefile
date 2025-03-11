@@ -1,8 +1,8 @@
-all: background
+all: main
 
-background: background.cpp akoli.cpp bolayvar.cpp crodriguez4.cpp hchen.cpp
+main: main.cpp akoli.cpp bolayvar.cpp crodriguez4.cpp hchen.cpp
 	g++ background.cpp akoli.cpp bolayvar.cpp crodriguez4.cpp hchen.cpp \
-	libggfonts.a -Wall -lX11 -lGL -lGLU -lm -o background
+	libggfonts.a -Wall -lX11 -lGL -lGLU -lm -o main
 
 clean:
-		rm -f background
+		rm -f main
