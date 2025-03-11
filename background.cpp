@@ -58,7 +58,7 @@ public:
 		unlink(ppmname);
 	}
 };
-Image img[1] = {"seamless_back.jpg"};
+Image img[1] = {"menu_bg.png"};
 
 class Texture {
 public:
@@ -73,7 +73,7 @@ public:
 	int xres, yres;
 	Texture tex;
 	Global() {
-		xres=640, yres=480;
+		xres=1280, yres=720;
 	}
 } g;
 
@@ -132,7 +132,7 @@ public:
 	void set_title() {
 		//Set the window title bar.
 		XMapWindow(dpy, win);
-		XStoreName(dpy, win, "scrolling background (seamless)");
+		XStoreName(dpy, win, "Ghetto Casino");
 	}
 	bool getXPending() {
 		return XPending(dpy);
@@ -266,8 +266,8 @@ void physics()
 	//move the background
     //changed g.tex.xc to g.tex.yc
     //+= 0.001 to -= 0.01
-	g.tex.yc[0] += 0.01;
-	g.tex.yc[1] += 0.01;
+	//g.tex.yc[0] += 0.01;
+	//g.tex.yc[1] += 0.01;
 }
 
 void render()
