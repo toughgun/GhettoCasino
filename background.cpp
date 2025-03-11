@@ -1,5 +1,5 @@
 //
-//program: background.cpp
+//program: GhettoCasino.cpp
 //author:  Gordon Griesel
 //date:    2017 - 2018
 //
@@ -58,12 +58,14 @@ public:
 		unlink(ppmname);
 	}
 };
-Image img[1] = {"menu_bg.png"};
+Image img[2] = {"menu_bg.png", "logo.png"};
 
 class Texture {
 public:
 	Image *backImage;
+	Image *menulogo
 	GLuint backTexture;
+	GgLuint logo;
 	float xc[2];
 	float yc[2];
 };
@@ -86,7 +88,7 @@ public:
 	X11_wrapper() {
 		GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
 		//GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, None };
-		setup_screen_res(640, 480);
+		setup_screen_res(1280, 720);
 		dpy = XOpenDisplay(NULL);
 		if(dpy == NULL) {
 			printf("\n\tcannot connect to X server\n\n");
@@ -194,6 +196,8 @@ void init_opengl(void)
 	glMatrixMode(GL_MODELVIEW); glLoadIdentity();
 	//This sets 2D mode (no perspective)
 	glOrtho(0, g.xres, 0, g.yres, -1, 1);
+	
+	
 	//Clear the screen
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	//glClear(GL_COLOR_BUFFER_BIT);
@@ -203,19 +207,30 @@ void init_opengl(void)
 	//load the images file into a ppm structure.
 	//
 	g.tex.backImage = &img[0];
-	//create opengl texture elements
+	
+	//Create the Background
 	glGenTextures(1, &g.tex.backTexture);
 	int w = g.tex.backImage->width;
 	int h = g.tex.backImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
-							GL_RGB, GL_UNSIGNED_BYTE, g.tex.backImage->data);
-	g.tex.xc[0] = 0.0;
-	g.tex.xc[1] = 0.25;
-	g.tex.yc[0] = 0.0;
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0, 
+			GL_RGB, GL_UNSIGNED_BYTE, g.tex.backImage->data);
+	g.tex.xc[0] = 1.0;
 	g.tex.yc[1] = 1.0;
+
+         //Create the Background                    
+         glGenTextures(1, &g.tex.backTexture);      
+         int w = g.tex.backImage->width;            
+         int h = g.tex.backImage->height;           
+         glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
+         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+         glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0, 
+                         GL_RGB, GL_UNSIGNED_BYTE, g.tex.backImage->data);
+         g.tex.xc[0] = 1.0;                         
+         g.tex.yc[1] = 1.0;
 }
 
 void check_mouse(XEvent *e)
