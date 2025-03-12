@@ -2,13 +2,12 @@
 // last revised: 3/11/2025
 //
 
-static void callmenu()
+void sfx()
 {
 
 
-
 }
-
+ 
 void menu()
 {
 //call sfx

@@ -58,14 +58,23 @@ public:
 		unlink(ppmname);
 	}
 };
-Image img[1] = {"seamless_back.jpg"};
+Image img[2] = {"menu_bg.png", "logo.png"};
+
+class Logo {
+public:
+	int pos[2];
+	float w, h;
+} logo;
 
 class Texture {
 public:
 	Image *backImage;
 	GLuint backTexture;
+	Image *logoImage;
+	GLuint logoTexture;
 	float xc[2];
 	float yc[2];
+
 };
 
 class Global {
@@ -73,7 +82,7 @@ public:
 	int xres, yres;
 	Texture tex;
 	Global() {
-		xres=640, yres=480;
+		xres=1280, yres=720;
 	}
 } g;
 
@@ -86,7 +95,7 @@ public:
 	X11_wrapper() {
 		GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
 		//GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, None };
-		setup_screen_res(640, 480);
+		setup_screen_res(1280, 720);
 		dpy = XOpenDisplay(NULL);
 		if(dpy == NULL) {
 			printf("\n\tcannot connect to X server\n\n");
@@ -132,7 +141,7 @@ public:
 	void set_title() {
 		//Set the window title bar.
 		XMapWindow(dpy, win);
-		XStoreName(dpy, win, "scrolling background (seamless)");
+		XStoreName(dpy, win, "Ghetto Casino");
 	}
 	bool getXPending() {
 		return XPending(dpy);
@@ -163,21 +172,26 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics(void);
 void render(void);
-
+void init(void);
 
 //===========================================================================
 //===========================================================================
 int main() {
     printf("```Welcome to the Ghetto```\n");
-    for(int x=0;x<3;++x) {
-    	reels[x] = new Reel();
-    }
+//    for(int x=0;x<3;++x) {
+//    	reels[x] = new Reel();
+//    }
     //int done = 0;
     //int winactive = 0;
-    if (initGL() == 1) {
-        printf("Successfully initialized OpenGL\n");
-    }
+
+//====================================================
+//This is breaking the menu
+//    if (initGL() == 1) {
+//        printf("Successfully initialized OpenGL\n");
+//    }
+//===================================================
 	init_opengl();
+	init();
 	int done=0;
 	while (!done) {
 		while (x11.getXPending()) {
@@ -211,7 +225,7 @@ void init_opengl(void)
 	//load the images file into a ppm structure.
 	//
 	g.tex.backImage = &img[0];
-	//create opengl texture elements
+	//create menu background
 	glGenTextures(1, &g.tex.backTexture);
 	int w = g.tex.backImage->width;
 	int h = g.tex.backImage->height;
@@ -219,13 +233,49 @@ void init_opengl(void)
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
-							GL_RGB, GL_UNSIGNED_BYTE, g.tex.backImage->data);
-	g.tex.xc[0] = 0.0;
-	g.tex.xc[1] = 0.25;
-	g.tex.yc[0] = 0.0;
-	g.tex.yc[1] = 1.0;
+			GL_RGB, GL_UNSIGNED_BYTE, g.tex.backImage->data);
+	g.tex.xc[0] = 1.0;
+	g.tex.yc[1] = 1.0;	
+	
+	g.tex.logoImage = &img[1];
+	//create menu logo
+	w = g.tex.logoImage->width;
+	h = g.tex.logoImage->height;
+	glBindTexture(GL_TEXTURE_2D, g.tex.logoTexture);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+			GL_RGB, GL_UNSIGNED_BYTE, g.tex.logoImage->data);
 }
 
+void init()
+{
+	logo.pos[0] = g.xres / 2;
+	logo.pos[1] = g.yres * 0.75;
+
+}
+unsigned char *buildAlphaData(Image *img)
+{
+	int i, a, b, c;
+	unsigned char *newdata, *ptr;
+	unsigned char *data = (unsigned char *)img->data;
+	newdata = (unsigned char *)malloc(img->width * img->height * 4);
+	ptr = newdata;
+	for (i = 0; i < img->width * img->height * 3; i += 4) {
+		a = *(data+0);
+		b = *(data+1);
+		c = *(data+2);
+		*(ptr+0) = a;
+		*(ptr+1) = b;
+		*(ptr+2) = c;
+
+		*(ptr+3) = (a|b|c);
+		ptr += 4;
+		data += 3;
+	}
+	return newdata;
+}
+	
 void check_mouse(XEvent *e)
 {
 	//Did the mouse move?
@@ -271,17 +321,15 @@ int check_keys(XEvent *e)
 
 void physics()
 {
-	//move the background
-    //changed g.tex.xc to g.tex.yc
-    //+= 0.001 to -= 0.01
-	g.tex.yc[0] += 0.01;
-	g.tex.yc[1] += 0.01;
+
 }
 
-void render()
+void drawMenu()
 {
+	//draw background image of the menu
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(1.0, 1.0, 1.0);
+	
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glBegin(GL_QUADS);
 		glTexCoord2f(g.tex.xc[0], g.tex.yc[1]); glVertex2i(0,      0);
@@ -289,5 +337,31 @@ void render()
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
 	glEnd();
+	
+	
+	glPushMatrix();
+	glTranslatef(logo.pos[0],logo.pos[1], 0.0f);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glBindTexture(GL_TEXTURE_2D, g.tex.logoTexture);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0f, 1.0f); glVertex2i(0,0);
+		glTexCoord2f(0.0f, 0.0f); glVertex2i(0,g.xres);
+		glTexCoord2f(1.0f, 0.0f); glVertex2i(g.yres,g.yres);
+		glTexCoord2f(1.0f, 1.0f); glVertex2i(-logo.pos[0],0);
+	glEnd();
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_ALPHA_TEST);
+	glPopMatrix();
+
+	//draw the game logo
+	
+}
+
+void render()
+{
+	
+	drawMenu();	
+
 }
 
