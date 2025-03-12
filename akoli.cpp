@@ -7,6 +7,9 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
+#include <GL/glx.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include "time.h"
@@ -28,6 +31,7 @@ std::chrono::time_point<std::chrono::high_resolution_clock> last_time = std::chr
 
 Surface *surface;
 
+
 GLUquadricObj *quadratic;     // Storage object
 GLuint cylinder_side_tex;
 GLuint cylinder_spinner_tex;
@@ -35,7 +39,7 @@ GLuint reels_tex;
 
 void calculate_framerate();
 GLfloat get_rand( GLfloat max );
-Surface* loadBMP(const char *fp);
+Surface* loadPNG(const char *fp);
 bool initGLTexture(const char *name, GLuint *addr);
 int loadGLTextures();
 int initGL(GLvoid);
@@ -55,40 +59,19 @@ GLfloat get_rand( GLfloat max ){
 	return ( 1 + (float) ( max * (rand() / (RAND_MAX + 1.0))) );
 }
 
-Surface* loadBMP(const char *fp) {
-	FILE *f = fopen(fp, "r");
-	if (!f) {
-		std::cout << "Image can't be opened!" << std::endl;
-		fclose(f);
-		return 0;
-	}
-	unsigned char header[54];	// Each BMP file has a 54-byte header
-	fread(header, 1, 54, f);
-	if (header[0] != 'B' || header[1] != 'M') {
-        std::cout << "Not a BMP file" << std::endl;	// BMP header signature field
-		fclose(f);
-        return 0;
-    }
-	//unsigned int dataPos = *(int*)&(header[0x0A]);		// BMP data offset
-	unsigned int width = *(int*)&(header[0x12]);		// BMP width
-	unsigned int height = *(int*)&(header[0x16]);		// BMP height
-	unsigned int imageSize = *(int*)&(header[0x22]);	// BMP image size
-
-	unsigned char *data = new unsigned char[imageSize];
-	fread(data, 1, imageSize, f);
-	fclose(f);
-
-	Surface *surface = new Surface();
-	surface->width = width;
-	surface->height = height;
-	surface->data = data;
-
+Surface* loadPNG(const char *fp) {
+	Image img = fp;
+	surface = new Surface();
+	surface->width = img.width;
+	surface->height = img.height;
+	surface->data = img.data;
+	std::cout << "loadPNG(): " << fp << " (" << surface->width << "x" << surface->height << ")\n";
 	return surface;
 }
 
 bool initGLTexture(const char *name, GLuint *addr) {
 	Surface *surface;
-	surface = loadBMP(name);
+	surface = loadPNG(name);
 	glGenTextures(1, addr);
 	glBindTexture(GL_TEXTURE_2D, *addr);
 	// Stretch Property
@@ -100,15 +83,20 @@ bool initGLTexture(const char *name, GLuint *addr) {
 }
 
 int loadGLTextures() {
-	initGLTexture("cyl_side_tex.bmp", &cylinder_side_tex);
-	initGLTexture("cyl_spinner_tex.bmp", &cylinder_spinner_tex);
-	initGLTexture("reels_tex.bmp", &reels_tex);
+	initGLTexture("cyl_side_tex.png", &cylinder_side_tex);
+	initGLTexture("cyl_spinner_tex.png", &cylinder_spinner_tex);
+	initGLTexture("reels_tex.png", &reels_tex);
 	
+	// test
+	//initGLTexture("reel_strip.png", &reel_strip);
 	return 1;
 }
 
 int initGL(GLvoid) {
-	loadGLTextures();
+	if (loadGLTextures() == 1) {
+		std::cout << "loadGLTextures() success\n";
+	}
+	//loadGLTextures();
 	// background
 	glShadeModel(GL_SMOOTH);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -147,16 +135,27 @@ int resize(int width, int height) {
 	return 1;
 }
 
-
 void drawReels() {
 	glEnable( GL_LIGHTING );
 	glDisable( GL_BLEND );
 	glTranslatef(1.0f,-0.4f,-3.9);
 
+	/*
 	for (int x=0;x<3;++x){
-	    //Reel *reel = reels[x];
-    }
+	    Reel *reel = reels[x];
+		reel->spin();
+    	}
+	*/
 
+	for (int x = 0; x < 3; ++x) {
+        if (reels[x] == nullptr) {
+            std::cerr << "Error: reels[" << x << "] is null" << std::endl;
+            return;
+        }
+        Reel *reel = reels[x];
+        reel->spin();
+    }
+	
 	glColor4f( 128, 128, 128, 128 );
 	// spinner rod
 	glPushMatrix();
@@ -192,13 +191,14 @@ void drawReels() {
 	    glBindTexture( GL_TEXTURE_2D, reels_tex );
 	    gluCylinder(quadratic,1.0f,1.0f,0.6f,9,3);
 	glPopMatrix();
+	
 }
 
 int draw(GLvoid) {
 	// Clear && Reset View
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-
 	drawReels();
+
 	return 1;
 }
