@@ -16,7 +16,7 @@
 #include <X11/keysym.h>
 #include <GL/glx.h>
 #include "fonts.h"
-//#include "phil_funcs.h"
+#include "phil_funcs.h"
 
 class Image {
 public:
