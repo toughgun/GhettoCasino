@@ -174,17 +174,6 @@ int done=0;
 //===========================================================================
 int main() {
     printf("```Welcome to the Ghetto```\n");
-//    for(int x=0;x<3;++x) {
-//    	reels[x] = new Reel();
-//    }
-    //int done = 0;
-    //int winactive = 0;
-
-//====================================================
-//This is breaking the menu
-//    if (initGL() == 1) {
-//        printf("Successfully initialized OpenGL\n");
-//    }
 //===================================================
 	init_opengl();
 	while (!done) {
