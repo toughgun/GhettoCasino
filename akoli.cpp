@@ -14,6 +14,8 @@
 #include <GL/glu.h>
 #include "time.h"
 #include "phil_funcs.h"
+#include "image.h"
+#include "reel.h"
 #include <vector>
 #include <iostream>
 #include <math.h>
@@ -30,7 +32,6 @@
 std::chrono::time_point<std::chrono::high_resolution_clock> last_time = std::chrono::high_resolution_clock::now();
 
 Surface *surface;
-
 
 GLUquadricObj *quadratic;     // Storage object
 GLuint cylinder_side_tex;
@@ -55,9 +56,6 @@ void calculate_framerate() {
     std::cout << "FPS: " << fps << std::endl;
 }
 
-GLfloat get_rand( GLfloat max ){
-	return ( 1 + (float) ( max * (rand() / (RAND_MAX + 1.0))) );
-}
 
 Surface* loadPNG(const char *fp) {
 	Image img = fp;
@@ -140,20 +138,10 @@ void drawReels() {
 	glDisable( GL_BLEND );
 	glTranslatef(1.0f,-0.4f,-3.9);
 
-	/*
-	for (int x=0;x<3;++x){
-	    Reel *reel = reels[x];
-		reel->spin();
-    	}
-	*/
-
 	for (int x = 0; x < 3; ++x) {
-        if (reels[x] == nullptr) {
-            std::cerr << "Error: reels[" << x << "] is null" << std::endl;
-            return;
-        }
-        Reel *reel = reels[x];
-        reel->spin();
+		Reel *reel = reels[x];
+		reels[x] = new Reel();
+		reel->spin();
     }
 	
 	glColor4f( 128, 128, 128, 128 );
