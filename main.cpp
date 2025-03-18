@@ -31,6 +31,7 @@ extern void show_credits();
 //bolayvar.cpp
 extern void drawMenu();
 extern void drawMenuOptions(int x);
+extern int click(int savex, int savey, int& done);
 
 Image img[3] = {
 	"menu_bg.png",
@@ -128,13 +129,14 @@ void checkhover(int savex, int savey);
 //global variable
 int done = 0;
 int mouseposition = 0;
+int kill = 0;
 //===========================================================================
 //===========================================================================
 int main() {
     printf("```Welcome to the Ghetto```\n");
 //===================================================
 	init_opengl();
-	while (!done) {
+	while (done != 1) {
 		while (x11.getXPending()) {
 			XEvent e = x11.getXNextEvent();
 			x11.check_resize(&e);
@@ -144,6 +146,7 @@ int main() {
 		physics();
 		render();
 		x11.swapBuffers();
+		done = kill;
 	}
 	return 0;
 }
@@ -262,22 +265,7 @@ void check_mouse(XEvent *e)
 	if (e->type == ButtonPress) {
 		if (e->xbutton.button==1) {
 			//Left button is down
-			if (savex > 490 && savex < 490+300 && savey > 250 && savey < 250+75) {
-			done = 2;
-			printf("pressed slots\n");
-			}
-			if (savex > 490 && savex < 490+300 && savey > 335 && savey < 335+75) {
-			done = 3;
-			printf("pressed dice\n");
-			}
-			if (savex > 490 && savex < 490+300 && savey > 425 && savey < 425+75) {
-			done = 4;
-			printf("pressed Black Jack\n");
-			}
-			if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
-			done = 1;
-			printf("pressed Exit\n");
-			}
+			click(savex, savey, kill);
 		}
 		if (e->xbutton.button==3) {
 			//Right button is down

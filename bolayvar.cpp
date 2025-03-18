@@ -91,3 +91,22 @@ void drawMenuOptions(int x)
 		buttonIdleState(bexit.pos[0],bexit.pos[1],bexit.pos[2]);
 	}			
 }
+
+int click(int savex, int savey, int& done)
+{
+	if (savex > 490 && savex < 490+300 && savey > 250 && savey < 250+75) { 
+	printf("pressed slots\n");
+	return done = 2;
+	} else if (savex > 490 && savex < 490+300 && savey > 335 && savey < 335+75) {
+	printf("pressed dice\n");
+	return done = 3;
+	} else if (savex > 490 && savex < 490+300 && savey > 425 && savey < 425+75) {
+	printf("pressed Black Jack\n");
+	return done = 4;	
+	} else if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
+	printf("pressed Exit\n");
+	return done = 1;
+	} else {
+		return done = 0;
+	}
+}
