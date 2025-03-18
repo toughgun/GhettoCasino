@@ -234,7 +234,7 @@ static void show_child_credits_window()
             XDrawString(dpy, win, gc, 20, 80, "  Christian Rodriguez", 21);
             XDrawString(dpy, win, gc, 20, 110, "  Philp Lakes", 13);
             XDrawString(dpy, win, gc, 20, 140, "  Haonan Chen", 13);
-            XDrawString(dpy, win, gc, 20, 170, "  Ben", 5);
+            XDrawString(dpy, win, gc, 20, 170, "  Benjamin Olayvar", 18);
         }
 
         if (e.type == KeyPress) {

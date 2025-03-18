@@ -17,68 +17,25 @@
 #include <GL/glx.h>
 #include "fonts.h"
 #include "phil_funcs.h"
+#include "image.h"
+#include "global.h"
+#include "button.h"
+#include "texture.h"
 
-class Image {
-public:
-	int width, height;
-	unsigned char *data;
-	~Image() { delete [] data; }
-	Image(const char *fname) {
-		if (fname[0] == '\0')
-			return;
-		char name[40];
-		strcpy(name, fname);
-		int slen = strlen(name);
-		name[slen-4] = '\0';
-		char ppmname[80];
-		sprintf(ppmname,"%s.ppm", name);
-		char ts[100];
-		sprintf(ts, "convert %s %s", fname, ppmname);
-		system(ts);
-		FILE *fpi = fopen(ppmname, "r");
-		if (fpi) {
-			char line[200];
-			fgets(line, 200, fpi);
-			fgets(line, 200, fpi);
-			//skip comments and blank lines
-			while (line[0] == '#' || strlen(line) < 2)
-				fgets(line, 200, fpi);
-			sscanf(line, "%i %i", &width, &height);
-			fgets(line, 200, fpi);
-			//get pixel data
-			int n = width * height * 3;			
-			data = new unsigned char[n];			
-			for (int i=0; i<n; i++)
-				data[i] = fgetc(fpi);
-			fclose(fpi);
-		} else {
-			printf("ERROR opening image: %s\n", ppmname);
-			exit(0);
-		}
-		unlink(ppmname);
-	}
-};
+//macros
+#define MakeVector(x, y, z, v) (v)[0]=(x),(v)[1]=(y),(v)[2]=(z)
 
-Image img[1] = {"menu_bg.png"};
+//extern call list
+//crodriguez.cpp
+extern void show_credits();
+//bolayvar.cpp
+extern void drawMenu();
+extern void drawMenuOptions(int x);
 
-
-class Texture {
-public:
-	Image *backImage;
-	GLuint backTexture;
-	float xc[2];
-	float yc[2];
-
-};
-
-class Global {
-public:
-	int xres, yres;
-	Texture tex;
-	Global() {
-		xres=1280, yres=720;
-	}
-} g;
+Image img[3] = {
+	"menu_bg.png",
+	"menu_button.png",
+	"menu_button_hover_status.png"};
 
 class X11_wrapper {
 private:
@@ -166,10 +123,11 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics(void);
 void render(void);
+void checkhover(int savex, int savey);
 
 //global variable
-int done=0;
-
+int done = 0;
+int mouseposition = 0;
 //===========================================================================
 //===========================================================================
 int main() {
@@ -190,6 +148,47 @@ int main() {
 	return 0;
 }
 
+unsigned char *buildAlphaData(Image *img)
+{
+	//Add 4th component to an RGB stream...
+	//RGBA
+	//When you do this, OpenGL is able to use the A component to determine
+	//transparency information.
+	//It is used in this application to erase parts of a texture-map from view.
+	int i;
+	int a,b,c;
+	unsigned char *newdata, *ptr;
+	unsigned char *data = (unsigned char *)img->data;
+	newdata = (unsigned char *)malloc(img->width * img->height * 4);
+	ptr = newdata;
+	for (i=0; i<img->width * img->height * 3; i+=3) {
+		a = *(data+0);
+		b = *(data+1);
+		c = *(data+2);
+		*(ptr+0) = a;
+		*(ptr+1) = b;
+		*(ptr+2) = c;
+		//-----------------------------------------------
+		//get largest color component...
+		//*(ptr+3) = (unsigned char)((
+		//		(int)*(ptr+0) +
+		//		(int)*(ptr+1) +
+		//		(int)*(ptr+2)) / 3);
+		//d = a;
+		//if (b >= a && b >= c) d = b;
+		//if (c >= a && c >= b) d = c;
+		//*(ptr+3) = d;
+		//-----------------------------------------------
+		//this code optimizes the commented code above.
+		//code contributed by student: Chris Smith
+		//
+		*(ptr+3) = (a|b|c);
+		//-----------------------------------------------
+		ptr += 4;
+		data += 3;
+	}
+	return newdata;
+}
 void init_opengl(void)
 {
 	//OpenGL initialization
@@ -205,9 +204,16 @@ void init_opengl(void)
 	//Do this to allow texture maps
 	glEnable(GL_TEXTURE_2D);
 	//
-	//load the images file into a ppm structure.
+	//init the position of the menu buttons
+	//buttons spaced out by 87 pixels
+	MakeVector(g.xres/2,430,0, bslot.pos); //slots 
+	MakeVector(g.xres/2,430-87,0, bdice.pos); //dice
+	MakeVector(g.xres/2,430-(87*2),0, bblackjack.pos); //blackjack
+	MakeVector(g.xres/2,430-(87*3),0, bexit.pos); //exit
 	//
 	g.tex.backImage = &img[0];
+	g.tex.buttonImage = &img[1];
+	g.tex.buttonImageHover = &img[2];
 	//create menu background
 	glGenTextures(1, &g.tex.backTexture);
 	int w = g.tex.backImage->width;
@@ -219,29 +225,28 @@ void init_opengl(void)
 			GL_RGB, GL_UNSIGNED_BYTE, g.tex.backImage->data);
 	g.tex.xc[0] = 1.0;
 	g.tex.yc[1] = 1.0;	
-	
-}
 
-unsigned char *buildAlphaData(Image *img)
-{
-	int i, a, b, c;
-	unsigned char *newdata, *ptr;
-	unsigned char *data = (unsigned char *)img->data;
-	newdata = (unsigned char *)malloc(img->width * img->height * 4);
-	ptr = newdata;
-	for (i = 0; i < img->width * img->height * 3; i += 4) {
-		a = *(data+0);
-		b = *(data+1);
-		c = *(data+2);
-		*(ptr+0) = a;
-		*(ptr+1) = b;
-		*(ptr+2) = c;
+	 //menu button Idle
+	glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	 w = g.tex.buttonImage->width;
+	 h = g.tex.buttonImage->height;
+	unsigned char *but = buildAlphaData(&img[1]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, but);
+	free(but);
 
-		*(ptr+3) = (a|b|c);
-		ptr += 4;
-		data += 3;
-	}
-	return newdata;
+	//menu button Hover State
+	glBindTexture(GL_TEXTURE_2D, g.tex.buttontexHover);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	 w = g.tex.buttonImageHover->width;
+	 h = g.tex.buttonImageHover->height;
+	unsigned char *bhut = buildAlphaData(&img[2]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, bhut);
+	free(bhut);	
 }
 	
 void check_mouse(XEvent *e)
@@ -257,6 +262,22 @@ void check_mouse(XEvent *e)
 	if (e->type == ButtonPress) {
 		if (e->xbutton.button==1) {
 			//Left button is down
+			if (savex > 490 && savex < 490+300 && savey > 250 && savey < 250+75) {
+			done = 2;
+			printf("pressed slots\n");
+			}
+			if (savex > 490 && savex < 490+300 && savey > 335 && savey < 335+75) {
+			done = 3;
+			printf("pressed dice\n");
+			}
+			if (savex > 490 && savex < 490+300 && savey > 425 && savey < 425+75) {
+			done = 4;
+			printf("pressed Black Jack\n");
+			}
+			if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
+			done = 1;
+			printf("pressed Exit\n");
+			}
 		}
 		if (e->xbutton.button==3) {
 			//Right button is down
@@ -267,9 +288,23 @@ void check_mouse(XEvent *e)
 		savex = e->xbutton.x;
 		savey = e->xbutton.y;
 	}
+//	checkhover(savex,savey);
 }
-// Inside of crodriguez.cpp
-extern void show_credits();
+void checkhover(int savex, int savey)
+{
+	if (savex > 490 && savex < 490+300 && savey > 250 && savey < 250+75) {
+	mouseposition = 1;
+	}
+	if (savex > 490 && savex < 490+300 && savey > 335 && savey < 335+75) {
+	mouseposition = 2;
+	}
+	if (savex > 490 && savex < 490+300 && savey > 425 && savey < 425+75) {
+	mouseposition = 3;
+	}
+	if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
+	mouseposition = 4;
+	}	
+}
 
 int check_keys(XEvent *e)
 {
@@ -288,42 +323,13 @@ int check_keys(XEvent *e)
 }
 
 void physics()
-{
-
-}
-
-void drawMenu()
-{
-	//draw background image of the menu
-	glClear(GL_COLOR_BUFFER_BIT);
-	glColor3f(1.0, 1.0, 1.0);
-	
-	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
-	glBegin(GL_QUADS);
-		glTexCoord2f(-g.tex.xc[0], g.tex.yc[1]); glVertex2i(0,      0);
-		glTexCoord2f(-g.tex.xc[0], g.tex.yc[0]); glVertex2i(0,      g.yres);
-		glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
-		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
-	glEnd();
-	glPopMatrix();
-
-	//draw the game logo
-	
-}
-
-void drawMenuOptions()
-{
-
-
-
-
-}
+{}
 
 void render()
 {
 	if (done == 0) {
 	drawMenu();
-	drawMenuOptions();
+	drawMenuOptions(mouseposition);
 	} else if (done == 2) {
 		//draw slots
 
