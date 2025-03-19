@@ -5,14 +5,12 @@
 class Texture {
 public:
 	//button
-	Image *backImage;
+	Image *buttonImage;
 	GLuint buttontex;
 	//menu background
-	Image *buttonImage;
+	Image *backImage;
 	GLuint backTexture;
-	//hover over button
-	Image *buttonImageHover;
-	GLuint buttontexHover;
+
 	
 	float xc[2];
 	float yc[2];

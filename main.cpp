@@ -33,10 +33,9 @@ extern void drawMenu();
 extern void drawMenuOptions(int x);
 extern int click(int savex, int savey, int& done);
 
-Image img[3] = {
+Image img[2] = {
 	"menu_bg.png",
-	"menu_button.png",
-	"menu_button_hover_status.png"};
+	"menu_button.png"};
 
 class X11_wrapper {
 private:
@@ -216,7 +215,6 @@ void init_opengl(void)
 	//
 	g.tex.backImage = &img[0];
 	g.tex.buttonImage = &img[1];
-	g.tex.buttonImageHover = &img[2];
 	//create menu background
 	glGenTextures(1, &g.tex.backTexture);
 	int w = g.tex.backImage->width;
@@ -239,17 +237,6 @@ void init_opengl(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 			GL_RGBA, GL_UNSIGNED_BYTE, but);
 	free(but);
-
-	//menu button Hover State
-	glBindTexture(GL_TEXTURE_2D, g.tex.buttontexHover);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	 w = g.tex.buttonImageHover->width;
-	 h = g.tex.buttonImageHover->height;
-	unsigned char *bhut = buildAlphaData(&img[2]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-			GL_RGBA, GL_UNSIGNED_BYTE, bhut);
-	free(bhut);	
 }
 	
 void check_mouse(XEvent *e)
@@ -276,22 +263,22 @@ void check_mouse(XEvent *e)
 		savex = e->xbutton.x;
 		savey = e->xbutton.y;
 	}
-//	checkhover(savex,savey);
+	checkhover(savex,savey);
 }
+
 void checkhover(int savex, int savey)
 {
 	if (savex > 490 && savex < 490+300 && savey > 250 && savey < 250+75) {
 	mouseposition = 1;
-	}
-	if (savex > 490 && savex < 490+300 && savey > 335 && savey < 335+75) {
+	} else if (savex > 490 && savex < 490+300 && savey > 335 && savey < 335+75) {
 	mouseposition = 2;
-	}
-	if (savex > 490 && savex < 490+300 && savey > 425 && savey < 425+75) {
+	} else if (savex > 490 && savex < 490+300 && savey > 425 && savey < 425+75) {
 	mouseposition = 3;
-	}
-	if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
+	} else if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
 	mouseposition = 4;
-	}	
+	} else {
+		mouseposition = 0;
+	}
 }
 
 int check_keys(XEvent *e)
