@@ -8,9 +8,9 @@
 #include "button.h"
 #include "texture.h"
 
-void drawMenu()
+void drawMenuBG()
 {
-	//draw background image of the menu
+	//TODO: SET RAW BG, NO LOGO BAKED IN
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(1.0, 1.0, 1.0);
 	
@@ -22,6 +22,24 @@ void drawMenu()
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
 	glEnd();
 	glPopMatrix();
+
+	//draw logo for menu
+		glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+		glPushMatrix();
+		glTranslatef(menulogo.pos[0],menulogo.pos[1],menulogo.pos[2]);
+		glEnable(GL_ALPHA_TEST);
+		glAlphaFunc(GL_GREATER, 0.0f);
+		glBindTexture(GL_TEXTURE_2D, g.tex.menulogotex);
+		glBegin(GL_QUADS);
+			float h = g.tex.menuLogo->height/4;
+			float w = g.tex.menuLogo->width/4;
+			glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
+			glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
+			glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
+			glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
+		glEnd();
+		glDisable(GL_ALPHA_TEST);
+		glPopMatrix();
 }
 
 void buttonIdleState(int x, int y, int z)

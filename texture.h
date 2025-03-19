@@ -10,6 +10,9 @@ public:
 	//menu background
 	Image *backImage;
 	GLuint backTexture;
+	//menu logo
+	Image *menuLogo;
+	GLuint menulogotex;
 
 	
 	float xc[2];

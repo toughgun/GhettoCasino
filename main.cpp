@@ -29,13 +29,14 @@
 //crodriguez.cpp
 extern void show_credits();
 //bolayvar.cpp
-extern void drawMenu();
+extern void drawMenuBG();
 extern void drawMenuOptions(int x);
 extern int click(int savex, int savey, int& done);
 
-Image img[2] = {
+Image img[3] = {
 	"menu_bg.png",
-	"menu_button.png"};
+	"menu_button.png",
+	"logo.png"};
 
 class X11_wrapper {
 private:
@@ -129,6 +130,7 @@ void checkhover(int savex, int savey);
 int done = 0;
 int mouseposition = 0;
 int kill = 0;
+int windowstatus = 0; //0=Menu,2=slots,3=dice,4=blackjack
 //===========================================================================
 //===========================================================================
 int main() {
@@ -200,6 +202,12 @@ void init_opengl(void)
 	glMatrixMode(GL_MODELVIEW); glLoadIdentity();
 	//This sets 2D mode (no perspective)
 	glOrtho(0, g.xres, 0, g.yres, -1, 1);
+	//
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_FOG);
+	glDisable(GL_CULL_FACE);
+	//
 	//Clear the screen
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	//glClear(GL_COLOR_BUFFER_BIT);
@@ -208,6 +216,7 @@ void init_opengl(void)
 	//
 	//init the position of the menu buttons
 	//buttons spaced out by 87 pixels
+	MakeVector(g.xres/2,575,0, menulogo.pos); //logo
 	MakeVector(g.xres/2,430,0, bslot.pos); //slots 
 	MakeVector(g.xres/2,430-87,0, bdice.pos); //dice
 	MakeVector(g.xres/2,430-(87*2),0, bblackjack.pos); //blackjack
@@ -215,6 +224,7 @@ void init_opengl(void)
 	//
 	g.tex.backImage = &img[0];
 	g.tex.buttonImage = &img[1];
+	g.tex.menuLogo = &img[2];
 	//create menu background
 	glGenTextures(1, &g.tex.backTexture);
 	int w = g.tex.backImage->width;
@@ -226,6 +236,17 @@ void init_opengl(void)
 			GL_RGB, GL_UNSIGNED_BYTE, g.tex.backImage->data);
 	g.tex.xc[0] = 1.0;
 	g.tex.yc[1] = 1.0;	
+
+	 //menu logo
+	glBindTexture(GL_TEXTURE_2D, g.tex.menulogotex);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	 w = g.tex.menuLogo->width;
+	 h = g.tex.menuLogo->height;
+	unsigned char *lgo = buildAlphaData(&img[2]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, lgo);
+	free(lgo);
 
 	 //menu button Idle
 	glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
@@ -303,7 +324,7 @@ void physics()
 void render()
 {
 	if (done == 0) {
-	drawMenu();
+	drawMenuBG();
 	drawMenuOptions(mouseposition);
 	} else if (done == 2) {
 		//draw slots
