@@ -21,6 +21,9 @@ public:
     float cupPosX;
     float cupVelX;
     float cupRange;
+    
+    float w;
+    float h;
 
     Global() {
         xres = 1280;
@@ -33,6 +36,7 @@ public:
         cupVelX = 2.0f;
         cupRange = 50.0f;
     }
+
 };
 
 extern Global g;
