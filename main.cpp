@@ -16,9 +16,15 @@
 #include <X11/keysym.h>
 #include <GL/glx.h>
 #include "fonts.h"
+#include "crodriguez4.h"
+#include "image.h"
+#include "global.h"
 #include "phil_funcs.h"
 
-class Image {
+#include <iostream>
+using namespace std;
+
+/*class Image {
 public:
 	int width, height;
 	unsigned char *data;
@@ -57,28 +63,29 @@ public:
 		}
 		unlink(ppmname);
 	}
-};
+};*/
 
 Image img[1] = {"menu_bg.png"};
 
+Global g;
 
-class Texture {
-public:
-	Image *backImage;
-	GLuint backTexture;
-	float xc[2];
-	float yc[2];
+// class Texture {
+// public:
+// 	Image *backImage;
+// 	GLuint backTexture;
+// 	float xc[2];
+// 	float yc[2];
 
-};
+// };
 
-class Global {
-public:
-	int xres, yres;
-	Texture tex;
-	Global() {
-		xres=1280, yres=720;
-	}
-} g;
+// class Global {
+// public:
+// 	int xres, yres;
+// 	Texture tex;
+// 	Global() {
+// 		xres=1280, yres=720;
+// 	}
+// } g;
 
 class X11_wrapper {
 private:
@@ -168,57 +175,53 @@ void physics(void);
 void render(void);
 
 //global variable
-int done=0;
+int gameState=0;
 
 //===========================================================================
 //===========================================================================
 int main() {
     printf("```Welcome to the Ghetto```\n");
 //===================================================
-	init_opengl();
-	while (!done) {
-		while (x11.getXPending()) {
-			XEvent e = x11.getXNextEvent();
-			x11.check_resize(&e);
-			check_mouse(&e);
-			done = check_keys(&e);
-		}
-		physics();
-		render();
-		x11.swapBuffers();
+init_opengl();
+while (gameState != 1) {
+	while (x11.getXPending()) {
+		XEvent e = x11.getXNextEvent();
+		x11.check_resize(&e);
+		check_mouse(&e);
+		check_keys(&e);
+	}
+	physics();
+	render();
+	x11.swapBuffers();
 	}
 	return 0;
 }
 
 void init_opengl(void)
 {
-	//OpenGL initialization
 	glViewport(0, 0, g.xres, g.yres);
-	//Initialize matrices
-	glMatrixMode(GL_PROJECTION); glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-	//This sets 2D mode (no perspective)
-	glOrtho(0, g.xres, 0, g.yres, -1, 1);
-	//Clear the screen
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	//glClear(GL_COLOR_BUFFER_BIT);
-	//Do this to allow texture maps
-	glEnable(GL_TEXTURE_2D);
-	//
-	//load the images file into a ppm structure.
-	//
+    glMatrixMode(GL_PROJECTION); glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+    glOrtho(0, g.xres, 0, g.yres, -1, 1);
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glEnable(GL_TEXTURE_2D);
+    // Load the cup texture.
+    loadCupTexture();
+
 	g.tex.backImage = &img[0];
 	//create menu background
 	glGenTextures(1, &g.tex.backTexture);
-	int w = g.tex.backImage->width;
-	int h = g.tex.backImage->height;
+	int w = ((Image*)g.tex.backImage)->width;
+	int h = ((Image*)g.tex.backImage)->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
-			GL_RGB, GL_UNSIGNED_BYTE, g.tex.backImage->data);
-	g.tex.xc[0] = 1.0;
-	g.tex.yc[1] = 1.0;	
+			GL_RGB, GL_UNSIGNED_BYTE, ((Image*)g.tex.backImage)->data);
+	g.tex.xc[0] = 0.0f;
+	g.tex.xc[1] = 1.0f;
+	g.tex.yc[0] = 0.0f;
+	g.tex.yc[1] = 1.0f;	
 	
 }
 
@@ -269,46 +272,81 @@ void check_mouse(XEvent *e)
 	}
 }
 // Inside of crodriguez.cpp
-extern void show_credits();
+// extern void show_credits();
 
-int check_keys(XEvent *e)
-{
-	//Was there input from the keyboard?
-	if (e->type == KeyPress) {
-		int key = XLookupKeysym(&e->xkey, 0);
-		if (key == XK_Escape) {
-			return 1;
-		}
-		// If 'c' pressed, show credits
+int check_keys(XEvent *e) {
+    if (e->type == KeyPress) {
+        int key = XLookupKeysym(&e->xkey, 0);
+
+        if (key == XK_Escape) {
+            return gameState = 1; // exit
+        }
+        if (gameState == 3) {
+            if (key == XK_space) {
+                roll_dice();
+            }
+            if (key == XK_u || key == XK_U) {
+                playerChoice = UNDER;
+                cout << "[INPUT] Player chose UNDER.\n";
+            }
+            if (key == XK_o || key == XK_O) {
+                playerChoice = OVER;
+                cout << "[INPUT] Player chose OVER.\n";
+            }
+            if (key == XK_e || key == XK_E) {
+                playerChoice = EXACT;
+                cout << "[INPUT] Player chose EXACT.\n";
+            }
+            if (key == XK_r || key == XK_R) {
+				if (playerChoice != NONE)
+                	reveal_dice();
+				else
+					printf("Make a choice first\n");
+            }
+        }
         if (key == XK_c) {
-			show_credits();
-		}
-	}
-	return 0;
+            show_credits();
+        }
+        if (key == XK_m) {
+            cout << "gameState = 0\n";
+            return gameState = 0;
+        }
+        if (key == XK_s) {
+            cout << "gameState = 2\n";
+            return gameState = 2;
+        }
+        if (key == XK_d) {
+            cout << "gameState = 3\n";
+            return gameState = 3;
+        }
+        if (key == XK_b) {
+            cout << "gameState = 4\n";
+            return gameState = 4;
+        }
+    }
+    return 0;
 }
 
 void physics()
 {
-
+	if (gameState == 3) {
+        g.cupPosX += g.cupVelX;
+        if (g.cupPosX > g.cupRange || g.cupPosX < -g.cupRange) {
+            g.cupVelX = -g.cupVelX;
+        }
+    }
 }
 
-void drawMenu()
-{
-	//draw background image of the menu
-	glClear(GL_COLOR_BUFFER_BIT);
-	glColor3f(1.0, 1.0, 1.0);
-	
-	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
-	glBegin(GL_QUADS);
-		glTexCoord2f(-g.tex.xc[0], g.tex.yc[1]); glVertex2i(0,      0);
-		glTexCoord2f(-g.tex.xc[0], g.tex.yc[0]); glVertex2i(0,      g.yres);
-		glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
-		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
-	glEnd();
-	glPopMatrix();
-
-	//draw the game logo
-	
+void drawBackground() {
+    glClear(GL_COLOR_BUFFER_BIT);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
+    glBegin(GL_QUADS);
+        glTexCoord2f(g.tex.xc[0], g.tex.yc[1]); glVertex2i(0,      0);
+        glTexCoord2f(g.tex.xc[0], g.tex.yc[0]); glVertex2i(0,      g.yres);
+        glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
+        glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
+    glEnd();
 }
 
 void drawMenuOptions()
@@ -319,24 +357,19 @@ void drawMenuOptions()
 
 }
 
-void render()
-{
-	if (done == 0) {
-	drawMenu();
-	drawMenuOptions();
-	} else if (done == 2) {
-		//draw slots
-
-
-	} else if (done == 3) {
-		//draw dice game
-
-
-	} else if (done == 4) {
-		//draw blackjack
-		
-	
-	}
-
+void render() {
+    if (gameState == 0) {
+        drawBackground();
+        drawMenuOptions();
+    } else if (gameState == 2) {
+        cout << "[STATE] Slot selected.\n";
+        render_slots();
+    } else if (gameState == 3) {      
+		drawBackground();
+        render_dice();
+    } else if (gameState == 4) {
+        cout << "[STATE] Blackjack selected.\n";
+        render_blackjack();
+    }
 }
 
