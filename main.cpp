@@ -21,6 +21,7 @@
 #include "global.h"
 #include "button.h"
 #include "texture.h"
+#include "bolayvar.h"
 
 //macros
 #define MakeVector(x, y, z, v) (v)[0]=(x),(v)[1]=(y),(v)[2]=(z)
@@ -28,15 +29,15 @@
 //extern call list
 //crodriguez.cpp
 extern void show_credits();
-//bolayvar.cpp
-extern void drawMenuBG();
-extern void drawMenuOptions(int x);
-extern int click(int savex, int savey, int& done);
 
-Image img[3] = {
+Image img[7] = {
 	"menu_bg.png",
 	"menu_button.png",
-	"logo.png"};
+	"logo.png",
+	"b1.png",
+	"b2.png",
+	"b3.png",
+	"b4.png"};
 
 class X11_wrapper {
 private:
@@ -127,7 +128,7 @@ void render(void);
 void checkhover(int savex, int savey);
 
 //global variable
-int done = 0;
+int gamestate = 0;
 int mouseposition = 0;
 int kill = 0;
 int windowstatus = 0; //0=Menu,2=slots,3=dice,4=blackjack
@@ -137,17 +138,17 @@ int main() {
     printf("```Welcome to the Ghetto```\n");
 //===================================================
 	init_opengl();
-	while (done != 1) {
+	while (gamestate != 1) {
 		while (x11.getXPending()) {
 			XEvent e = x11.getXNextEvent();
 			x11.check_resize(&e);
 			check_mouse(&e);
-			done = check_keys(&e);
+			kill = check_keys(&e);
 		}
 		physics();
 		render();
 		x11.swapBuffers();
-		done = kill;
+		gamestate = kill;
 	}
 	return 0;
 }
@@ -214,7 +215,7 @@ void init_opengl(void)
 	//Do this to allow texture maps
 	glEnable(GL_TEXTURE_2D);
 	//
-	//init the position of the menu buttons
+	//init the position of the menu buttons and logo
 	//buttons spaced out by 87 pixels
 	MakeVector(g.xres/2,575,0, menulogo.pos); //logo
 	MakeVector(g.xres/2,430,0, bslot.pos); //slots 
@@ -225,30 +226,77 @@ void init_opengl(void)
 	g.tex.backImage = &img[0];
 	g.tex.buttonImage = &img[1];
 	g.tex.menuLogo = &img[2];
+	g.tex.bSlots = &img[3];
+	g.tex.bDice = &img[4];
+	g.tex.bBlackjack = &img[5];
+	g.tex.bExit = &img[6];	
+	//
+	//create menu logo
+	glGenTextures(1, &g.tex.menulogotex);
+	int w = g.tex.menuLogo->width;
+	int h = g.tex.menuLogo->height;
+	glBindTexture(GL_TEXTURE_2D, g.tex.menulogotex);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	unsigned char *lgo = buildAlphaData(&img[2]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, lgo);
+	free(lgo);
+	//
 	//create menu background
 	glGenTextures(1, &g.tex.backTexture);
-	int w = g.tex.backImage->width;
-	int h = g.tex.backImage->height;
+	w = g.tex.backImage->width;
+	h = g.tex.backImage->height;
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
 			GL_RGB, GL_UNSIGNED_BYTE, g.tex.backImage->data);
 	g.tex.xc[0] = 1.0;
-	g.tex.yc[1] = 1.0;	
-
-	 //menu logo
-	glBindTexture(GL_TEXTURE_2D, g.tex.menulogotex);
+	g.tex.yc[1] = 1.0;
+	//
+	//create menu button text
+	//create slots
+	glBindTexture(GL_TEXTURE_2D, g.tex.bSlotstex);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	 w = g.tex.menuLogo->width;
-	 h = g.tex.menuLogo->height;
-	unsigned char *lgo = buildAlphaData(&img[2]);
+	 w = g.tex.bSlots->width;
+	 h = g.tex.bSlots->height;
+	unsigned char *b1 = buildAlphaData(&img[3]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-			GL_RGBA, GL_UNSIGNED_BYTE, lgo);
-	free(lgo);
-
-	 //menu button Idle
+			GL_RGBA, GL_UNSIGNED_BYTE, b1);
+	free(b1);
+	//create dice
+	glBindTexture(GL_TEXTURE_2D, g.tex.bDicetex);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	 w = g.tex.bDice->width;
+	 h = g.tex.bDice->height;
+	unsigned char *b2 = buildAlphaData(&img[4]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, b2);
+	free(b2);
+	//create black jack
+	glBindTexture(GL_TEXTURE_2D, g.tex.bBlackjacktex);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	 w = g.tex.bBlackjack->width;
+	 h = g.tex.bBlackjack->height;
+	unsigned char *b3 = buildAlphaData(&img[5]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, b3);
+	free(b3);
+	//create exit
+	glBindTexture(GL_TEXTURE_2D, g.tex.bExittex);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	 w = g.tex.bExit->width;
+	 h = g.tex.bExit->height;
+	unsigned char *b4 = buildAlphaData(&img[6]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, b4);
+	free(b4);
+	//create menu button
 	glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
@@ -323,18 +371,21 @@ void physics()
 
 void render()
 {
-	if (done == 0) {
+	if (gamestate == 0) {
+	glClear(GL_COLOR_BUFFER_BIT);		
 	drawMenuBG();
 	drawMenuOptions(mouseposition);
-	} else if (done == 2) {
+//	drawButtonText();
+	drawMenuLogo();
+	} else if (gamestate == 2) {
 		//draw slots
 
 
-	} else if (done == 3) {
+	} else if (gamestate == 3) {
 		//draw dice game
 
 
-	} else if (done == 4) {
+	} else if (gamestate == 4) {
 		//draw blackjack
 		
 	

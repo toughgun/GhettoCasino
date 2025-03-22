@@ -10,10 +10,8 @@
 
 void drawMenuBG()
 {
-	//TODO: SET RAW BG, NO LOGO BAKED IN
-	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(1.0, 1.0, 1.0);
-	
+	glPushMatrix();
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glBegin(GL_QUADS);
 		glTexCoord2f(-g.tex.xc[0], g.tex.yc[1]); glVertex2i(0,      0);
@@ -22,26 +20,28 @@ void drawMenuBG()
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
 	glEnd();
 	glPopMatrix();
-
-	//draw logo for menu
-		glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
-		glPushMatrix();
-		glTranslatef(menulogo.pos[0],menulogo.pos[1],menulogo.pos[2]);
-		glEnable(GL_ALPHA_TEST);
-		glAlphaFunc(GL_GREATER, 0.0f);
-		glBindTexture(GL_TEXTURE_2D, g.tex.menulogotex);
-		glBegin(GL_QUADS);
-			float h = g.tex.menuLogo->height/4;
-			float w = g.tex.menuLogo->width/4;
-			glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
-			glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
-			glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
-			glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
-		glEnd();
-		glDisable(GL_ALPHA_TEST);
-		glPopMatrix();
 }
+void drawMenuLogo()
+{
+	//draw logo for menu
+	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	glPushMatrix();
+	glTranslatef(menulogo.pos[0],menulogo.pos[1],menulogo.pos[2]);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glBindTexture(GL_TEXTURE_2D, g.tex.menulogotex);
+	glBegin(GL_QUADS);
+		float h = g.tex.menuLogo->height/2.5;
+		float w = g.tex.menuLogo->width/2.5;
+		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
+		glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
+		glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
+		glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
+	glEnd();
+	glDisable(GL_ALPHA_TEST);
+	glPopMatrix();
 
+}
 void buttonIdleState(int x, int y, int z)
 {
 		glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
@@ -80,6 +80,77 @@ void buttonHoverState(int x, int y, int z)
 		glDisable(GL_ALPHA_TEST);
 		glPopMatrix();
 }
+void drawButtonText()
+{
+	//slots
+	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	glPushMatrix();
+	glTranslatef(bslot.pos[0],bslot.pos[1],bslot.pos[2]);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glBindTexture(GL_TEXTURE_2D, g.tex.bSlotstex);
+	glBegin(GL_QUADS);
+		float h = g.tex.bSlots->height/4;
+		float w = g.tex.bSlots->width/4;
+		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
+		glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
+		glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
+		glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
+	glEnd();
+	glDisable(GL_ALPHA_TEST);
+	glPopMatrix();
+	//dice
+	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	glPushMatrix();
+	glTranslatef(bdice.pos[0],bdice.pos[1],bdice.pos[2]);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glBindTexture(GL_TEXTURE_2D, g.tex.bSlotstex);
+	glBegin(GL_QUADS);
+		h = g.tex.bDice->height/4;
+		w = g.tex.bDice->width/4;
+		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
+		glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
+		glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
+		glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
+	glEnd();
+	glDisable(GL_ALPHA_TEST);
+	glPopMatrix();
+	//black jack
+	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	glPushMatrix();
+	glTranslatef(bblackjack.pos[0],bblackjack.pos[1],bblackjack.pos[2]);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glBindTexture(GL_TEXTURE_2D, g.tex.bBlackjacktex);
+	glBegin(GL_QUADS);
+		h = g.tex.bBlackjack->height/4;
+		w = g.tex.bBlackjack->width/4;
+		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
+		glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
+		glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
+		glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
+	glEnd();
+	glDisable(GL_ALPHA_TEST);
+	glPopMatrix();
+	//exit
+	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	glPushMatrix();
+	glTranslatef(bexit.pos[0],bexit.pos[1],bexit.pos[2]);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glBindTexture(GL_TEXTURE_2D, g.tex.bExittex);
+	glBegin(GL_QUADS);
+		h = g.tex.bExit->height/4;
+		w = g.tex.bExit->width/4;
+		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
+		glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
+		glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
+		glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
+	glEnd();
+	glDisable(GL_ALPHA_TEST);
+	glPopMatrix();
+}
 void drawMenuOptions(int x)
 {
 	//slots
@@ -105,7 +176,7 @@ void drawMenuOptions(int x)
 		buttonHoverState(bexit.pos[0],bexit.pos[1],bexit.pos[2]);
 	} else {
 		buttonIdleState(bexit.pos[0],bexit.pos[1],bexit.pos[2]);
-	}			
+	}
 }
 
 int click(int savex, int savey, int& done)
