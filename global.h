@@ -14,6 +14,9 @@ struct Texture {
 	Image* buttonImage;
 	GLuint buttontex;
     //
+    //devmode
+	Image* devImage;
+	GLuint devtex;
     float xc[2];
     float yc[2];
 };
@@ -24,6 +27,7 @@ public:
     Texture tex;
     GLuint cupTexture;
     GLuint silhouetteTexture;  // Added here
+    int devmode;
     float cupWidth;
     float cupHeight;
     float cupPosX;
@@ -33,6 +37,7 @@ public:
     float h;
 
     Global() {
+        devmode = 0;
         xres = 1280;
         yres = 720;
         cupTexture = 0;
