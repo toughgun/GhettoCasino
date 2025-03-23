@@ -270,7 +270,7 @@ void check_mouse(XEvent *e)
 		if (e->xbutton.button==1) {
 			//Left button is down
 			if (gameState == 0) {
-			click(savex, savey, kill);
+			gameState = click(savex, savey, kill);
 			}
 		}
 		if (e->xbutton.button==3) {

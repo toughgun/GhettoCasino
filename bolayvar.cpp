@@ -169,7 +169,7 @@ int click(int savex, int savey, int& done)
 	return done = 4;	
 	} else if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
 	printf("pressed Exit\n");
-	return done = 1;
+	return 1;
 	} else {
 		return done = 0;
 	}
