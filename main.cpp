@@ -180,13 +180,14 @@ void init_opengl(void)
     glOrtho(0, g.xres, 0, g.yres, -1, 1);
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glEnable(GL_TEXTURE_2D);
-    // Load the cup texture.
-    loadCupTexture();
 	//
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_FOG);
 	glDisable(GL_CULL_FACE);
+	//
+    // Load the cup texture.
+    loadCupTexture();
 	//
 	//init the position of the menu buttons and logo
 	//buttons spaced out by 87 pixels
@@ -251,8 +252,9 @@ void check_mouse(XEvent *e)
 	if (e->type == ButtonPress) {
 		if (e->xbutton.button==1) {
 			//Left button is down
-			if (gameState == 0)
+			if (gameState == 0) {
 			click(savex, savey, kill);
+			}
 		}
 		if (e->xbutton.button==3) {
 			//Right button is down
@@ -263,8 +265,9 @@ void check_mouse(XEvent *e)
 		savex = e->xbutton.x;
 		savey = e->xbutton.y;
 	}
-	if (gameState == 0)
+	if (gameState == 0) {
 	checkhover(savex,savey); //check mouse hover state
+	}
 }
 
 void checkhover(int savex, int savey)
@@ -332,7 +335,7 @@ int check_keys(XEvent *e) {
             return gameState = 4;
         }
     }
-    return 0;
+    return gameState;
 }
 
 void physics()
