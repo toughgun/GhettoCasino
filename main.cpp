@@ -23,7 +23,7 @@
 #include "image.h"
 #include "global.h"
 #include "button.h"
-
+#include "hchen_functions.h"
 #include <iostream>
 using namespace std;
 
@@ -137,6 +137,9 @@ int main() {
     printf("```Welcome to the Ghetto```\n");
 //===================================================
 init_opengl();
+while (introplay) {
+	intro_render();
+}
 while (gameState != 1) {
 	while (x11.getXPending()) {
 		XEvent e = x11.getXNextEvent();
