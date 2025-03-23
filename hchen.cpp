@@ -9,144 +9,84 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-#include <iostream>
-#include <cstdlib>
-#include <ctime>
-#include <cmath>  // Needed for cos() and sin()
 #include <GL/gl.h>
 #include <GL/glx.h>
-//#include "hchen_functions.h"
-#include <cstring>
-
-/*
-class Texture {
-public:
-	//Image *backImage;
-	GLuint backTexture;
-	float xc[2];
-	float yc[2];
-};
-
-class Global {
-public:
-	int xres, yres;
-	Texture tex;
-	Global() {
-		xres=640, yres=480;
-	}
-} g;
-
-class X11_wrapper {
-private:
-	Display *dpy;
-	Window win;
-	GLXContext glc;
-public:
-	X11_wrapper() {
-		GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
-		//GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, None };
-		setup_screen_res(640, 480);
-		dpy = XOpenDisplay(NULL);
-		if(dpy == NULL) {
-			printf("\n\tcannot connect to X server\n\n");
-			exit(EXIT_FAILURE);
-		}
-		Window root = DefaultRootWindow(dpy);
-		XVisualInfo *vi = glXChooseVisual(dpy, 0, att);
-		if(vi == NULL) {
-			printf("\n\tno appropriate visual found\n\n");
-			exit(EXIT_FAILURE);
-		} 
-		Colormap cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
-		XSetWindowAttributes swa;
-		swa.colormap = cmap;
-		swa.event_mask =
-			ExposureMask | KeyPressMask | KeyReleaseMask | PointerMotionMask |
-			ButtonPressMask | ButtonReleaseMask |
-			StructureNotifyMask | SubstructureNotifyMask;
-		win = XCreateWindow(dpy, root, 0, 0, g.xres, g.yres, 0,
-								vi->depth, InputOutput, vi->visual,
-								CWColormap | CWEventMask, &swa);
-		set_title();
-		glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
-		glXMakeCurrent(dpy, win, glc);
-	}
-	void cleanupXWindows() {
-		XDestroyWindow(dpy, win);
-		XCloseDisplay(dpy);
-	}
-	void setup_screen_res(const int w, const int h) {
-		g.xres = w;
-		g.yres = h;
-	}
-	void reshape_window(int width, int height) {
-		//window has been resized.
-		setup_screen_res(width, height);
-		glViewport(0, 0, (GLint)width, (GLint)height);
-		glMatrixMode(GL_PROJECTION); glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-		glOrtho(0, g.xres, 0, g.yres, -1, 1);
-		set_title();
-	}
-	void set_title() {
-		//Set the window title bar.
-		XMapWindow(dpy, win);
-		XStoreName(dpy, win, "scrolling background (seamless)");
-	}
-	bool getXPending() {
-		return XPending(dpy);
-	}
-	XEvent getXNextEvent() {
-		XEvent e;
-		XNextEvent(dpy, &e);
-		return e;
-	}
-	void swapBuffers() {
-		glXSwapBuffers(dpy, win);
-	}
-	void check_resize(XEvent *e) {
-		//The ConfigureNotify is sent by the
-		//server if the window is resized.
-		if (e->type != ConfigureNotify)
-			return;
-		XConfigureEvent xce = e->xconfigure;
-		if (xce.width != g.xres || xce.height != g.yres) {
-			//Window size did change.
-			reshape_window(xce.width, xce.height);
-		}
-	}
-} x11;
-*/
-/*
-int show_gameinfo = 0;
-
-void gameInfo_hc()//int x, int y)
+#include "hchen_functions.h"
+#include "global.h"
+#include "image.h"
+#include <time.h>
+void game_info()
 {
-
-    drawString(20, 50, "gameinfo");
-    *
+    /*
     Rect r;
-    r.bot = y;
-    r.left = x;
-    r.center = 0;
-    ggprint8b(&r, 8, 0x00ff00ff, "GameInfo");
-/
+        r.bot = 0;
+        r.left = 0;
+        ggprint8b(&r, 16, 0xffffff, "GHETTO CASINO");
+        glPopMatrix();
+        */
 }
-*/
+
+void intro_physics()
+{
+    //set image as logo
+    //make logo physics as scrolling down
+        g.tex.yc[0] -= 0.1;
+        g.tex.yc[1] -= 0.1;
+}
+
+//set start time for when intro starts
+//set intro playing as true
+time_t start_time = time(NULL);
+time_t current_time;
+bool introplay = true;
+void intro_render()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    //get current time to check if its over 5 seconds
+    //if not render game logo and call for intro_physics()
+    current_time = time(NULL);
+    while (current_time - start_time >= 5) {
+        intro_physics();
+        /*
+    glPushMatrix();
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glBindTexture(GL_TEXTURE_2D, g.tex.menulogotex);
+    glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex2f(0,0);
+        //glVertex2f(-g.tex.menuLogo/2, -g.tex.menuLogo/2);
+
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex2f(0,g.yres);
+        //glVertex2f( g.tex.menuLogo/2, -g.tex.menuLogo/2);
+
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex2f(g.xres, g.yres);
+        //glVertex2f( g.tex.menuLogo/2,  g.tex.menuLogo/2);
+
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex2f(g.xres, 0);
+        //glVertex2f(-g.tex.menuLogo/2,  g.tex.menuLogo/2);
+    glEnd();
+    glDisable(GL_ALPHA_TEST);
+    glPopMatrix();
+    */
+    }
+    //set intro playing to false
+    introplay = false;
+}
+
  void drawString(int left, int top, char *str)
 {
 //    XDrawString(100, 200, g.glc, left, top, "gameinfo", 8);
 
 }
-void gameInfo()
-{
-}
 
 
 /*void show_hchen(Rect *r)
 {
+
     ggprint8b(r, 0x00ff00ff, "Haonan");
 }*/
