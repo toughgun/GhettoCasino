@@ -7,6 +7,21 @@
 #include "global.h"
 #include "button.h"
 #include "texture.h"
+#include "fonts.h"
+
+void drawMenuBG();
+void drawMenuLogo();
+void drawMenuOptions(int x);
+void drawButtonTxt();
+
+void drawMenu(int x)
+{
+	glClear(GL_COLOR_BUFFER_BIT);	
+	drawMenuBG();
+	drawMenuLogo();
+	drawMenuOptions(x);
+	drawButtonTxt();
+}
 
 void drawMenuBG()
 {
@@ -40,7 +55,6 @@ void drawMenuLogo()
 	glEnd();
 	glDisable(GL_ALPHA_TEST);
 	glPopMatrix();
-
 }
 void buttonIdleState(int x, int y, int z)
 {
@@ -80,75 +94,40 @@ void buttonHoverState(int x, int y, int z)
 		glDisable(GL_ALPHA_TEST);
 		glPopMatrix();
 }
-void drawButtonText()
+void drawButtonTxt()
 {
-	//slots
-	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	Rect r[2];
+	//slots text
 	glPushMatrix();
-	glTranslatef(bslot.pos[0],bslot.pos[1],bslot.pos[2]);
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.0f);
-	glBindTexture(GL_TEXTURE_2D, g.tex.bSlotstex);
-	glBegin(GL_QUADS);
-		float h = g.tex.bSlots->height/4;
-		float w = g.tex.bSlots->width/4;
-		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
-		glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
-		glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
-		glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
-	glEnd();
-	glDisable(GL_ALPHA_TEST);
+	glTranslatef(bslot.pos[0], bslot.pos[1]-30, 0);
+	glScalef(5.0f, 5.0f, 1); // scale up 500%
+	r[0].bot = 0;
+	r[0].left = 0;
+	ggprint8b(&r[0], 16, 0xffffff, "SLOTS");
 	glPopMatrix();
-	//dice
-	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	//dice text
 	glPushMatrix();
-	glTranslatef(bdice.pos[0],bdice.pos[1],bdice.pos[2]);
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.0f);
-	glBindTexture(GL_TEXTURE_2D, g.tex.bSlotstex);
-	glBegin(GL_QUADS);
-		h = g.tex.bDice->height/4;
-		w = g.tex.bDice->width/4;
-		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
-		glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
-		glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
-		glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
-	glEnd();
-	glDisable(GL_ALPHA_TEST);
+	glTranslatef(bdice.pos[0], bdice.pos[1]-30, 0);
+	glScalef(5.0f, 5.0f, 1); // scale up 500%
+	r[1].bot = 0;
+	r[1].left = 0;
+	ggprint8b(&r[1], 16, 0xffffff, "DICE");
 	glPopMatrix();
-	//black jack
-	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	//black jack text
 	glPushMatrix();
-	glTranslatef(bblackjack.pos[0],bblackjack.pos[1],bblackjack.pos[2]);
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.0f);
-	glBindTexture(GL_TEXTURE_2D, g.tex.bBlackjacktex);
-	glBegin(GL_QUADS);
-		h = g.tex.bBlackjack->height/4;
-		w = g.tex.bBlackjack->width/4;
-		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
-		glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
-		glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
-		glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
-	glEnd();
-	glDisable(GL_ALPHA_TEST);
+	glTranslatef(bblackjack.pos[0], bblackjack.pos[1]-23, 0);
+	glScalef(4.0f, 4.0f, 1); // scale up 400%
+	r[1].bot = 0;
+	r[1].left = 0;
+	ggprint8b(&r[1], 16, 0xffffff, "BLACK JACK");
 	glPopMatrix();
-	//exit
-	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	//exit text
 	glPushMatrix();
-	glTranslatef(bexit.pos[0],bexit.pos[1],bexit.pos[2]);
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.0f);
-	glBindTexture(GL_TEXTURE_2D, g.tex.bExittex);
-	glBegin(GL_QUADS);
-		h = g.tex.bExit->height/4;
-		w = g.tex.bExit->width/4;
-		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
-		glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
-		glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
-		glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
-	glEnd();
-	glDisable(GL_ALPHA_TEST);
+	glTranslatef(bexit.pos[0], bexit.pos[1]-30, 0);
+	glScalef(5.0f, 5.0f, 1); // scale up 500%
+	r[1].bot = 0;
+	r[1].left = 0;
+	ggprint8b(&r[1], 16, 0xffffff, "EXIT");
 	glPopMatrix();
 }
 void drawMenuOptions(int x)
@@ -178,7 +157,6 @@ void drawMenuOptions(int x)
 		buttonIdleState(bexit.pos[0],bexit.pos[1],bexit.pos[2]);
 	}
 }
-
 int click(int savex, int savey, int& done)
 {
 	if (savex > 490 && savex < 490+300 && savey > 250 && savey < 250+75) { 
