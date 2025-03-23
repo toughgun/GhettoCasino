@@ -4,8 +4,16 @@
 #include "image.h"
 
 struct Texture {
-    void* backImage;
+    //menu background
+    Image* backImage;
     GLuint backTexture;
+    //menu logo
+	Image* menuLogo;
+	GLuint menulogotex;
+	//button
+	Image* buttonImage;
+	GLuint buttontex;
+    //
     float xc[2];
     float yc[2];
 };
@@ -21,7 +29,6 @@ public:
     float cupPosX;
     float cupVelX;
     float cupRange;
-    
     float w;
     float h;
 
@@ -36,9 +43,7 @@ public:
         cupVelX = 2.0f;
         cupRange = 50.0f;
     }
-
 };
 
 extern Global g;
-
 #endif // GLOBAL_H
