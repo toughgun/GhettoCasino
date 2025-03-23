@@ -15,6 +15,7 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
+#include <AL/al.h>
 #include "fonts.h"
 #include "bolayvar.h"
 #include "crodriguez4.h"
@@ -31,10 +32,11 @@ using namespace std;
 
 Global g;
 
-Image img[3] = {
+Image img[4] = {
 	"menu_bg.png",
 	"menu_button.png",
-	"logo.png" };
+	"logo.png",
+	"menu_bg_devscreen.png" };
 
 class X11_wrapper {
 private:
@@ -209,6 +211,7 @@ void init_opengl(void)
 	//init the position of the menu buttons and logo
 	//buttons spaced out by 87 pixels
 	MakeVector(g.xres/2,575,0, menulogo.pos); //logo
+	MakeVector(g.xres/2,g.yres/2,0, dev.pos); //slots 
 	MakeVector(g.xres/2,430,0, bslot.pos); //slots 
 	MakeVector(g.xres/2,430-87,0, bdice.pos); //dice
 	MakeVector(g.xres/2,430-(87*2),0, bblackjack.pos); //blackjack
@@ -217,6 +220,7 @@ void init_opengl(void)
 	g.tex.backImage = &img[0];
 	g.tex.buttonImage = &img[1];
 	g.tex.menuLogo = &img[2];
+	g.tex.devImage = &img[3];
 	//
 	//create menu logo
 	glGenTextures(1, &g.tex.menulogotex);
@@ -252,9 +256,19 @@ void init_opengl(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 			GL_RGBA, GL_UNSIGNED_BYTE, but);
 	free(but);
+	//create dev screen
+	glGenTextures(1, &g.tex.devtex);
+	w = g.tex.devImage->width;
+	h = g.tex.devImage->height;
+	glBindTexture(GL_TEXTURE_2D, g.tex.devtex);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	unsigned char *devbut = buildAlphaData(&img[3]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, devbut);
+	free(devbut);
 	initialize_fonts();
 }
-
 
 void check_mouse(XEvent *e)
 {
@@ -362,4 +376,3 @@ void render() {
         render_blackjack();
     }
 }
-

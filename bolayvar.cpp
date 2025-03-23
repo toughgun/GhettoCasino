@@ -12,24 +12,45 @@ void drawBackground();
 void drawMenuLogo();
 void drawMenuOptions(int x);
 void drawButtonTxt();
+void drawDevscreen();
 
 void drawMenu(int x)
 {
 	glClear(GL_COLOR_BUFFER_BIT);	
 	drawBackground();
+	drawDevscreen();
 	drawMenuLogo();
 	drawMenuOptions(x);
 	drawButtonTxt();
 }
 
+void drawDevscreen()
+{
+	glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
+	glPushMatrix();
+	glTranslatef(dev.pos[0],dev.pos[1],dev.pos[2]);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glBindTexture(GL_TEXTURE_2D, g.tex.devtex);
+	glBegin(GL_QUADS);
+		float h = g.tex.devImage->height/2;
+		float w = g.tex.devImage->width/2;
+		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
+		glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
+		glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
+		glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
+	glEnd();
+	glDisable(GL_ALPHA_TEST);
+	glPopMatrix();
+}
 void drawBackground()
 {
 	glColor3f(1.0, 1.0, 1.0);
 	glPushMatrix();
 	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
 	glBegin(GL_QUADS);
-		glTexCoord2f(-g.tex.xc[0], g.tex.yc[1]); glVertex2i(0,      0);
-		glTexCoord2f(-g.tex.xc[0], g.tex.yc[0]); glVertex2i(0,      g.yres);
+		glTexCoord2f(-g.tex.xc[0], g.tex.yc[1]); glVertex2i(0, 0);
+		glTexCoord2f(-g.tex.xc[0], g.tex.yc[0]); glVertex2i(0, g.yres);
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
 	glEnd();

@@ -7,6 +7,6 @@ class Button {
 	Vec pos;
 };
 
-extern Button menulogo, bslot, bdice, bblackjack, bexit;
+extern Button dev, menulogo, bslot, bdice, bblackjack, bexit;
 
 #endif

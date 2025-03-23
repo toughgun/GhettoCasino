@@ -1,3 +1,3 @@
 #include "button.h"
 
-Button menulogo, bslot, bdice, bblackjack, bexit;
+Button dev, menulogo, bslot, bdice, bblackjack, bexit;
