@@ -122,9 +122,9 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics(void);
 void render(void);
-void checkhover(int savex, int savey);
+int checkhover(int savex, int savey, int mouseposition);
 void drawBackground();
-
+int check_esc(int x);
 //global variable
 int gameState=0;
 int mouseposition = 0;
@@ -283,22 +283,7 @@ void check_mouse(XEvent *e)
 		savey = e->xbutton.y;
 	}
 	if (gameState == 0) {
-	checkhover(savex,savey); //check mouse hover state
-	}
-}
-
-void checkhover(int savex, int savey)
-{
-	if (savex > 490 && savex < 490+300 && savey > 250 && savey < 250+75) {
-	mouseposition = 1;
-	} else if (savex > 490 && savex < 490+300 && savey > 335 && savey < 335+75) {
-	mouseposition = 2;
-	} else if (savex > 490 && savex < 490+300 && savey > 425 && savey < 425+75) {
-	mouseposition = 3;
-	} else if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
-	mouseposition = 4;
-	} else {
-		mouseposition = 0;
+	mouseposition = checkhover(savex,savey,mouseposition); //check mouse hover state
 	}
 }
 
@@ -307,7 +292,7 @@ int check_keys(XEvent *e) {
         int key = XLookupKeysym(&e->xkey, 0);
 
         if (key == XK_Escape) {
-            return 1; // exit
+			gameState = check_esc(gameState);
         }
         if (gameState == 3) {
             if (key == XK_space) {
@@ -369,13 +354,11 @@ void render() {
     if (gameState == 0) {
         drawMenu(mouseposition);
     } else if (gameState == 2) {
-        cout << "[STATE] Slot selected.\n";
         render_slots();
     } else if (gameState == 3) {      
 		drawBackground();
         render_dice();
     } else if (gameState == 4) {
-        cout << "[STATE] Blackjack selected.\n";
         render_blackjack();
     }
 }

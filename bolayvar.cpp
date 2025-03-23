@@ -35,6 +35,7 @@ void drawBackground()
 	glEnd();
 	glPopMatrix();
 }
+
 void drawMenuLogo()
 {
 	//draw logo for menu
@@ -55,6 +56,7 @@ void drawMenuLogo()
 	glDisable(GL_ALPHA_TEST);
 	glPopMatrix();
 }
+
 void buttonIdleState(int x, int y, int z)
 {
 		glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
@@ -74,6 +76,7 @@ void buttonIdleState(int x, int y, int z)
 		glDisable(GL_ALPHA_TEST);
 		glPopMatrix();
 }
+
 void buttonHoverState(int x, int y, int z)
 {
 		glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
@@ -93,6 +96,7 @@ void buttonHoverState(int x, int y, int z)
 		glDisable(GL_ALPHA_TEST);
 		glPopMatrix();
 }
+
 void drawButtonTxt()
 {
 	Rect r[2];
@@ -129,6 +133,7 @@ void drawButtonTxt()
 	ggprint8b(&r[1], 16, 0xffffff, "EXIT");
 	glPopMatrix();
 }
+
 void drawMenuOptions(int x)
 {
 	//slots
@@ -156,21 +161,62 @@ void drawMenuOptions(int x)
 		buttonIdleState(bexit.pos[0],bexit.pos[1],bexit.pos[2]);
 	}
 }
+
 int click(int savex, int savey, int& done)
 {
 	if (savex > 490 && savex < 490+300 && savey > 250 && savey < 250+75) { 
-	printf("pressed slots\n");
-	return done = 2;
+	printf("[STATE] Slot selected.\n");
+	return 2;
 	} else if (savex > 490 && savex < 490+300 && savey > 335 && savey < 335+75) {
-	printf("pressed dice\n");
-	return done = 3;
+	printf("[STATE] Dice selected.\n");
+	return 3;
 	} else if (savex > 490 && savex < 490+300 && savey > 425 && savey < 425+75) {
-	printf("pressed Black Jack\n");
-	return done = 4;	
+	printf("[STATE] Black Jack selected.\n");
+	return 4;	
 	} else if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
-	printf("pressed Exit\n");
+	printf("[STATE] Exit selected.\n");
 	return 1;
 	} else {
 		return done = 0;
 	}
+}
+
+int checkhover(int savex, int savey, int mouseposition)
+{
+	if (savex > 490 && savex < 490+300 && savey > 250 && savey < 250+75) {
+	mouseposition = 1;
+	} else if (savex > 490 && savex < 490+300 && savey > 335 && savey < 335+75) {
+	mouseposition = 2;
+	} else if (savex > 490 && savex < 490+300 && savey > 425 && savey < 425+75) {
+	mouseposition = 3;
+	} else if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
+	mouseposition = 4;
+	} else {
+		mouseposition = 0;
+	}
+	return mouseposition;
+}
+
+int check_esc(int x)
+{
+	//switch case for the esc key
+	switch (x) {
+		//menu case
+		case 0:
+		x = 1;
+		break;
+		//slots case
+		case 2:
+		x = 0;
+		break;
+		//dice case
+		case 3:
+		x = 0;
+		break;
+		//black jack case
+		case 4:
+		x = 0;
+		break;
+	}
+	return x;
 }
