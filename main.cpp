@@ -15,7 +15,7 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <GL/glx.h>
-#include <AL/al.h>
+//#include <AL/al.h>
 #include "fonts.h"
 #include "bolayvar.h"
 #include "crodriguez4.h"
