@@ -14,7 +14,7 @@ extern void render_blackjack();
 extern void render_slots();
 extern void show_credits();
 extern void loadCupTexture();
-
+extern void Start_Dice();
 
 // Dice game state variables:
 extern bool diceRevealed;

@@ -59,10 +59,14 @@ void drawCup() {
     glBindTexture(GL_TEXTURE_2D, g.cupTexture);
     glColor3f(1.0f, 1.0f, 1.0f); 
     glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f); glVertex2f(-g.cupWidth/2, -g.cupHeight/2);
-        glTexCoord2f(1.0f, 0.0f); glVertex2f( g.cupWidth/2, -g.cupHeight/2);
-        glTexCoord2f(1.0f, 1.0f); glVertex2f( g.cupWidth/2,  g.cupHeight/2);
-        glTexCoord2f(0.0f, 1.0f); glVertex2f(-g.cupWidth/2,  g.cupHeight/2);
+        glTexCoord2f(0.0f, 0.0f); 
+            glVertex2f(-g.cupWidth/2, -g.cupHeight/2);
+        glTexCoord2f(1.0f, 0.0f); 
+            glVertex2f( g.cupWidth/2, -g.cupHeight/2);
+        glTexCoord2f(1.0f, 1.0f); 
+            glVertex2f( g.cupWidth/2,  g.cupHeight/2);
+        glTexCoord2f(0.0f, 1.0f); 
+            glVertex2f(-g.cupWidth/2,  g.cupHeight/2);
     glEnd();
     glDisable(GL_ALPHA_TEST);
 }
@@ -75,7 +79,43 @@ void loadCupTexture() {
     glTexImage2D(GL_TEXTURE_2D, 0, 3, cupImg.width, cupImg.height, 0,
                  GL_RGB, GL_UNSIGNED_BYTE, cupImg.data);
 }
-void draw_button(float x, float y, float width, float height, const char* label) {
+void roll_dice() {
+    srand(time(0));
+    die1 = rand() % 6 + 1;
+    die2 = rand() % 6 + 1;
+    total = die1 + die2;
+    diceRevealed = false;
+    cout << "[INFO] Dice rolled. Awaiting user choice...\n";
+}
+void cupPhysics() {
+    g.cupPosX += g.cupVelX;
+    if (g.cupPosX > g.cupRange || g.cupPosX < -g.cupRange) {
+        g.cupVelX = -g.cupVelX;
+    }
+}
+void Start_Dice() {
+    time_t start = time(NULL);
+    while (difftime(time(NULL), start) < 7) {
+        cupPhysics();
+        usleep(3000000); // Sleep for 3 seconds
+    }
+    render_dice();
+    roll_dice();
+}
+void reveal_dice() {
+    diceRevealed = true;
+    cout << "[INFO] Revealing dice: " << die1 << " and " << die2 
+    << " (Total: " << total << ")\n";
+    if ((playerChoice == UNDER && total < 7) ||
+        (playerChoice == OVER && total > 7) ||
+        (playerChoice == EXACT && total == 7)) {
+        cout << "[RESULT] You won!\n";
+    } else {
+        cout << "[RESULT] You lost. Try again!\n";
+    }
+}
+void draw_button(float x, float y, float width, float height,
+                                                    const char* label) {
     glColor3f(0.2f, 0.6f, 1.0f);
     glBegin(GL_QUADS);
         glVertex2f(x, y);
@@ -90,26 +130,6 @@ void draw_button(float x, float y, float width, float height, const char* label)
     r.bot = 0; 
     r.center = 1;  // Enable centering mode
     ggprint16(&r, 16, 0, "%s", label);
-}
-void roll_dice() {
-    srand(time(0));
-    die1 = rand() % 6 + 1;
-    die2 = rand() % 6 + 1;
-    total = die1 + die2;
-    diceRevealed = false;
-    cout << "[INFO] Dice rolled. Awaiting user choice...\n";
-}
-void reveal_dice() {
-    diceRevealed = true;
-    cout << "[INFO] Revealing dice: " << die1 << " and " << die2 
-         << " (Total: " << total << ")\n";
-    if ((playerChoice == UNDER && total < 7) ||
-        (playerChoice == OVER && total > 7) ||
-        (playerChoice == EXACT && total == 7)) {
-        cout << "[RESULT] You won!\n";
-    } else {
-        cout << "[RESULT] You lost. Try again!\n";
-    }
 }
 /*Black jack section*/
 void render_blackjack() {
@@ -137,10 +157,11 @@ static void show_child_credits_window() {
     int winWidth = 350;
     int winHeight = 250;
 
-    Window win = XCreateSimpleWindow(dpy, root, 100, 100, winWidth, winHeight, 1,
-                                     BlackPixel(dpy, screen), WhitePixel(dpy, screen));
+    Window win = XCreateSimpleWindow(dpy, root, 100, 100, winWidth, 
+        winHeight, 1, BlackPixel(dpy, screen), WhitePixel(dpy, screen));
     XStoreName(dpy, win, "Credits");
-    XSelectInput(dpy, win, ExposureMask | KeyPressMask | StructureNotifyMask);
+    XSelectInput(dpy, win, ExposureMask | KeyPressMask | 
+                                                StructureNotifyMask);
     XMapWindow(dpy, win);
 
     XFontStruct *font = XLoadQueryFont(dpy, "10x20");
@@ -159,10 +180,10 @@ static void show_child_credits_window() {
         XNextEvent(dpy, &e);
         if (e.type == Expose) {
             XDrawString(dpy, win, gc, 20, 50, "Credits:", 8);
-            XDrawString(dpy, win, gc, 20, 80, "  Christian Rodriguez", 21);
-            XDrawString(dpy, win, gc, 20, 110, "  Philp Lakes", 13);
-            XDrawString(dpy, win, gc, 20, 140, "  Haonan Chen", 13);
-            XDrawString(dpy, win, gc, 20, 170, "  Ben", 5);
+            XDrawString(dpy, win, gc, 20, 80, " Christian Rodriguez", 21);
+            XDrawString(dpy, win, gc, 20, 110, " Philp Lakes", 13);
+            XDrawString(dpy, win, gc, 20, 140, " Haonan Chen", 13);
+            XDrawString(dpy, win, gc, 20, 170, " Ben", 5);
         }
         if (e.type == KeyPress || e.type == DestroyNotify) {
             done = true;
