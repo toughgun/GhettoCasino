@@ -228,15 +228,6 @@ int loadGLTextures() {
 	return 1;
 }
 
-// x11.cpp
-Global g;
-Global::Global() {
-	xres = 1280;
-	yres = 720;
-	exec = true;
-}
-X11_wrapper x11;
-
 X11_wrapper::~X11_wrapper() {
 	XDestroyWindow(dpy, win);
 	XCloseDisplay(dpy);
