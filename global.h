@@ -35,6 +35,7 @@ public:
     float cupRange;
     float w;
     float h;
+    bool exec;
 
     Global() {
         devmode = 0;
@@ -47,6 +48,7 @@ public:
         cupPosX = 0.0f;
         cupVelX = 2.0f;
         cupRange = 50.0f;
+	exec = true;
     }
 };
 
