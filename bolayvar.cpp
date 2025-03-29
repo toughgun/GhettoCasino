@@ -1,29 +1,22 @@
 // Benjamin Olayvar
-// last revised: 3/18/2025
+// last revised: 3/29/2025
 //
 #include <GL/glx.h>
 #include <X11/Xlib.h>
 #include <iostream>
+#include <algorithm>
+#include <ctime>
+#include <random>
 #include "global.h"
 #include "button.h"
 #include "fonts.h"
+#include "blackjack.h"
+using namespace std;
 
-void drawBackground();
-void drawMenuLogo();
-void drawMenuOptions(int x);
-void drawButtonTxt();
-void drawDevscreen();
+typedef default_random_engine randomize;
 
-void drawMenu(int x)
-{
-	glClear(GL_COLOR_BUFFER_BIT);	
-	drawBackground();
-	drawDevscreen();
-	drawMenuLogo();
-	drawMenuOptions(x);
-	drawButtonTxt();
-}
-
+Blackjack bj;
+//=============BEGIN DRAW MENU STUFF==========================================
 void drawDevscreen()
 {
 	glColor4f(1.0f, 1.0f, 1.0f, 0.9f);
@@ -171,9 +164,11 @@ void drawMenuOptions(int x)
 	}
 	//blackjack
 	if(x == 3) {
-		buttonHoverState(bblackjack.pos[0],bblackjack.pos[1],bblackjack.pos[2]);
+		buttonHoverState(bblackjack.pos[0],bblackjack.pos[1],
+		bblackjack.pos[2]);
 	} else {
-		buttonIdleState(bblackjack.pos[0],bblackjack.pos[1],bblackjack.pos[2]);
+		buttonIdleState(bblackjack.pos[0],bblackjack.pos[1],
+		bblackjack.pos[2]);
 	}
 	//exit
 	if(x == 4) {
@@ -185,16 +180,20 @@ void drawMenuOptions(int x)
 
 int click(int savex, int savey, int& done)
 {
-	if (savex > 490 && savex < 490+300 && savey > 250 && savey < 250+75) { 
+	if (savex > 490 && savex < 490+300 && 
+	savey > 250 && savey < 250+75) { 
 	printf("[STATE] Slot selected.\n");
 	return 2;
-	} else if (savex > 490 && savex < 490+300 && savey > 335 && savey < 335+75) {
+	} else if (savex > 490 && savex < 490+300 && 
+	savey > 335 && savey < 335+75) {
 	printf("[STATE] Dice selected.\n");
 	return 3;
-	} else if (savex > 490 && savex < 490+300 && savey > 425 && savey < 425+75) {
+	} else if (savex > 490 && savex < 490+300 && 
+	savey > 425 && savey < 425+75) {
 	printf("[STATE] Black Jack selected.\n");
 	return 4;	
-	} else if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
+	} else if (savex > 490 && savex < 490+300 && 
+	savey > 512 && savey < 512+75) {
 	printf("[STATE] Exit selected.\n");
 	return 1;
 	} else {
@@ -204,19 +203,81 @@ int click(int savex, int savey, int& done)
 
 int checkhover(int savex, int savey, int mouseposition)
 {
-	if (savex > 490 && savex < 490+300 && savey > 250 && savey < 250+75) {
+	if (savex > 490 && savex < 490+300 && 
+	savey > 250 && savey < 250+75) {
 	mouseposition = 1;
-	} else if (savex > 490 && savex < 490+300 && savey > 335 && savey < 335+75) {
+	} else if (savex > 490 && savex < 490+300 && 
+	savey > 335 && savey < 335+75) {
 	mouseposition = 2;
-	} else if (savex > 490 && savex < 490+300 && savey > 425 && savey < 425+75) {
+	} else if (savex > 490 && savex < 490+300 && 
+	savey > 425 && savey < 425+75) {
 	mouseposition = 3;
-	} else if (savex > 490 && savex < 490+300 && savey > 512 && savey < 512+75) {
+	} else if (savex > 490 && savex < 490+300 && 
+	savey > 512 && savey < 512+75) {
 	mouseposition = 4;
 	} else {
 		mouseposition = 0;
 	}
 	return mouseposition;
 }
+//====================END DRAW MENU STUFF=====================================
+//
+//==================BEGIN BLACK JACK STUFF====================================
+
+void initShoe()
+{
+	if (bj.shuffled) {
+		return;
+	}
+
+	int cardpos = 0;
+    // Add 24 of each card value 1–9
+	// 4 cards of each value in a deck
+	// * 6 decks in a shoe
+    for (int value = 1; value <= 9; ++value) {
+        for (int count = 0; count < 24; ++count) {
+            bj.shoe[cardpos++] = value;
+        }
+    }
+
+    // Add 96 tens (10, J, Q, K all worth 10)
+	// 4 cards of each value in a deck, so 16
+	// * 6 decks in a shoe
+    for (int count = 0; count < 96; ++count) {
+        bj.shoe[cardpos++] = 10;
+    }
+	
+	//shuffle the shoe
+	shuffle(bj.shoe, bj.shoe + bj.maxCards, randomize(time(NULL)));
+
+	cout << "[BLACKJACK] CARDS SHUFFLED, READY TO PLAY" << endl;
+	//cout << "[BLACKJACK] GOOD LUCK, HAVE FUN!" << endl;
+
+	//debugging
+	for (int i = 0; i < bj.maxCards; ++i) {
+    cout << bj.shoe[i] << " ";
+    }
+	cout << endl;
+
+	
+	//TODO: ADD LOGIC FOR ACES
+	//      CAN BE 11 OR 1
+
+
+	//TODO: ADD LOGIC FOR GAMEPLAY
+	// SPLIT, DOUBLE, DOUBLE FOR LESS, BLACKJACK
+
+
+	//PAYOUT 1:1
+	//BLACK JACK PAYOUT 3:2
+	//INSURENCE PAYOUT 2:1
+	//DEALER MUST HIT ON SOFT 17
+
+	bj.shuffled = true;
+}
+//====================END BLACK JACK STUFF====================================
+//
+//======================BEGIN MISC STUFF======================================
 
 int check_esc(int x)
 {
@@ -237,6 +298,7 @@ int check_esc(int x)
 		//black jack case
 		case 4:
 		x = 0;
+		bj.shuffled = false;
 		break;
 	}
 	return x;

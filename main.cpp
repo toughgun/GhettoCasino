@@ -23,6 +23,7 @@
 #include "image.h"
 #include "global.h"
 #include "button.h"
+#include "blackjack.h"
 
 #include <iostream>
 using namespace std;
@@ -45,7 +46,7 @@ private:
 	GLXContext glc;
 public:
 	X11_wrapper() {
-		GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+		GLint att[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
 		//GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, None };
 		setup_screen_res(1280, 720);
 		dpy = XOpenDisplay(NULL);
@@ -124,9 +125,6 @@ void check_mouse(XEvent *e);
 int check_keys(XEvent *e);
 void physics(void);
 void render(void);
-int checkhover(int savex, int savey, int mouseposition);
-void drawBackground();
-int check_esc(int x);
 //global variable
 int gameState=0;
 int mouseposition = 0;
@@ -297,7 +295,8 @@ void check_mouse(XEvent *e)
 		savey = e->xbutton.y;
 	}
 	if (gameState == 0) {
-	mouseposition = checkhover(savex,savey,mouseposition); //check mouse hover state
+	//check mouse hover state
+	mouseposition = checkhover(savex,savey,mouseposition); 
 	}
 }
 
@@ -356,7 +355,11 @@ int check_keys(XEvent *e) {
 
 void physics()
 {
-	if (gameState == 3) {
+	switch (gameState) {
+		case 2: //black jack
+		break;
+
+		case 3: //dice
         g.cupPosX += g.cupVelX;
         if (g.cupPosX > g.cupRange || g.cupPosX < -g.cupRange) {
             g.cupVelX = -g.cupVelX;
@@ -365,14 +368,30 @@ void physics()
 }
 
 void render() {
-    if (gameState == 0) {
-        drawMenu(mouseposition);
-    } else if (gameState == 2) {
-        render_slots();
-    } else if (gameState == 3) {      
+
+	switch (gameState) {
+		case 0:
+		glClear(GL_COLOR_BUFFER_BIT);	
 		drawBackground();
-        render_dice();
-    } else if (gameState == 4) {
-        render_blackjack();
-    }
+		drawDevscreen();
+		drawMenuLogo();
+		drawMenuOptions(mouseposition);
+		drawButtonTxt();
+		break;
+
+		case 2:
+		render_slots();
+		break;
+
+		case 3:
+		drawBackground();
+		render_dice();
+		break;
+
+		case 4:
+		drawBackground();
+		initShoe();
+
+		break;
+	}
 }
