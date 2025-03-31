@@ -4,7 +4,9 @@
 class Blackjack {
 public:
     int maxCards;
-    int playerHand, dealerHand;
+    int playerHand[15];
+    int dealerHand[15];
+    int playerHandTotal, dealerHandTotal;
     int shoe[312];
     int marker;
     bool shuffled;
