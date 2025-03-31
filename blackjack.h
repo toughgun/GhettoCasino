@@ -16,8 +16,8 @@ public:
     float cardPosX, cardPosY, cardVelX;
 
     Blackjack() {
-        playerHand = 0;
-        dealerHand = 0;
+        playerHandTotal = 0;
+        dealerHandTotal = 0;
         maxCards = 312;
         marker = 0;
         shuffled = false;
