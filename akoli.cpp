@@ -41,6 +41,7 @@ GLfloat L_Diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
 GLfloat L_Pos[] = { 0.0f, 0.0f, 2.0f, 1.0f };
 
 void calculate_framerate();
+void quit(int retcode);
 GLfloat get_rand( GLfloat max );
 Surface* loadPNG(const char *fp);
 bool initGLTexture(const char *name, GLuint *addr);
@@ -58,6 +59,14 @@ void calculate_framerate() {
     std::cout << "FPS: " << fps << std::endl;
 }
 
+void quit(int retcode) {
+	gluDeleteQuadric(quadratic);
+    glDeleteTextures(1, &cylinder_side_tex);
+	glDeleteTextures(1, &cylinder_spinner_tex);
+	glDeleteTextures(1, &reels_tex);
+	exit(retcode);
+}
+
 Surface* loadPNG(const char *fp) {
     Image img(fp); // Properly initialize the Image object with the file path
     if (!img.data) { // Check if the image data is valid
@@ -71,15 +80,16 @@ Surface* loadPNG(const char *fp) {
     surface->data = new unsigned char[img.width * img.height * 3];
     std::memcpy(surface->data, img.data, img.width * img.height * 3);
     std::cout << "loadPNG(): " << fp << " (" << surface->width << "x" << surface->height << ")\n";
-	if (!surface) {
-		std::cout << "No Surface!" << "\n";
+	if ( !surface ) {
+	    fprintf( stderr,  "No Surface! \n");
+	    quit(1);
 	}
     return surface;
 }
 
 // reel.cpp
 static int gluttony = -1;
-
+struct Reel;
 Reel* reels[3];
 
 GLfloat get_rand( GLfloat max ){
@@ -208,7 +218,7 @@ void Reel::spin() {
 ///
 
 bool initGLTexture(const char *name, GLuint *addr) {
-	Surface *surface;
+	//Surface *surface;
 	surface = loadPNG(name);
 	glGenTextures(1, addr);
 	glBindTexture(GL_TEXTURE_2D, *addr);
@@ -221,11 +231,135 @@ bool initGLTexture(const char *name, GLuint *addr) {
 }
 
 int loadGLTextures() {
-	initGLTexture("cyl_side_tex.png", &cylinder_side_tex);
+	if (initGLTexture("cyl_side_tex.png", &cylinder_side_tex));
 	initGLTexture("cyl_spinner_tex.png", &cylinder_spinner_tex);
 	initGLTexture("reels_tex.png", &reels_tex);
 
 	return 1;
+}
+
+
+
+int initGL(GLvoid) {
+	if (loadGLTextures() == 1) {
+		std::cout << "loadGLTextures() success\n";
+	}
+	//loadGLTextures();
+	// background
+	glShadeModel(GL_SMOOTH);
+	//glClearColor(0.1f, 0.25f, 0.25f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	// depth
+	glClearDepth(1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LINE_SMOOTH);
+	glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+	glLineWidth(1.5);
+	// QoL stuff
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+	glEnable(GL_TEXTURE_2D);
+	// Let there be light
+    glLightfv( GL_LIGHT1, GL_AMBIENT, L_Ambient );
+
+    glLightfv( GL_LIGHT1, GL_DIFFUSE, L_Diffuse );
+
+    glLightfv( GL_LIGHT1, GL_POSITION, L_Pos );
+
+    glEnable( GL_LIGHT1 );
+	///
+
+	// Quadratic Object
+	quadratic = gluNewQuadric();
+	gluQuadricDrawStyle(quadratic, GLU_FILL);
+	gluQuadricNormals(quadratic, GLU_SMOOTH);
+	gluQuadricTexture(quadratic, GL_TRUE);
+	return 1;
+}
+
+int resize(int width, int height) {
+	// width : height
+	GLfloat ratio;
+	if (height == 0) {
+		height = 1;
+	}
+	ratio = GLfloat(width) / GLfloat(height);
+	// Switch to projection matrix, set view
+	glViewport(0, 0, (GLint)width, (GLint)height);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.0f, ratio, 0.1f, 100.0f);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	return 1;
+}
+
+void drawReels() {
+	glEnable( GL_LIGHTING );
+	glEnable( GL_BLEND );
+	glTranslatef(1.0f,-0.4f,-3.9);
+	
+	for (int x = 0; x < 3; ++x) {
+		Reel *reel = reels[x];
+		//reels[x] = new Reel();
+		reel->spin();
+		//std::cout << x << " " << reels[x] << std::endl;
+	}
+
+	//glColor4f( 128, 128, 128, 128 );
+	glColor4f( 0.5f, 0.5f, 0.5f, 0.5f );
+	// spinner rod
+	glPushMatrix();
+	    glRotatef(90,0.0f,1.0f,0.0f);		            // Rotate On The Y Axis
+ 	    glTranslatef(0.0f,0.0f,-3.4f);	                // Center the cylinder 
+	    glBindTexture( GL_TEXTURE_2D, cylinder_spinner_tex );
+	    gluCylinder(quadratic,0.2f,0.2f,5.0f,9,3);      // Draw Our Cylinder 
+	glPopMatrix();
+
+	// right cylinder mask
+	glPushMatrix();
+	    glRotatef(reels[0]->degree,1.0f,0.0f,0.0f);
+	    glRotatef( 90,0.0f,1.0f,0.0f);
+ 	    glTranslatef(0.0f,0.0f,-0.20f);
+	    glBindTexture( GL_TEXTURE_2D, cylinder_side_tex );
+	    gluDisk(quadratic,0.2f,1.0f,9,3);             // Draw A Disc
+	glPopMatrix();
+
+	// right cylinder
+	glPushMatrix();
+	    glRotatef(reels[0]->degree,1.0f,0.0f,0.0f);	  // Rotate On The X Axis
+	    glRotatef(90,0.0f,1.0f,0.0f);		              // Rotate On The Y Axis
+ 	    glTranslatef(0.0f,0.0f,-0.20f);	                  // Center the cylinder 
+	    glBindTexture( GL_TEXTURE_2D, reels_tex );
+	    gluCylinder(quadratic,1.0f,1.0f,0.7f,9,3);        // Draw Our Cylinder 
+	glPopMatrix();
+
+	// center cylinder
+	glPushMatrix();
+	    glRotatef(reels[1]->degree, 1.0f,0.0f,0.0f);
+	    glRotatef(90,0.0f,1.0f,0.0f);
+ 	    glTranslatef(0.0f, 0.0f,-1.38f ); 
+	    glBindTexture(GL_TEXTURE_2D, reels_tex );
+	    gluCylinder(quadratic, 1.0f, 1.0f, 0.7f, 9, 1);
+	glPopMatrix();
+
+	glPushMatrix();
+	    glRotatef(reels[2]->degree,1.0f,0.0f,0.0f);
+	    glRotatef( 90,0.0f,1.0f,0.0f);
+	    glTranslatef( 0.0f,0.0f,-1.9f );
+	    glBindTexture( GL_TEXTURE_2D, cylinder_side_tex );
+	    gluDisk(quadratic,0.2f,1.0f,9,3);             // Draw A Disc
+	glPopMatrix();
+	
+	// left cylinder
+	glPushMatrix();
+	    glRotatef(reels[2]->degree,1.0f,0.0f,0.0f);
+	    glRotatef(90,0.0f,1.0f,0.0f);
+	    glTranslatef(0.0f,0.0f,-2.5f );
+	    glBindTexture(GL_TEXTURE_2D, reels_tex );
+	    gluCylinder(quadratic,1.0f,1.0f,0.6f,9,3);
+	glPopMatrix();
+	
 }
 
 X11_wrapper::~X11_wrapper() {
@@ -315,6 +449,8 @@ int X11_wrapper::check_keys(XEvent *e) {
 					reels[i]->start();
 				}
 				break;
+			default:
+				break;
 		}
 	}
 	return 0;
@@ -344,110 +480,6 @@ void X11_wrapper::swapBuffers() {
 }
 ///
 
-int initGL(GLvoid) {
-	if (loadGLTextures() == 1) {
-		std::cout << "loadGLTextures() success\n";
-	}
-	//loadGLTextures();
-	// background
-	glShadeModel(GL_SMOOTH);
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	// depth
-	glClearDepth(1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LINE_SMOOTH);
-	glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
-	glLineWidth(1.5);
-	// QoL stuff
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-	glEnable(GL_TEXTURE_2D);
-	// Let there be light
-    glLightfv( GL_LIGHT1, GL_AMBIENT, L_Ambient );
-
-    glLightfv( GL_LIGHT1, GL_DIFFUSE, L_Diffuse );
-
-    glLightfv( GL_LIGHT1, GL_POSITION, L_Pos );
-
-    glEnable( GL_LIGHT1 );
-	///
-
-	// Quadratic Object
-	quadratic = gluNewQuadric();
-	gluQuadricDrawStyle(quadratic, GLU_FILL);
-	gluQuadricNormals(quadratic, GLU_SMOOTH);
-	gluQuadricTexture(quadratic, GL_TRUE);
-	return 1;
-}
-
-int resize(int width, int height) {
-	// width : height
-	GLfloat ratio;
-	if (height == 0) {
-		height = 1;
-	}
-	ratio = GLfloat(width) / GLfloat(height);
-	// Switch to projection matrix, set view
-	glViewport(0, 0, (GLint)width, (GLint)height);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45.0f, ratio, 0.1f, 100.0f);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	return 1;
-}
-
-void drawReels() {
-	glEnable( GL_LIGHTING );
-	glEnable( GL_BLEND );
-	glTranslatef(1.0f,-0.4f,-3.9);
-	
-	for (int x = 0; x < 3; ++x) {
-		Reel *reel = reels[x];
-		//reels[x] = new Reel();
-		std::cout << x << " " << reels[x] << std::endl;
-		reel->spin();
-	}
-
-	//glColor4f( 128, 128, 128, 128 );
-	glColor4f( 0.5f, 0.5f, 0.5f, 0.5f );
-	// spinner rod
-	glPushMatrix();
-	    glRotatef(90,0.0f,1.0f,0.0f);		            // Rotate On The Y Axis
- 	    glTranslatef(0.0f,0.0f,-3.4f);	                // Center the cylinder 
-	    glBindTexture( GL_TEXTURE_2D, cylinder_spinner_tex );
-	    gluCylinder(quadratic,0.2f,0.2f,5.0f,9,3);      // Draw Our Cylinder 
-	glPopMatrix();
-
-	// right cylinder
-	glPushMatrix();
-	    glRotatef(reels[0]->degree,1.0f,0.0f,0.0f);	  // Rotate On The X Axis
-	    glRotatef(90,0.0f,1.0f,0.0f);		              // Rotate On The Y Axis
- 	    glTranslatef(0.0f,0.0f,-0.20f);	                  // Center the cylinder 
-	    glBindTexture( GL_TEXTURE_2D, reels_tex );
-	    gluCylinder(quadratic,1.0f,1.0f,0.7f,9,3);        // Draw Our Cylinder 
-	glPopMatrix();
-
-	// center cylinder
-	glPushMatrix();
-	    glRotatef(reels[1]->degree, 1.0f,0.0f,0.0f);
-	    glRotatef(90,0.0f,1.0f,0.0f);
- 	    glTranslatef(0.0f, 0.0f,-1.38f ); 
-	    glBindTexture(GL_TEXTURE_2D, reels_tex );
-	    gluCylinder(quadratic, 1.0f, 1.0f, 0.7f, 9, 1);
-	glPopMatrix();
-	
-	// left cylinder
-	glPushMatrix();
-	    glRotatef(reels[2]->degree,1.0f,0.0f,0.0f);
-	    glRotatef(90,0.0f,1.0f,0.0f);
-	    glTranslatef(0.0f,0.0f,-2.5f );
-	    glBindTexture(GL_TEXTURE_2D, reels_tex );
-	    gluCylinder(quadratic,1.0f,1.0f,0.6f,9,3);
-	glPopMatrix();
-	
-}
-
 int draw(GLvoid) {
 	// Clear && Reset View
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -462,5 +494,15 @@ int draw(GLvoid) {
 
 	// Draw the reels
 	drawReels();
+	GLenum err = glGetError();
+		if (err != GL_NO_ERROR) {
+    		std::cerr << "OpenGL Error: " << gluErrorString(err) << std::endl;
+		}
+	/*
+	if (Reel::all_stopped() && Reel::winner() != -1) {
+		std::cout << "```Behold the Ghetto Kingpin!```" << std::endl;
+	}
+	*/
+	
 	return 1;
 }
