@@ -25,6 +25,10 @@ struct Surface {
     unsigned int width;
     unsigned int height;
     unsigned char* data;
+
+    ~Surface() {
+        delete[] data; // Free allocated memory
+    }
 };
 
 struct Reel;
@@ -34,5 +38,6 @@ extern Reel* reels[3];
 GLfloat get_rand( GLfloat max );
 int initGL(GLvoid);
 int draw(GLvoid);
+int resize(int width, int height);
 
 #endif
