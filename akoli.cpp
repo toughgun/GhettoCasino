@@ -226,7 +226,7 @@ bool initGLTexture(const char *name, GLuint *addr) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// Texture Image Data
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->width, surface->height, 0, GL_BGR, GL_UNSIGNED_BYTE, surface->data);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->width, surface->height, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->data);
 	return true;
 }
 
