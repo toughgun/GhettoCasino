@@ -307,6 +307,15 @@ int check_keys(XEvent *e) {
         if (key == XK_Escape) {
 			gameState = check_esc(gameState);
         }
+		///////temporary add-in by Phil///////////
+		if (gameState == 2) {
+			if (key == XK_space) {
+				for (int i = 0; i < 3; ++i) {
+					reels[i]->start();
+				}
+			}
+		}
+		////////////////////////////////////////////
         if (gameState == 3) {
             if (key == XK_space) {
                 roll_dice();
@@ -380,8 +389,31 @@ void render() {
 		break;
 
 		case 2:
-		render_slots();
+		//render_slots();
+		cout << "[INFO] Rendering Slot game.\n";
+		//////From Phil's main///////////////////////////
+		drawBackground();
+		for (int x = 0; x < 3; ++x) {
+			reels[x] = new Reel();
+		}
+	
+		if (initGL() == 1) {
+			printf("Successfully initialized OpenGL.\n");
+		}
+	
+		resize(g.xres, g.yres);
+	
+		while (g.exec) {
+			while (x11.getXPending()) {
+				XEvent e = x11.getXNextEvent();
+				check_keys(&e);  // Process key events
+			}
+			draw();
+			x11.swapBuffers();
+		}
+
 		break;
+		/////////////////////////////////////////////////
 
 		case 3:
 		drawBackground();
