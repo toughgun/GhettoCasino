@@ -27,20 +27,6 @@ Choice playerChoice = NONE;
 
 extern void drawBackground();
 
-/*Black jack section*/
-void render_blackjack() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
-    cout << "[INFO] Rendering Blackjack game.\n";
-    glFlush();
-}
-/*slots section*/
-void render_slots() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glLoadIdentity();
-    cout << "[INFO] Rendering Slot game.\n";
-    glFlush();
-}
 void render_dice()
 {
     /* Set up projection and view matrices */

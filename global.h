@@ -4,19 +4,18 @@
 #include "image.h"
 
 struct Texture {
-    //menu background
+    // menu background
     Image* backImage;
     GLuint backTexture;
-    //menu logo
-	Image* menuLogo;
-	GLuint menulogotex;
-	//button
-	Image* buttonImage;
-	GLuint buttontex;
-    //
-    //devmode
-	Image* devImage;
-	GLuint devtex;
+    // menu logo
+    Image* menuLogo;
+    GLuint menulogotex;
+    // button
+    Image* buttonImage;
+    GLuint buttontex;
+    // devmode
+    Image* devImage;
+    GLuint devtex;
     float xc[2];
     float yc[2];
 };
@@ -25,17 +24,23 @@ class Global {
 public:
     int xres, yres;
     Texture tex;
-    GLuint cupTexture;
-    GLuint silhouetteTexture;  // Added here
+    GLuint silhouetteTexture;
     int devmode;
+    // Dice variables
+    GLuint cupTexture;
     float cupWidth;
     float cupHeight;
     float cupPosX;
     float cupVelX;
     float cupRange;
+    int vsync;
+    //
     float w;
     float h;
     bool exec;
+    // Betting variables
+    int currency;      // Starting currency (chips)
+    int currentBet;    // Current bet amount
 
     Global() {
         devmode = 0;
@@ -48,7 +53,10 @@ public:
         cupPosX = 0.0f;
         cupVelX = 2.0f;
         cupRange = 50.0f;
-	exec = true;
+        vsync = 0;
+        exec = true;
+        currency = 1000;     // Start with 1000 chips
+        currentBet = 0;      // Initial bet is 0
     }
 };
 
