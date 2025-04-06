@@ -318,7 +318,8 @@ int check_keys(XEvent *e) {
 		////////////////////////////////////////////
         if (gameState == 3) {
             if (key == XK_space) {
-                roll_dice();
+                Start_Dice();
+				playerChoice = NONE;
             }
             if (key == XK_u || key == XK_U) {
                 playerChoice = UNDER;
