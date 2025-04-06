@@ -10,6 +10,8 @@ struct Texture {
     // menu logo
     Image* menuLogo;
     GLuint menulogotex;
+    float logo_xc[2];
+    float logo_yc[2];
     // button
     Image* buttonImage;
     GLuint buttontex;
