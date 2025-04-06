@@ -7,4 +7,6 @@ extern void intro_render();
 extern void dealerHands();
 extern void playerHands();
 extern bool introplay;
+extern bool introdone;
+
 #endif
