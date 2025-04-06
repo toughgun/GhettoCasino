@@ -24,7 +24,7 @@
 #include "global.h"
 #include "button.h"
 #include "blackjack.h"
-
+#include "hchen_functions.h"
 #include <iostream>
 using namespace std;
 
@@ -372,7 +372,9 @@ void physics()
 }
 
 void render() {
-
+	if (introplay == 1) {
+		intro_render();
+    } else {
 	switch (gameState) {
 		case 0:
 		glClear(GL_COLOR_BUFFER_BIT);	
@@ -419,5 +421,6 @@ void render() {
 		initShoe();
 
 		break;
+	}
 	}
 }
