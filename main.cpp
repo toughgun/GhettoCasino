@@ -367,12 +367,6 @@ void physics()
 	switch (gameState) {
 		case 2: //black jack
 		break;
-
-		case 3: //dice
-        g.cupPosX += g.cupVelX;
-        if (g.cupPosX > g.cupRange || g.cupPosX < -g.cupRange) {
-            g.cupVelX = -g.cupVelX;
-        }
     }
 }
 
@@ -416,7 +410,6 @@ void render() {
 		/////////////////////////////////////////////////
 
 		case 3:
-		drawBackground();
 		render_dice();
 		break;
 

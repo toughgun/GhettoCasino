@@ -6,8 +6,8 @@
 
 extern void render_dice();
 extern void drawCup();
-extern void draw_button(float x, float y, float width, float height, 
-                                                    const char* label);
+extern void draw_button(float x, float y, float width, float height,
+                         const char* label);
 extern void roll_dice();
 extern void reveal_dice();
 extern void render_blackjack();
@@ -21,5 +21,11 @@ extern bool diceRevealed;
 extern int die1, die2, total;
 enum Choice { UNDER, OVER, EXACT, NONE };
 extern Choice playerChoice;
+
+// Betting function prototypes:
+extern void renderBettingUI();
+extern void processBettingInput(int mouseX, int mouseY, int button);
+extern void finalizeBet();
+extern void resetBet();
 
 #endif

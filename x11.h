@@ -23,6 +23,8 @@ public:
 	void check_resize(XEvent *e);
 	void check_mouse(XEvent *e);
 	int check_keys(XEvent *e);
+	// Add this getter for the Display pointer
+	Display* getDisplay() {return dpy;}
 };
 
 extern X11_wrapper x11;
