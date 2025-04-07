@@ -54,7 +54,7 @@ void intro_physics()
     float elapsedTime = time(nullptr) - start_time;
     // Time passed since intro started
     //if (elapsedTime < 4.9) {
-    float maxSpeed = 0.5f;      // Maximum speed at the start
+    float maxSpeed = 0.3f;      // Maximum speed at the start
     float damping = 0.1f;       // How fast it slows down over time
     float currentSpeed = maxSpeed / (1.0f + damping * elapsedTime);
     //logoPosy -= currentSpeed;
