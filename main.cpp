@@ -390,6 +390,7 @@ void render() {
 		cout << "[INFO] Rendering Slot game.\n";
 		//////From Phil's main///////////////////////////
 		drawBackground();
+		srand(time(0));
 		for (int x = 0; x < 3; ++x) {
 			reels[x] = new Reel();
 		}
