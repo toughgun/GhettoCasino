@@ -24,6 +24,7 @@
 #include <math.h>
 #include <fstream>
 #include <map>
+#include <array>
 #include <chrono>
 
 std::chrono::time_point<std::chrono::high_resolution_clock> 
@@ -106,6 +107,7 @@ void Reel::start() {
     degree = get_rand(360);
     begin = 0;
     begin = speed;
+	gluttony = -1;
 }
 
 void Reel::stop() {
@@ -139,7 +141,7 @@ int Reel::num_stopped() {
 }
 
 bool Reel::all_stopped() {
-    return num_stopped() == 3;
+    return (num_stopped() == 3);
 }
 
 int Reel::position() {
@@ -155,7 +157,7 @@ int Reel::stop_position(Reel *reel) {
     if (gluttony != -1) {
         return gluttony;
     }
-    std::cout << "Results: " << Reel::num_stopped() << std::endl;
+    //std::cout << "Halting Reels..." << Reel::num_stopped() << std::endl;
     switch (Reel::num_stopped()) {
         case 0:
             return position;
@@ -173,10 +175,10 @@ int Reel::stop_position(Reel *reel) {
                     reel_stopped = reels[x]->position();
                 }
             }
-            std::cout << "Second Results: " << reel_stopped << std::endl;
+            //std::cout << "Second Results: " << reel_stopped << std::endl;
 
             int w = static_cast<int>(get_rand(3));
-            std::cout << "Final Reel FTW?: " << (w == 1) << std::endl;
+            std::cout << "A partial act of gluttony: " << (w == 1) << std::endl;
             if (w == 1) {
                 return gluttony = reel_stopped;
             } else {
@@ -198,15 +200,36 @@ void Reel::spin() {
         if (this->at_stop_position()) {
             if (Reel::stop_position(this) == this->position()) {
                 stopped = true;
-                std::cout << "Reel halts on: " << this->position() << std::endl;
-                if (Reel::all_stopped()) {
+                //std::cout << "Reel halts on: " << this->position() << std::endl;
+				if (Reel::all_stopped()) {
+                    // Array to map reel positions to text
+                    const std::array<std::string, 9> rSymbol = {
+                        "Cherry", "Ol' No.7", "Watermelon", 
+						"Diamond", "Horseshoe",
+                        "Bell", "3 BAR", "2 BAR", "BAR"
+					};
+
+                    for (int i = 0; i < 3; ++i) {
+                        int position = reels[i]->position();
+                        if (position >= 0 && position < static_cast<int>(rSymbol.size())) {
+                            std::cout << "Reel halts on: " << rSymbol[position] << std::endl;
+                        } else {
+                            std::cout << "Reel halts on: yomama" << std::endl;
+                        }
+                    }
+
+                    std::cout << 	 "################################" << std::endl;
                     int winner = Reel::winner();
-                    std::cout << "Winner: " << winner << std::endl;
+                    if (winner != -1) {
+                        std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
+                        std::cout << "```Behold the Ghetto Kingpin!```" << std::endl;
+                        std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
+                    }
                 }
             }
         }
     } else {
-        speed -= 0.001;
+        speed -= 0.005;
     }
     degree += speed;
     if (degree > 360) {
@@ -248,7 +271,6 @@ int initGL(GLvoid) {
 	// background
 	glShadeModel(GL_SMOOTH);
 	glClearColor(0.1f, 0.25f, 0.25f, 1.0f);
-	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	// depth
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
@@ -296,7 +318,7 @@ int resize(int width, int height) {
 
 void drawReels() {
 	glEnable( GL_LIGHTING );
-	glEnable( GL_BLEND );
+	glDisable( GL_BLEND );
 	glTranslatef(1.0f,-0.4f,-3.9);
 	
 	for (int x = 0; x < 3; ++x) {
@@ -318,7 +340,7 @@ void drawReels() {
 
 	// right cylinder mask
 	glPushMatrix();
-	    glRotatef(reels[0]->degree,1.0f,0.0f,0.0f);
+	    glRotatef( reels[0]->degree,1.0f,0.0f,0.0f);
 	    glRotatef( 90,0.0f,1.0f,0.0f);
  	    glTranslatef(0.0f,0.0f,-0.20f);
 	    glBindTexture( GL_TEXTURE_2D, cylinder_side_tex );
@@ -344,7 +366,7 @@ void drawReels() {
 	glPopMatrix();
 
 	glPushMatrix();
-	    glRotatef(reels[2]->degree,1.0f,0.0f,0.0f);
+	    glRotatef( reels[2]->degree,1.0f,0.0f,0.0f);
 	    glRotatef( 90,0.0f,1.0f,0.0f);
 	    glTranslatef( 0.0f,0.0f,-1.9f );
 	    glBindTexture( GL_TEXTURE_2D, cylinder_side_tex );
@@ -361,6 +383,8 @@ void drawReels() {
 	glPopMatrix();
 	
 }
+
+// x11.cpp
 
 X11_wrapper::~X11_wrapper() {
 	XDestroyWindow(dpy, win);
@@ -498,11 +522,6 @@ int draw(GLvoid) {
 		if (err != GL_NO_ERROR) {
     		std::cerr << "OpenGL Error: " << gluErrorString(err) << std::endl;
 		}
-	/*
-	if (Reel::all_stopped() && Reel::winner() != -1) {
-		std::cout << "```Behold the Ghetto Kingpin!```" << std::endl;
-	}
-	*/
 	
 	return 1;
 }
