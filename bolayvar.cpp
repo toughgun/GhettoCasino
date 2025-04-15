@@ -278,6 +278,19 @@ void initShoe()
 //====================END BLACK JACK STUFF====================================
 //
 //======================BEGIN MISC STUFF======================================
+void drawSlotFace()
+{
+	glColor3f(1.0, 1.0, 1.0);
+	glPushMatrix();
+	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
+	glBegin(GL_QUADS);
+		glTexCoord2f(-g.tex.xc[0], g.tex.yc[1]); glVertex2i(0, 0);
+		glTexCoord2f(-g.tex.xc[0], g.tex.yc[0]); glVertex2i(0, g.yres);
+		glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
+		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
+	glEnd();
+	glPopMatrix();
+}
 
 int check_esc(int x)
 {
