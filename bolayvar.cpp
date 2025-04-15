@@ -280,15 +280,19 @@ void initShoe()
 //======================BEGIN MISC STUFF======================================
 void drawSlotFace()
 {
-	glColor3f(1.0, 1.0, 1.0);
+	glColor4f(1.0, 1.0, 1.0, 0.9f);
 	glPushMatrix();
-	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
+	glTranslatef(0,0,0);
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glBindTexture(GL_TEXTURE_2D, g.tex.slottex);
 	glBegin(GL_QUADS);
 		glTexCoord2f(-g.tex.xc[0], g.tex.yc[1]); glVertex2i(0, 0);
 		glTexCoord2f(-g.tex.xc[0], g.tex.yc[0]); glVertex2i(0, g.yres);
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[0]); glVertex2i(g.xres, g.yres);
 		glTexCoord2f(g.tex.xc[1], g.tex.yc[1]); glVertex2i(g.xres, 0);
 	glEnd();
+	glDisable(GL_ALPHA_TEST);	
 	glPopMatrix();
 }
 
