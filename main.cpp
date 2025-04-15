@@ -373,6 +373,10 @@ int check_keys(XEvent *e) {
             cout << "gameState = 4\n";
             return gameState = 4;
         }
+	if (key == XK_Shift_L) {
+	    // Out like a light, ayy,
+	    exit(666);
+	}
     }
     return gameState;
 }
