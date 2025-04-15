@@ -18,6 +18,9 @@ struct Texture {
     // devmode
     Image* devImage;
     GLuint devtex;
+    // slot face
+    Image* slotImage;
+    GLuint slottex;
     float xc[2];
     float yc[2];
 };

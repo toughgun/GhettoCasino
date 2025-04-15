@@ -33,11 +33,12 @@ using namespace std;
 
 Global g;
 
-Image img[4] = {
+Image img[5] = {
 	"menu_bg.png",
 	"menu_button.png",
 	"logo.png",
-	"menu_bg_devscreen.png" };
+	"menu_bg_devscreen.png",
+	"slot_face.png" };
 
 class X11_wrapper {
 private:
@@ -219,6 +220,7 @@ void init_opengl(void)
 	g.tex.buttonImage = &img[1];
 	g.tex.menuLogo = &img[2];
 	g.tex.devImage = &img[3];
+	g.tex.slotImage = &img[4];
 	//
 	//create menu logo
 	glGenTextures(1, &g.tex.menulogotex);
@@ -265,6 +267,18 @@ void init_opengl(void)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
 			GL_RGBA, GL_UNSIGNED_BYTE, devbut);
 	free(devbut);
+	//create slot face
+	glGenTextures(1, &g.tex.slottex);
+	w = g.tex.slotImage->width;
+	h = g.tex.slotImage->height;
+	glBindTexture(GL_TEXTURE_2D, g.tex.slottex);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
+			GL_RGB, GL_UNSIGNED_BYTE, g.tex.slotImage->data);
+	g.tex.xc[0] = 1.0;
+	g.tex.yc[1] = 1.0;
+	//	
 	initialize_fonts();
 }
 
@@ -389,7 +403,7 @@ void render() {
 		//render_slots();
 		cout << "[INFO] Rendering Slot game.\n";
 		//////From Phil's main///////////////////////////
-		drawBackground();
+		drawSlotFace();
 		srand(time(0));
 		for (int x = 0; x < 3; ++x) {
 			reels[x] = new Reel();

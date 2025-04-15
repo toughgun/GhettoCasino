@@ -9,6 +9,7 @@ extern void drawMenuLogo();
 extern void drawMenuOptions(int x);
 extern void drawButtonTxt();
 extern void drawDevscreen();
+extern void drawSlotFace();
 extern int checkhover(int savex, int savey, int mouseposition);
 
 //blackjack stuff
