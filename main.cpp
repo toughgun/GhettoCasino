@@ -274,8 +274,9 @@ void init_opengl(void)
 	glBindTexture(GL_TEXTURE_2D, g.tex.slottex);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0,
-			GL_RGB, GL_UNSIGNED_BYTE, g.tex.slotImage->data);
+	unsigned char *slotface = buildAlphaData(&img[4]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
+			GL_RGBA, GL_UNSIGNED_BYTE, slotface);
 	g.tex.xc[0] = 1.0;
 	g.tex.yc[1] = 1.0;
 	//	
