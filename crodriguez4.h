@@ -28,4 +28,6 @@ extern void processBettingInput(int mouseX, int mouseY, int button);
 extern void finalizeBet();
 extern void resetBet();
 
+extern unsigned char *buildAlphaData(Image *img);
+
 #endif

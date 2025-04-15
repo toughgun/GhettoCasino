@@ -184,7 +184,7 @@ unsigned char *buildAlphaData(Image *img)
 		//-----------------------------------------------
 		//this code optimizes the commented code above.
 		//code contributed by student: Chris Smith
-		//
+		// Using bitwise OR makes black (0,0,0) yield 0 in alpha.
 		*(ptr+3) = (a|b|c);
 		//-----------------------------------------------
 		ptr += 4;
