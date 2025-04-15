@@ -37,15 +37,16 @@ void render_dice()
     glLoadIdentity();
     glClear(GL_COLOR_BUFFER_BIT);
     drawBackground();
-    // Bind the cup texture
+    /* Enable alpha testing for transparency */
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    /* Bind the cup texture and draw the cup as a textured quad */
     glBindTexture(GL_TEXTURE_2D, g.cupTexture);
     glColor3f(1.0f, 1.0f, 1.0f);
-    // Calculate cup's center position (move left/right by g.cupPosX)
     float centerX = g.xres * 0.5f + g.cupPosX;
     float centerY = g.yres * 0.5f;
     float halfW = g.cupWidth  * 0.5f;
     float halfH = g.cupHeight * 0.5f;
-    // Draw the cup as a textured quad in 2D
     glBegin(GL_QUADS);
         glTexCoord2f(0.0f, 0.0f);
         glVertex2f(centerX - halfW, centerY - halfH);
@@ -57,13 +58,15 @@ void render_dice()
         glVertex2f(centerX - halfW, centerY + halfH);
     glEnd();
     glFlush();
-    // renderBettingUI();
+    /* Disable alpha testing after drawing */
+    glDisable(GL_ALPHA_TEST);
 }
+
 void drawCup()
 {
-    /* Enable alpha testing and draw the cup quad */
-    glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_GREATER, 0.0f);
+    /* Enable blending to handle transparency */
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, g.cupTexture);
     glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_QUADS);
@@ -76,19 +79,22 @@ void drawCup()
         glTexCoord2f(0.0f, 1.0f);
         glVertex2f(-g.cupWidth / 2, g.cupHeight / 2);
     glEnd();
-    glDisable(GL_ALPHA_TEST);
+    glDisable(GL_BLEND);
 }
 void loadCupTexture()
 {
-    /* Load the cup image and generate an OpenGL texture */
     Image cupImg("cup.png");
     glGenTextures(1, &g.cupTexture);
     glBindTexture(GL_TEXTURE_2D, g.cupTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, cupImg.width, cupImg.height, 0,
-                 GL_RGB, GL_UNSIGNED_BYTE, cupImg.data);
+    /* Convert cup image data to RGBA using buildAlphaData() */
+    unsigned char *cupAlpha = buildAlphaData(&cupImg);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cupImg.width, cupImg.height,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, cupAlpha);
+    free(cupAlpha);
 }
+
 void roll_dice()
 {
     /* Generate random dice values and compute the total */
@@ -362,3 +368,27 @@ void resetBet()
 {
     g.currentBet = 0;
 }
+
+
+/* 
+
+void buttonIdleState(int x, int y, int z)
+{
+		glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
+		glPushMatrix();
+		glTranslatef(x,y,z);
+		glEnable(GL_ALPHA_TEST);
+		glAlphaFunc(GL_GREATER, 0.0f);
+		glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
+		glBegin(GL_QUADS);
+			float h = g.tex.buttonImage->height/4;
+			float w = g.tex.buttonImage->width/4;
+			glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
+			glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
+			glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
+			glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
+		glEnd();
+		glDisable(GL_ALPHA_TEST);
+		glPopMatrix();
+}
+*/
