@@ -10,7 +10,7 @@ public:
     int shoe[312];
     int marker;
     bool shuffled;
-    GLuint cards;
+    //GLuint cards;
     float cardWidth;
     float cardHeight;
     float cardPosX, cardPosY, cardVelX;
