@@ -1,10 +1,10 @@
 //Haonan Chen
-//april 6, 2025
+//april 19, 2025
 //
 //This file has
 //intro animation
+//info display
 //black jack player/dealer hands logic
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -19,22 +19,78 @@
 #include "blackjack.h"
 #include "fonts.h"
 #include <ctime>
+#include <iostream>
+using namespace std;
 
 time_t current_time = 0;
 time_t start_time = 0;
 int introplay = 1;
 bool introstart = false;
+bool disInfo = false;
 float centerX;
 float centerY;
 float logoPosY = 0.0f;
-void game_info(Rect *r)
+void gameInfo()
 {
-    // Rect r;
-    // r.bot = 0;
-    // r.left = 0;
-    // ggprint8b(&r, 16, 0xffffff, "GHETTO CASINO");
-    // glPopMatrix();
-    ggprint8b(r, 16, 0x00ff00ff, "WELCOME");
+    glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
+    glPushMatrix();
+    glTranslatef(1120, 50, 0);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
+    glBegin(GL_QUADS);
+    float h = g.tex.buttonImage->height / 4;
+    float w = g.tex.buttonImage->width / 4;
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(-w, h); // Top-left
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2f(w, h); // Top-right
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2f(w, -h); // Bottom-right
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex2f(-w, -h); // Botton-left
+    glEnd();
+    glDisable(GL_ALPHA_TEST);
+    glPopMatrix();
+
+    Rect r;
+    glPushMatrix();
+    glTranslatef(1120, 25, 0);
+    glScalef(5.0f, 5.0f, 1);
+    r.bot  = 0;
+    r.left = 0;
+    if (disInfo == false) {
+        //r.left = -32;
+        ggprint8b(&r, 16, 0xffffff, "INFO");
+    } else if ( disInfo == true) {
+        r.left = -15;
+        ggprint8b(&r, 16, 0xffffff, "BACK");
+    }
+    glPopMatrix();
+}
+bool infoButton(int x, int y)
+{
+    if (x > 970 && x < 1260 && y > 635 && y < 710) {
+        disInfo = !disInfo;
+        gameInfo();
+    }
+    return disInfo;
+}
+void displayInfo()
+{
+    Rect r;
+    glPushMatrix();
+    glTranslatef(100, 520, 0);
+    glScalef(3.0f, 3.0f, 1);
+    r.bot = 0;
+    r.left = 0;
+    ggprint8b(&r, 16, 0xff0000, "Welcome to Ghetto Casino\n");
+    ggprint8b(&r, 16, 0xff0000, "Here you can play SLOTS DICE BlackJack");
+    ggprint8b(&r, 16, 0xff0000, "and maybe even a secert game");
+    ggprint8b(&r, 16, 0xff0000, "Your Goal is To Earn as much");
+    ggprint8b(&r, 16, 0xff0000, "as you can before you lose it all");
+    ggprint8b(&r, 16, 0xff0000, "Good Luck and Have Fun Gambling!");
+    glPopMatrix();
 }
 void init_intro_logo()
 {
@@ -76,16 +132,20 @@ void intro_logo()
     float w = g.tex.menuLogo->width / 2.0f;
 
     glBegin(GL_QUADS);
-        glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[0]); glVertex2f(-w,  h);
-        glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[0]); glVertex2f( w,  h);
-        glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[1]); glVertex2f( w, -h);
-        glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[1]); glVertex2f(-w, -h);
+    glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[0]);
+    glVertex2f(-w,  h);
+    glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[0]);
+    glVertex2f( w,  h);
+    glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[1]);
+    glVertex2f( w, -h);
+    glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[1]);
+    glVertex2f(-w, -h);
     glEnd();
     glPopMatrix();
 }
 void intro_render()
 {
-     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     if (introplay == 1) {
         if (!introstart) {
             init_intro_logo();
@@ -105,7 +165,6 @@ void intro_render()
         }
     }
 }
-
 void dealerHands(int x)
 {
     //checks if ACE was card
