@@ -6,7 +6,11 @@ extern void game_info();
 extern void intro_render();
 extern void dealerHands();
 extern void playerHands();
+extern void gameInfo();
+extern void displayInfo();
 extern int introplay;
-extern bool introdone;
+extern bool infoButton(int x, int y);
+extern bool disInfo;
+extern bool introstart;
 
 #endif
