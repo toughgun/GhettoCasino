@@ -379,6 +379,10 @@ int check_keys(XEvent *e) {
 	    // Out like a light, ayy,
 	    exit(666);
 	}
+	if (key == XK_space && introplay == 1) {
+		introplay = 0;
+		introstart = false;
+	}
     }
     return gameState;
 }
