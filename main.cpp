@@ -297,7 +297,8 @@ void check_mouse(XEvent *e)
 		if (e->xbutton.button==1) {
 			//Left button is down
 			if (gameState == 0) {
-			gameState = click(savex, savey, kill);
+				disInfo = infoButton(savex, savey);
+				gameState = click(savex, savey, kill);
 			}
 		}
 		if (e->xbutton.button==3) {
@@ -402,6 +403,13 @@ void render() {
 		drawMenuLogo();
 		drawMenuOptions(mouseposition);
 		drawButtonTxt();
+		gameInfo();
+		if (disInfo == true) {
+			glClear(GL_COLOR_BUFFER_BIT);
+			drawBackground();
+			gameInfo();
+			displayInfo();
+		}
 		break;
 
 		case 2:
