@@ -159,6 +159,14 @@ void intro_render()
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             intro_logo();
             intro_physics();
+            Rect r;
+            glPushMatrix();
+            glTranslatef(640, 50, 0);
+            glScalef(2.0f, 2.0f, 1);
+            r.bot = 0;
+            r.left = 0;
+            ggprint8b(&r, 16, 0xffffff, "Press Space to Skip");
+            glPopMatrix();
         } else {
             introstart = false;
             introplay = 0;
