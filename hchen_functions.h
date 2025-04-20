@@ -8,6 +8,7 @@ extern void dealerHands();
 extern void playerHands();
 extern void gameInfo();
 extern void displayInfo();
+extern void infoRetangle();
 extern int introplay;
 extern bool infoButton(int x, int y);
 extern bool disInfo;
