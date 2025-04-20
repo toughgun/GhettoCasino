@@ -1,5 +1,5 @@
 //Haonan Chen
-//april 19, 2025
+//april 20, 2025
 //
 //This file has
 //intro animation
@@ -78,6 +78,7 @@ bool infoButton(int x, int y)
 }
 void displayInfo()
 {
+    infoRetangle();
     Rect r;
     glPushMatrix();
     glTranslatef(100, 520, 0);
@@ -91,6 +92,21 @@ void displayInfo()
     ggprint8b(&r, 16, 0xff0000, "as you can before you lose it all");
     ggprint8b(&r, 16, 0xff0000, "Good Luck and Have Fun Gambling!");
     glPopMatrix();
+}
+void infoRetangle()
+{
+    glColor3f(0.0f, 0.0f, 0.0f);
+    float x = 50.0f;
+    float y = 100.0f;
+    float width = 800.0f;
+    float height = 500.0f;
+    glBegin(GL_QUADS);
+        glVertex2f(x, y);
+        glVertex2f(x + width, y);
+        glVertex2f(x + width, y + height);
+        glVertex2f(x, y + height);
+    glEnd();
+    glFlush();
 }
 void init_intro_logo()
 {
