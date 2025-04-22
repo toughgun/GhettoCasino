@@ -5,6 +5,7 @@
 #include "button.h"
 #include "fonts.h"
 #include "global.h"
+#include "hchen_functions.h"
 #include <GL/glx.h>
 #include <X11/Xlib.h>
 #include <algorithm>
@@ -58,7 +59,6 @@ void drawBackground()
     glEnd();
     glPopMatrix();
 }
-
 void drawMenuLogo()
 {
     // draw logo for menu
@@ -83,7 +83,6 @@ void drawMenuLogo()
     glDisable(GL_ALPHA_TEST);
     glPopMatrix();
 }
-
 void buttonIdleState(int x, int y, int z)
 {
     glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
@@ -107,7 +106,6 @@ void buttonIdleState(int x, int y, int z)
     glDisable(GL_ALPHA_TEST);
     glPopMatrix();
 }
-
 void buttonHoverState(int x, int y, int z)
 {
     glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
@@ -131,7 +129,6 @@ void buttonHoverState(int x, int y, int z)
     glDisable(GL_ALPHA_TEST);
     glPopMatrix();
 }
-
 void drawButtonTxt()
 {
     Rect r[2];
@@ -168,7 +165,6 @@ void drawButtonTxt()
     ggprint8b(&r[1], 16, 0xffffff, "EXIT");
     glPopMatrix();
 }
-
 void drawMenuOptions(int x)
 {
     // slots
@@ -198,7 +194,6 @@ void drawMenuOptions(int x)
         buttonIdleState(bexit.pos[0], bexit.pos[1], bexit.pos[2]);
     }
 }
-
 int click(int savex, int savey, int& done)
 {
     if (savex > 490 && savex < 490 + 300 && savey > 250 && savey < 250 + 75) {
@@ -220,7 +215,6 @@ int click(int savex, int savey, int& done)
         return done = 0;
     }
 }
-
 int checkhover(int savex, int savey, int mouseposition)
 {
     if (savex > 490 && savex < 490 + 300 && savey > 250 && savey < 250 + 75) {
@@ -243,6 +237,23 @@ int checkhover(int savex, int savey, int mouseposition)
 //
 //==================BEGIN BLACK JACK STUFF====================================
 
+void drawBJBackground()
+{
+    glColor3f(1.0, 1.0, 1.0);
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, g.tex.bjtex);
+    glBegin(GL_QUADS);
+    glTexCoord2f(-g.tex.xc[0], g.tex.yc[1]);
+    glVertex2i(0, 0);
+    glTexCoord2f(-g.tex.xc[0], g.tex.yc[0]);
+    glVertex2i(0, g.yres);
+    glTexCoord2f(g.tex.xc[1], g.tex.yc[0]);
+    glVertex2i(g.xres, g.yres);
+    glTexCoord2f(g.tex.xc[1], g.tex.yc[1]);
+    glVertex2i(g.xres, 0);
+    glEnd();
+    glPopMatrix();
+}
 void initShoe()
 {
     if (bj.shuffled) {
@@ -268,16 +279,17 @@ void initShoe()
 
     // shuffle the shoe
     shuffle(bj.shoe, bj.shoe + bj.maxCards, randomize(time(NULL)));
-
     cout << "[BLACKJACK] CARDS SHUFFLED, READY TO PLAY" << endl;
-    // cout << "[BLACKJACK] GOOD LUCK, HAVE FUN!" << endl;
+
+    // set the maker to indicate when to shuffle
+    bj.marker = = rand() % 62 + 218;
+    cout << "Marker set At: " << bj.marker << endl;
 
     // debugging
     for (int i = 0; i < bj.maxCards; ++i) {
         cout << bj.shoe[i] << " ";
     }
     cout << endl;
-
     // TODO: ADD LOGIC FOR ACES
     //       CAN BE 11 OR 1
 
@@ -290,6 +302,69 @@ void initShoe()
     // DEALER MUST HIT ON SOFT 17
 
     bj.shuffled = true;
+}
+void initFirstHand()
+{
+
+    bj.discard[0] = bj.shoe[0];
+    bj.shoe[0]    = 0;
+    bj.currentPos++;
+
+    for (int i = 0; i < 2; i++) {
+        bj.playerHand[i] = bj.shoe[bj.currentPos];
+        bj.currentPos++;
+        bj.playerHandTotal += bj.shoe[bj.currentPos];
+        bj.dealerHand[i] = bj.shoe[bj.currentPos];
+        bj.dealerHandTotal += bj.shoe[bj.currentPos];
+        bj.currentPos++;
+    }
+
+    checkDealerHand();
+}
+void insuranceScam()
+{
+    // Animation and Logic for insurance here
+}
+void checkDealerHand()
+{
+    // If dealer pulls 10 first, dealer always checks to see if they have 21
+    if (bj.dealerHand[0] == 10 && bj.dealerHand[1] == 1) {
+        // Place animation for 10 and Ace here
+
+        // debugging
+        cout << "DEALER WINS. 21 BJ" << endl;
+    }
+
+    // If dealer pulls Ace first, offer insurence
+    for (int i = 0; i < bj.dealerHandTotal; i++) {
+        if (dealerHand[i] == 1) {
+            int check =
+        }
+    }
+    if (bj.dealerHand[0] == 1) {
+        insuranceScam();
+    }
+}
+void bjHit()
+{
+    // Logic and Animation for Hit Here
+}
+check_BlackJackKeys(int x)
+{
+    // lock out the player from doing anything until the delt cards or animaiton
+    // is complete
+    if (bj.delt) {
+        switch (x) {
+        case XK_space:
+            bjHit();
+            break;
+
+        case XK_d || xK_D:
+            bjDouble();
+        default:
+            break;
+        }
+    }
 }
 //====================END BLACK JACK STUFF====================================
 //
@@ -315,7 +390,6 @@ void drawSlotFace()
     glDisable(GL_ALPHA_TEST);
     glPopMatrix();
 }
-
 int check_esc(int x)
 {
     // switch case for the esc key

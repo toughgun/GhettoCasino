@@ -2,25 +2,31 @@
 #define BLACKJACK_H
 
 class Blackjack {
-public:
-    int maxCards;
-    int playerHand[15];
-    int dealerHand[15];
-    int playerHandTotal, dealerHandTotal;
-    int shoe[312];
-    int marker;
+  public:
+    int  maxCards;
+    int  playerHand[15];
+    int  dealerHand[15];
+    int  playerHandTotal, dealerHandTotal;
+    int  currentPos;
+    int  shoe[312];
+    int  discard[300];
+    int  marker;
     bool shuffled;
-    //GLuint cards;
+    bool delt;
+    // GLuint cards;
     float cardWidth;
     float cardHeight;
     float cardPosX, cardPosY, cardVelX;
 
-    Blackjack() {
+    Blackjack()
+    {
         playerHandTotal = 0;
         dealerHandTotal = 0;
-        maxCards = 312;
-        marker = 0;
-        shuffled = false;
+        currentPos      = 0;
+        maxCards        = 312;
+        marker          = 0;
+        shuffled        = false;
+        delt            = false;
     }
 };
 
