@@ -206,6 +206,8 @@ void init_opengl(void)
 	//
     // Load the cup texture.
     loadCupTexture();
+	// load Dice texture
+	// loadDiceTextures();
 	//
 	//init the position of the menu buttons and logo
 	//buttons spaced out by 87 pixels
@@ -294,6 +296,24 @@ void check_mouse(XEvent *e)
 		return;
 	}
 	if (e->type == ButtonPress) {
+		if (gameState == 3) {
+            if (bettingUIActive) {
+                processBettingInput(e->xbutton.x, e->xbutton.y, e->xbutton.button);
+                return;
+            }
+            if (choiceUIActive) {
+                handleChoiceInput(e->xbutton.x, e->xbutton.y);
+                return;
+            }
+            if (revealUIActive) {
+                handleRevealClick(e->xbutton.x, e->xbutton.y);
+                return;
+            }
+            if (resultUIActive) {
+				handleResultInput(e->xbutton.x, e->xbutton.y);
+				return;
+			}
+        }
 		if (e->xbutton.button==1) {
 			//Left button is down
 			if (gameState == 0) {
@@ -333,29 +353,8 @@ int check_keys(XEvent *e) {
 		}
 		////////////////////////////////////////////
         if (gameState == 3) {
-            if (key == XK_space) {
-                Start_Dice();
-				playerChoice = NONE;
-            }
-            if (key == XK_u || key == XK_U) {
-                playerChoice = UNDER;
-                cout << "[INPUT] Player chose UNDER.\n";
-            }
-            if (key == XK_o || key == XK_O) {
-                playerChoice = OVER;
-                cout << "[INPUT] Player chose OVER.\n";
-            }
-            if (key == XK_e || key == XK_E) {
-                playerChoice = EXACT;
-                cout << "[INPUT] Player chose EXACT.\n";
-            }
-            if (key == XK_r || key == XK_R) {
-				if (playerChoice != NONE)
-                	reveal_dice();
-				else
-					printf("Make a choice first\n");
-            }
-        }
+			handleDiceKeys(key);
+		}
         if (key == XK_c) {
             show_credits();
         }
@@ -368,9 +367,10 @@ int check_keys(XEvent *e) {
             return gameState = 2;
         }
         if (key == XK_d) {
-            cout << "gameState = 3\n";
-            return gameState = 3;
-        }
+			cout << "gameState = 3\n";
+			bettingUIActive = true; // Show betting UI first
+			return gameState = 3;
+		}
         if (key == XK_b) {
             cout << "gameState = 4\n";
             return gameState = 4;
@@ -399,60 +399,74 @@ void render() {
 	if (introplay == 1) {
 		intro_render();
     } else {
-	switch (gameState) {
-		case 0:
-		glClear(GL_COLOR_BUFFER_BIT);	
-		drawBackground();
-		drawDevscreen();
-		drawMenuLogo();
-		drawMenuOptions(mouseposition);
-		drawButtonTxt();
-		gameInfo();
-		if (disInfo == true) {
-			glClear(GL_COLOR_BUFFER_BIT);
+		switch (gameState) {
+			case 0:
+			glClear(GL_COLOR_BUFFER_BIT);	
 			drawBackground();
+			drawDevscreen();
+			drawMenuLogo();
+			drawMenuOptions(mouseposition);
+			drawButtonTxt();
 			gameInfo();
-			displayInfo();
-		}
-		break;
-
-		case 2:
-		//render_slots();
-		cout << "[INFO] Rendering Slot game.\n";
-		//////From Phil's main///////////////////////////
-		drawSlotFace();
-		srand(time(0));
-		for (int x = 0; x < 3; ++x) {
-			reels[x] = new Reel();
-		}
-	
-		if (initGL() == 1) {
-			printf("Successfully initialized OpenGL.\n");
-		}
-	
-		resize(g.xres, g.yres);
-	
-		while (g.exec) {
-			while (x11.getXPending()) {
-				XEvent e = x11.getXNextEvent();
-				check_keys(&e);  // Process key events
+			if (disInfo == true) {
+				glClear(GL_COLOR_BUFFER_BIT);
+				drawBackground();
+				gameInfo();
+				displayInfo();
 			}
-			draw();
-			x11.swapBuffers();
+			break;
+
+			case 2:
+			//render_slots();
+			cout << "[INFO] Rendering Slot game.\n";
+			//////From Phil's main///////////////////////////
+			drawSlotFace();
+			srand(time(0));
+			for (int x = 0; x < 3; ++x) {
+				reels[x] = new Reel();
+			}
+		
+			if (initGL() == 1) {
+				printf("Successfully initialized OpenGL.\n");
+			}
+		
+			resize(g.xres, g.yres);
+		
+			while (g.exec) {
+				while (x11.getXPending()) {
+					XEvent e = x11.getXNextEvent();
+					check_keys(&e);  // Process key events
+				}
+				draw();
+				x11.swapBuffers();
+			}
+
+			break;
+			/////////////////////////////////////////////////
+
+			case 3:
+				if (bettingUIActive)
+					renderBettingUI();
+				else if (choiceUIActive) {
+					render_dice();
+					renderChoiceUI();
+				}
+				else if (revealUIActive)
+					renderRevealButton();
+				else if (resultUIActive)
+					renderResultUI();
+				else
+					render_dice();
+
+				if (resultState != ResultState::IDLE)
+					renderResult();
+			break;
+
+			case 4:
+			drawBackground();
+			initShoe();
+
+			break;
 		}
-
-		break;
-		/////////////////////////////////////////////////
-
-		case 3:
-		render_dice();
-		break;
-
-		case 4:
-		drawBackground();
-		initShoe();
-
-		break;
-	}
 	}
 }

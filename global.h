@@ -18,6 +18,9 @@ struct Texture {
     // devmode
     Image* devImage;
     GLuint devtex;
+    //Dice
+    GLuint diceTex[6] = {0};
+    Image* diceImage;
     // slot face
     Image* slotImage;
     GLuint slottex;
@@ -39,6 +42,7 @@ public:
     float cupVelX;
     float cupRange;
     int vsync;
+    int winstreak;
     //
     float w;
     float h;
@@ -53,12 +57,15 @@ public:
         yres = 720;
         cupTexture = 0;
         silhouetteTexture = 0; // Initialized
+        //Dice
         cupWidth = 50.0f;
         cupHeight = 50.0f;
         cupPosX = 0.0f;
         cupVelX = 2.0f;
         cupRange = 50.0f;
+        winstreak = 0;
         vsync = 0;
+        //
         exec = true;
         currency = 1000;     // Start with 1000 chips
         currentBet = 0;      // Initial bet is 0
