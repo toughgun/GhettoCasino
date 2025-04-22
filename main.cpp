@@ -336,8 +336,7 @@ void check_mouse(XEvent* e)
 			//Left button is down
 			if (gameState == 0) {
 				disInfo = infoButton(savex, savey);
-				if (disInfo == false)
-					gameState = click(savex, savey, kill);
+				gameState = click(savex, savey, kill);
 			}
 		}
 		if (e->xbutton.button==3) {
@@ -362,6 +361,7 @@ int check_keys(XEvent* e)
 
         if (key == XK_Escape) {
             gameState = check_esc(gameState);
+            quit(0);
         }
         ///////temporary add-in by Phil///////////
         if (gameState == 2) {
@@ -370,6 +370,7 @@ int check_keys(XEvent* e)
                     reels[i]->start();
                 }
             }
+            
         }
         ////////////////////////////////////////////
         if (gameState == 3) {
@@ -441,7 +442,7 @@ void render()
 				// render_slots();
 				cout << "[INFO] Rendering Slot game.\n";
 				//////From Phil's main///////////////////////////
-				drawSlotFace();
+				//drawSlotFace();
 				srand(time(0));
 				for (int x = 0; x < 3; ++x) {
 					reels[x] = new Reel();
@@ -454,10 +455,11 @@ void render()
 				resize(g.xres, g.yres);
 
 				while (g.exec) {
-					while (x11.getXPending()) {
-						XEvent e = x11.getXNextEvent();
-						check_keys(&e); // Process key events
-					}
+                    while (x11.getXPending()) {
+                        XEvent e = x11.getXNextEvent();
+                        check_keys(&e);  // Process key events
+                    }
+                    
 					draw();
 					x11.swapBuffers();
 				}
