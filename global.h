@@ -19,6 +19,9 @@ struct Texture {
     // devmode
     Image* devImage;
     GLuint devtex;
+    //Dice
+    GLuint diceTex[6] = {0};
+    Image* diceImage;
     // slot face
     Image* slotImage;
     GLuint slottex;
@@ -37,12 +40,22 @@ class Global {
     int     devmode;
     // Dice variables
     GLuint cupTexture;
+<<<<<<< HEAD
     float  cupWidth;
     float  cupHeight;
     float  cupPosX;
     float  cupVelX;
     float  cupRange;
     int    vsync;
+=======
+    float cupWidth;
+    float cupHeight;
+    float cupPosX;
+    float cupVelX;
+    float cupRange;
+    int vsync;
+    int winstreak;
+>>>>>>> dice
     //
     float w;
     float h;
@@ -58,6 +71,7 @@ class Global {
         yres              = 720;
         cupTexture        = 0;
         silhouetteTexture = 0; // Initialized
+<<<<<<< HEAD
         cupWidth          = 50.0f;
         cupHeight         = 50.0f;
         cupPosX           = 0.0f;
@@ -67,6 +81,20 @@ class Global {
         exec              = true;
         currency          = 1000; // Start with 1000 chips
         currentBet        = 0;    // Initial bet is 0
+=======
+        //dice
+        cupWidth = 50.0f;
+        cupHeight = 50.0f;
+        cupPosX = 0.0f;
+        cupVelX = 2.0f;
+        cupRange = 50.0f;
+        winstreak = 0;
+        vsync = 0;
+        //
+        exec = true;
+        currency = 1000;     // Start with 1000 chips
+        currentBet = 0;      // Initial bet is 0
+>>>>>>> dice
     }
 };
 

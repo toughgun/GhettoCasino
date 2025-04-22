@@ -1,181 +1,247 @@
 /*
  * crodriguez4.cpp
  * Author: Christian Rodriguez
- * Last Modified: 3/11/2025 (Updated with betting functionality)
+ * Last Modified: 4/21/2025 (Enhanced with full dice UI flow)
 */
+#include <cstdlib>
+#include <cstdio>
+#include <ctime>
+#include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include "x11.h"
 #include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-#include <iostream>
-#include <cstdlib>
-#include <ctime>
+#include <X11/keysym.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include "x11.h"
 #include "fonts.h"
 #include "crodriguez4.h"
+#include <iostream>
 using namespace std;
 
 int die1 = 0, die2 = 0, total = 0;
 bool diceRevealed = false;
 Choice playerChoice = NONE;
+bool bettingUIActive = false;
+bool choiceUIActive = false;
+bool revealUIActive = false;
+bool resultUIActive = false;
+bool addMode = true; // true = + mode, false = - mode
 
+extern Global g;
+extern X11_wrapper x11;
 extern void drawBackground();
 
-void render_dice()
+// Internal flag
+ResultState resultState = ResultState::IDLE;
+
+static inline void seed_rng_once()
 {
-    /* Set up projection and view matrices */
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, g.xres, 0, g.yres, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glClear(GL_COLOR_BUFFER_BIT);
-    drawBackground();
-    /* Enable alpha testing for transparency */
-    glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_GREATER, 0.0f);
-    /* Bind the cup texture and draw the cup as a textured quad */
-    glBindTexture(GL_TEXTURE_2D, g.cupTexture);
-    glColor3f(1.0f, 1.0f, 1.0f);
-    float centerX = g.xres * 0.5f + g.cupPosX;
-    float centerY = g.yres * 0.5f;
-    float halfW = g.cupWidth  * 0.5f;
-    float halfH = g.cupHeight * 0.5f;
-    glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(centerX - halfW, centerY - halfH);
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(centerX + halfW, centerY - halfH);
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex2f(centerX + halfW, centerY + halfH);
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex2f(centerX - halfW, centerY + halfH);
-    glEnd();
-    glFlush();
-    /* Disable alpha testing after drawing */
-    glDisable(GL_ALPHA_TEST);
+    static bool seeded = false;
+    if (!seeded) {
+        srand((unsigned)time(nullptr));
+        seeded = true;
+    }
 }
 
-void drawCup()
+void updateUIForWindowSize()
 {
-    /* Enable blending to handle transparency */
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBindTexture(GL_TEXTURE_2D, g.cupTexture);
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glBegin(GL_QUADS);
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(-g.cupWidth / 2, -g.cupHeight / 2);
-        glTexCoord2f(1.0f, 0.0f);
-        glVertex2f(g.cupWidth / 2, -g.cupHeight / 2);
-        glTexCoord2f(1.0f, 1.0f);
-        glVertex2f(g.cupWidth / 2, g.cupHeight / 2);
-        glTexCoord2f(0.0f, 1.0f);
-        glVertex2f(-g.cupWidth / 2, g.cupHeight / 2);
-    glEnd();
-    glDisable(GL_BLEND);
+    g.cupWidth = g.xres * 0.10f;
+    g.cupHeight = g.yres * 0.10f;
 }
+/* ---------------------*/
+/*  texture loading     */
+/* ---------------------*/
 void loadCupTexture()
 {
-    Image cupImg("cup.png");
+    Image cup("cup.png");
+    if (!cup.data) {
+        fprintf(stderr, "[ERROR] cup.png not found - texture skipped.\n");
+        return;
+    }
     glGenTextures(1, &g.cupTexture);
     glBindTexture(GL_TEXTURE_2D, g.cupTexture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    /* Convert cup image data to RGBA using buildAlphaData() */
-    unsigned char *cupAlpha = buildAlphaData(&cupImg);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cupImg.width, cupImg.height,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, cupAlpha);
-    free(cupAlpha);
+    unsigned char *alpha = buildAlphaData(&cup);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cup.width, cup.height,
+        0, GL_RGBA, GL_UNSIGNED_BYTE, alpha);
+    free(alpha);
+}
+void loadDiceTextures(void)
+{
+    const char *files[6] = {
+        "dice1.png","dice2.png","dice3.png",
+        "dice4.png","dice5.png","dice6.png"
+    };
+    for (int i=0;i<6;i++) {
+        Image imgs(files[i]);
+        if (!imgs.data) {
+            fprintf(stderr,"[WARN] %s missing.\n",files[i]);
+            continue;
+        }
+        glGenTextures(1,&g.tex.diceTex[i]);
+        glBindTexture(GL_TEXTURE_2D,g.tex.diceTex[i]);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+        unsigned char *a = buildAlphaData(&imgs);
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,
+            imgs.width,imgs.height,0,GL_RGBA,GL_UNSIGNED_BYTE,a);
+        free(a);
+    }
 }
 
 void roll_dice()
 {
-    /* Generate random dice values and compute the total */
-    srand(time(0));
+    seed_rng_once();
     die1 = rand() % 6 + 1;
     die2 = rand() % 6 + 1;
     total = die1 + die2;
     diceRevealed = false;
-    cout << "[INFO] Dice rolled. Awaiting user choice...\n";
+    playerChoice = NONE;
+    resultState = ResultState::IDLE;
+    printf("[INFO] Dice rolled - choose UNDER/OVER/EXACT.\n");
 }
-void cupPhysics()
+
+void reveal_dice(void)
 {
-    /* Update cup position and reverse direction if at range limits */
-    g.cupPosX += g.cupVelX;
-    if (g.cupPosX > g.cupRange || g.cupPosX < -g.cupRange)
-        g.cupVelX = -g.cupVelX;
+    if (diceRevealed) return;
+    diceRevealed = true;
+
+    bool win = (playerChoice==UNDER && total<7) ||
+               (playerChoice==OVER  && total>7) ||
+               (playerChoice==EXACT && total==7);
+
+    resultState     = win ? ResultState::SHOW_WIN : ResultState::SHOW_LOSS;
+    resultUIActive  = true;         /* <- show dice faces + buttons */
+    choiceUIActive  = false;
+    revealUIActive  = false;
+
+    if (win) {
+        g.currency += g.currentBet * 2;
+        g.winstreak++;
+    } else {
+        g.winstreak = 0;
+    }
+    printf("[INFO] %d + %d = %d — %s\n",
+           die1,die2,total, win?"WIN":"LOSS");
 }
+
+/* --------------------------*/
+/*  simple cup oscillation   */
+/* --------------------------*/
+static void cupPhysics()
+{
+    g.cupPosX += g.cupVelX;
+    if (g.cupPosX >  g.cupRange) 
+        g.cupVelX = -abs(g.cupVelX) * 2;
+    if (g.cupPosX < -g.cupRange) 
+        g.cupVelX =  abs(g.cupVelX) * 2;
+}
+/* ---------------------*/
+/*  rendering helpers   */
+/* ---------------------*/
+static inline void push_ortho()
+{
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0,g.xres,0,g.yres,-1,1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}
+void render_dice()
+{
+    push_ortho();
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawBackground();
+    glBindTexture(GL_TEXTURE_2D, g.cupTexture);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    float cx = g.xres * 0.5f + g.cupPosX;
+    float cy = g.yres * 0.5f;
+    float hw = g.cupWidth * 0.5f;
+    float hh = g.cupHeight * 0.5f;
+    glColor3f(1,1,1);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0,0); glVertex2f(cx-hw,cy-hh);
+        glTexCoord2f(1,0); glVertex2f(cx+hw,cy-hh);
+        glTexCoord2f(1,1); glVertex2f(cx+hw,cy+hh);
+        glTexCoord2f(0,1); glVertex2f(cx-hw,cy+hh);
+    glEnd();
+    glDisable(GL_ALPHA_TEST);
+    glFlush();
+}
+/* draws cup at model origin – used by other modules if needed */
+void drawCup()
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    glBindTexture(GL_TEXTURE_2D,g.cupTexture);
+    glColor3f(1,1,1);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0,0); glVertex2f(-g.cupWidth/2,-g.cupHeight/2);
+        glTexCoord2f(1,0); glVertex2f( g.cupWidth/2,-g.cupHeight/2);
+        glTexCoord2f(1,1); glVertex2f( g.cupWidth/2, g.cupHeight/2);
+        glTexCoord2f(0,1); glVertex2f(-g.cupWidth/2, g.cupHeight/2);
+    glEnd();
+    glDisable(GL_BLEND);
+}
+/* -----------------------------------*/
+/*  run a dice round (7 s animation)  */
+/* -----------------------------------*/
 void Start_Dice()
 {
-    /* 
-     * Run the dice game loop for 7 seconds.
-     * Process pending X11 events and update cup physics.
-     */
-    time_t start = time(NULL);
-    while (difftime(time(NULL), start) < 7) {
-        /* Process X11 events in the loop */
-        while (XPending(x11.getDisplay())) {
-            XEvent event;
-            XNextEvent(x11.getDisplay(), &event);
-            if (event.type == KeyPress) {
-                KeySym key = XLookupKeysym(&event.xkey, 0);
-                if (key == XK_v) {
-                    // Toggle vsync flag in your global state 
-                    g.vsync = !g.vsync;
-                    // Get function pointer for vsync control
-                    static PFNGLXSWAPINTERVALEXTPROC 
-                        glXSwapIntervalEXT = NULL;
-                    if (!glXSwapIntervalEXT) {
-                        glXSwapIntervalEXT =
-                          (PFNGLXSWAPINTERVALEXTPROC)
-                          glXGetProcAddressARB(
-                          (const GLubyte *)"glXSwapIntervalEXT");
-                    }
-                    // Get the current drawable
-                    GLXDrawable drawable = glXGetCurrentDrawable();
-                    if (g.vsync) {
-                        glXSwapIntervalEXT(x11.getDisplay(), drawable, 1);
-                        cout << "Vsync enabled\n";
-                    } else {
-                        glXSwapIntervalEXT(x11.getDisplay(), drawable, 0);
-                        cout << "Vsync disabled\n";
-                    }
-                }
-            }
-        }
+    time_t start = time(nullptr);
+    while (difftime(time(nullptr), start) < 7) {
         cupPhysics();
-        usleep(300000);
+        render_dice();
+        x11.swapBuffers();
+        usleep(30000);
     }
-    /* Reset cup motion and update display */
-    g.cupVelX = 0;
-    g.cupPosX = 0;
-    render_dice();
+    g.cupPosX = g.cupVelX = 0;
     roll_dice();
+    choiceUIActive = true;
 }
-void reveal_dice()
+
+/* ----------------*/
+/*  betting UI     */
+/* ----------------*/
+
+/* --------------------------------------------
+* Dice‑specific keyboard handler
+*----------------------------------------------*/
+
+void handleDiceKeys(KeySym key)
 {
-    /* Reveal dice and display outcome based on player's choice */
-    diceRevealed = true;
-    cout << "[INFO] Revealing dice: " << die1 << " and " << die2 
-         << " (Total: " << total << ")\n";
-    if ((playerChoice == UNDER && total < 7) ||
-        (playerChoice == OVER && total > 7) ||
-        (playerChoice == EXACT && total == 7))
-        cout << "[RESULT] You won!\n";
-    else
-        cout << "[RESULT] You lost. Try again!\n";
+    /* first branch: betting overlay is visible */
+    if (bettingUIActive) {
+        /* Return or space finalises the bet; user can also press Esc */
+        if (key == XK_KP_Enter || key == XK_space)
+            finalizeBet();
+        if (key == XK_r)
+            resetBet(); /* keep overlay, just zero bet */
+        return;
+    }
+    /* second branch: actual dice round */
+    if (choiceUIActive) {
+        if (key == XK_u) 
+            playerChoice = UNDER;
+        else if (key == XK_o) 
+            playerChoice = OVER;
+        else if (key == XK_e) 
+            playerChoice = EXACT;
+    } else if (revealUIActive && key == XK_r) {
+        if (playerChoice != NONE) 
+            reveal_dice();
+    }
 }
+
 void draw_button(float x, float y, float width, float height,
-                 const char *label)
+    const char *label)
 {
-    /* Draw a button quad with text label centered on it */
     glColor3f(0.2f, 0.6f, 1.0f);
     glBegin(GL_QUADS);
         glVertex2f(x, y);
@@ -183,14 +249,268 @@ void draw_button(float x, float y, float width, float height,
         glVertex2f(x + width, y - height);
         glVertex2f(x, y - height);
     glEnd();
+
     Rect r;
-    r.left = x + (width / 2) - 30;
-    r.top  = y - (height / 2) + 10;
-    r.right = 0;
-    r.bot = 0;
     r.center = 1;
+    r.left = x + width / 2;
+    r.bot = y - height / 2 - (16 / 3); // Use advance value of 16 here
     ggprint16(&r, 16, 0, "%s", label);
 }
+
+/* replace the whole body of draw_button_colored in crodriguez4.cpp */
+void draw_button_colored(float x,float y,float w,float h,
+    const char *label,float r,float g,float b)
+{
+    GLboolean wasTex = glIsEnabled(GL_TEXTURE_2D);  // remember state
+    if (wasTex) glDisable(GL_TEXTURE_2D);           // ① solid quad
+    glColor3f(r,g,b);
+    glBegin(GL_QUADS);
+        glVertex2f(x,   y);
+        glVertex2f(x+w, y);
+        glVertex2f(x+w, y-h);
+        glVertex2f(x,   y-h);
+    glEnd();
+
+    if (wasTex) glEnable(GL_TEXTURE_2D);            // ② print label
+    Rect rc;  
+    rc.center = 1;
+    rc.left = x + w/2;  
+    rc.bot = y - h/2 - 4;
+    ggprint16(&rc,16,0,"%s",label);
+}
+
+
+static bool isInsideRect(int px, int py,int rx, int ry, int rw, int rh)
+{
+    int xMin = min(rx, rx + rw);
+    int xMax = max(rx, rx + rw);
+    int yMin = min(ry, ry - rh);       
+    int yMax = max(ry, ry - rh);
+    return px >= xMin && px <= xMax &&
+            py >= yMin && py <= yMax;
+}
+void renderBettingUI(void)
+{
+    push_ortho();
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawBackground();
+
+    /* ---- layout ---- */
+    const int bw       = 100;
+    const int bh       = 40;
+    const int spacing  = 20;
+    const int buttons  = 6;
+    const int totalW   = buttons * bw + (buttons - 1) * spacing;
+    const int startX   = (g.xres - totalW) / 2;
+    const int y        = g.yres / 4;
+
+    /* ---- TOGGLE ---- */
+    const char *toggle = addMode ? "+" : "-";
+    float red   = addMode ? 0.0f : 1.0f;
+    float green = addMode ? 0.6f : 0.2f;
+    draw_button_colored(startX, y, bw, bh, toggle, red, green, 1.0f);
+
+    /* ---- BET AMOUNTS ---- */
+    draw_button_colored(startX + (bw + spacing) * 1, y, bw, bh, "25",
+                        0.2f, 0.6f, 1.0f);
+    draw_button_colored(startX + (bw + spacing) * 2, y, bw, bh, "50",
+                        0.2f, 0.6f, 1.0f);
+    draw_button_colored(startX + (bw + spacing) * 3, y, bw, bh, "75",
+                        0.2f, 0.6f, 1.0f);
+    draw_button_colored(startX + (bw + spacing) * 4, y, bw, bh, "100",
+                        0.2f, 0.6f, 1.0f);
+
+    /* ---- BET! ---- */
+    draw_button_colored(startX + (bw + spacing) * 5, y, bw, bh, "BET!",
+                        0.1f, 0.8f, 0.1f);
+
+    /* ---- STATUS ---- */
+    char info[128];
+    snprintf(info, sizeof(info),
+             "Currency: $%d | Bet: $%d | Win Streak: %d",
+             g.currency, g.currentBet, g.winstreak);
+
+    Rect txt;
+    txt.left   = g.xres / 2;
+    txt.center = 1;
+    txt.bot    = 20;
+    ggprint16(&txt, 16, 0x00ff00ff, "%s", info);
+}
+void renderChoiceUI()
+{
+    int y = g.yres / 3;
+    draw_button_colored(g.xres/2 - 160, y, 100, 40, "UNDER", .4f, .5f, 1);
+    draw_button_colored(g.xres/2 -  50, y, 100, 40, "EXACT", 1, .5f, .0f);
+    draw_button_colored(g.xres/2 +  60, y, 100, 40, "OVER", .5f, 1, .5f);
+}
+void renderResultUI(void)
+{
+    push_ortho();
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawBackground();
+
+    /* ---- dice faces ---- */
+    // float dw = g.xres * 0.10f;          /* size of a die */
+    // float dh = dw;
+    float cx = g.xres * 0.5f;
+    // float cy = g.yres * 0.55f;
+
+    // glEnable(GL_TEXTURE_2D);
+    // glEnable(GL_ALPHA_TEST);
+    // glAlphaFunc(GL_GREATER,0);
+
+    // /* left die */
+    // glBindTexture(GL_TEXTURE_2D,g.tex.diceTex[die1-1]);
+    // glBegin(GL_QUADS);
+    //     glTexCoord2f(0,0); glVertex2f(cx-dw-10,cy+dh/2);
+    //     glTexCoord2f(1,0); glVertex2f(cx-10,   cy+dh/2);
+    //     glTexCoord2f(1,1); glVertex2f(cx-10,   cy-dh/2);
+    //     glTexCoord2f(0,1); glVertex2f(cx-dw-10,cy-dh/2);
+    // glEnd();
+
+    // /* right die */
+    // glBindTexture(GL_TEXTURE_2D,g.tex.diceTex[die2-1]);
+    // glBegin(GL_QUADS);
+    //     glTexCoord2f(0,0); glVertex2f(cx+10,   cy+dh/2);
+    //     glTexCoord2f(1,0); glVertex2f(cx+dw+10,cy+dh/2);
+    //     glTexCoord2f(1,1); glVertex2f(cx+dw+10,cy-dh/2);
+    //     glTexCoord2f(0,1); glVertex2f(cx+10,   cy-dh/2);
+    // glEnd();
+
+    // glDisable(GL_ALPHA_TEST);
+
+    /* ---- result text ---- */
+    renderResult();                     /* re‑use previous routine */
+
+    /* ---- action buttons ---- */
+    float bw  = g.xres * 0.18f;
+    float bh  = g.yres * 0.08f;
+    float y   = g.yres * 0.25f;
+    draw_button_colored(cx-(bw-20), y, bw, bh, "NEW BET",
+                        0.20f,0.60f,1.0f);
+    draw_button_colored(cx+20,    y, bw, bh, "SAME BET",
+                        0.10f,0.80f,0.10f);
+}
+
+void renderRevealButton()
+{
+    draw_button_colored(g.xres/2 - 50, g.yres/3 - 60, 100, 40, "REVEAL",
+                                                        .8f, .1f, .1f);
+}
+void renderResult()
+{
+    const char *txt = (resultState == ResultState::SHOW_WIN)
+                                                ? "YOU WON!" : "YOU LOST";
+    int cref = (resultState == ResultState::SHOW_WIN)
+                                                ? 0x00ff00ff : 0xff0000ff;
+    Rect r = { g.xres/2, g.yres/2, 0, 0, 0 };
+    r.center = 1;
+    ggprint16(&r, 32, cref, txt);
+}
+
+void handleResultInput(int mx,int my)
+{
+    my = g.yres - my;
+    float bw  = g.xres * 0.18f;
+    float bh  = g.yres * 0.08f;
+    float cx  = g.xres * 0.5f;
+    float y   = g.yres * 0.25f;
+
+    /* NEW BET */
+    if (isInsideRect(mx,my, int(cx-bw-20), int(y), int(bw), int(bh))) {
+        resultUIActive  = false;
+        bettingUIActive = true;
+        resultState     = ResultState::IDLE;
+        return;
+    }
+    /* SAME BET */
+    if (isInsideRect(mx,my, int(cx+20),int(y), int(bw), int(bh))) {
+        resultUIActive  = false;
+        Start_Dice();              /* reuse current bet */
+    }
+}
+void handleChoiceInput(int mx, int my)
+{
+    my = g.yres - my;
+    const int bw = 100, bh = 40;
+    int topY = g.yres / 3;
+
+    if (isInsideRect(mx, my, g.xres/2 - 160, topY, bw, bh))
+        playerChoice = UNDER;
+    else if (isInsideRect(mx, my, g.xres/2 -  50, topY, bw, bh))
+        playerChoice = EXACT;
+    else if (isInsideRect(mx, my, g.xres/2 +  60, topY, bw, bh))
+        playerChoice = OVER;
+    else
+        return;          // clicked outside
+
+    choiceUIActive  = false;
+    revealUIActive  = true;
+}
+
+void handleRevealClick(int mx, int my)
+{
+    my = g.yres - my;
+    if (isInsideRect(mx, my, g.xres/2 - 50, g.yres/3 - 60, 100, 40)) {
+        reveal_dice();
+    }
+}
+
+void processBettingInput(int mx, int my, int /*button*/)
+{
+    my = g.yres - my;                        // X11‑to‑OpenGL flip
+
+    /* layout identical to renderBettingUI */
+    const int bw      = 100, bh = 40, spacing = 20;
+    const int totalW  = 6 * bw + 5 * spacing;
+    const int startX  = (g.xres - totalW) / 2;
+    const int topY    = g.yres / 4;
+
+    /* 0.  toggle */
+    if (isInsideRect(mx, my, startX, topY, bw, bh)) {
+        addMode = !addMode;
+        return;
+    }
+
+    /* 1‑4. chip amounts */
+    const int chips[4] = {25, 50, 75, 100};
+    for (int i = 0; i < 4; ++i) {
+        int bx = startX + (i + 1) * (bw + spacing);
+        if (isInsideRect(mx, my, bx, topY, bw, bh)) {
+            int delta = addMode ?  chips[i] : -chips[i];
+            g.currentBet = std::clamp(g.currentBet + delta, 0, g.currency);
+            return;
+        }
+    }
+
+    /* 5.  BET! */
+    int bxBet = startX + 5 * (bw + spacing);
+    if (isInsideRect(mx, my, bxBet, topY, bw, bh)) {
+        finalizeBet();
+    }
+}
+void finalizeBet()
+{
+    if (g.currentBet<=0) {
+        fprintf(stderr,"[ERROR] Bet must be >0.\n");
+        return;
+    }
+    if (g.currentBet>g.currency) {
+        fprintf(stderr,"[ERROR] Not enough currency.\n");
+        return;
+    }
+    printf("[INFO] Bet locked at %d - starting dice.\n",g.currentBet);
+    g.currency -= g.currentBet;
+    bettingUIActive = false;
+    Start_Dice();
+}
+void resetBet()
+{
+    g.currentBet = 0;
+}
+/*----------------------*/
+/* Credits functionality*/
+/*----------------------*/
 static void show_child_credits_window()
 {
     /* Create and display a child window to show credits */
@@ -264,131 +584,3 @@ void show_credits()
         perror("fork");
     }
 }
-bool isInsideRect(int mouseX, int mouseY, int rectX, int rectY,
-                  int rectW, int rectH)
-{
-    /* Return true if the point is inside the specified rectangle */
-    return (mouseX >= rectX && mouseX <= rectX + rectW &&
-            mouseY >= rectY && mouseY <= rectY + rectH);
-}
-void renderBettingUI()
-{
-    /* Render the betting UI with a box, currency info, and bet buttons */
-    int margin = 10, boxWidth = 200, boxHeight = 50;
-    glColor3f(0.8f, 0.8f, 0.8f);
-    glBegin(GL_QUADS);
-        glVertex2i(margin, g.yres - margin);
-        glVertex2i(margin + boxWidth, g.yres - margin);
-        glVertex2i(margin + boxWidth, g.yres - margin - boxHeight);
-        glVertex2i(margin, g.yres - margin - boxHeight);
-    glEnd();
-    char info[100];
-    snprintf(info, sizeof(info), "Currency: %d  Bet: %d", g.currency,
-             g.currentBet);
-    glColor3f(0.0f, 0.0f, 0.0f);
-    Rect r;
-    r.left = margin + 5;
-    r.top = g.yres - margin - 10;
-    r.center = 0;
-    ggprint16(&r, 16, 0, info);
-    /* Draw bet adjustment buttons */
-    int buttonW = 50, buttonH = 30, spacing = 5;
-    int betValues[6] = {1, 5, 10, 25, 50, 100};
-    int startX = margin;
-    int startY = g.yres - margin - boxHeight - spacing - buttonH;
-    int i;
-    for (i = 0; i < 6; i++) {
-        char label[10];
-        snprintf(label, sizeof(label), "%d", betValues[i]);
-        draw_button(startX + i * (buttonW + spacing), startY,
-                    buttonW, buttonH, label);
-    }
-    /* Draw the decrease bet buttons below the increase buttons */
-    startY = g.yres - margin - boxWidth - spacing - 2 * buttonH -
-             spacing;
-    for (i = 0; i < 6; i++) {
-        char label[10];
-        snprintf(label, sizeof(label), "-%d", betValues[i]);
-        draw_button(startX + i * (buttonW + spacing), startY,
-                    buttonW, buttonH, label);
-    }
-}
-void processBettingInput(int mouseX, int mouseY, int button)
-{
-    /* Process mouse clicks for adjusting the bet.
-       Left-click increases; right-click decreases. */
-    mouseY = g.yres - mouseY;
-    int margin = 10, boxHeight = 50, spacing = 5;
-    int buttonW = 50, buttonH = 30;
-    int incRowY = g.yres - margin - boxHeight - spacing - buttonH;
-    int decRowY = g.yres - margin - boxHeight - spacing - 2 * buttonH -
-        spacing;
-    int betValues[6] = {1, 5, 10, 25, 50, 100};
-    int i;
-    if (button == 1) {
-        for (i = 0; i < 6; i++) {
-            int btnX = margin + i * (buttonW + spacing);
-            if (isInsideRect(mouseX, mouseY, btnX, incRowY,
-                             buttonW, buttonH)) {
-                if (g.currentBet + betValues[i] <= g.currency)
-                    g.currentBet += betValues[i];
-                else
-                    g.currentBet = g.currency;
-                return;
-            }
-        }
-    } else if (button == 3) {
-        for (i = 0; i < 6; i++) {
-            int btnX = margin + i * (buttonW + spacing);
-            if (isInsideRect(mouseX, mouseY, btnX, decRowY,
-                             buttonW, buttonH)) {
-                if (g.currentBet - betValues[i] < 1)
-                    g.currentBet = 1;
-                else
-                    g.currentBet -= betValues[i];
-                return;
-            }
-        }
-    }
-}
-void finalizeBet()
-{
-    /* Finalize the bet, deduct currency if valid, and start dice game */
-    if (g.currentBet <= 0) {
-        cout << "[ERROR] Bet must be greater than 0 before starting "
-             << "the game.\n";
-    } else {
-        cout << "[INFO] Bet finalized at " << g.currentBet 
-             << ". Starting dice game...\n";
-        g.currency -= g.currentBet;
-        Start_Dice();
-    }
-}
-void resetBet()
-{
-    g.currentBet = 0;
-}
-
-
-/* 
-
-void buttonIdleState(int x, int y, int z)
-{
-		glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
-		glPushMatrix();
-		glTranslatef(x,y,z);
-		glEnable(GL_ALPHA_TEST);
-		glAlphaFunc(GL_GREATER, 0.0f);
-		glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
-		glBegin(GL_QUADS);
-			float h = g.tex.buttonImage->height/4;
-			float w = g.tex.buttonImage->width/4;
-			glTexCoord2f(0.0f, 0.0f); glVertex2f(-w,  h); //Top-left
-			glTexCoord2f(1.0f, 0.0f); glVertex2f( w,  h); //Top-right
-			glTexCoord2f(1.0f, 1.0f); glVertex2f( w, -h); //Bottom-right
-			glTexCoord2f(0.0f, 1.0f); glVertex2f(-w, -h); //Botton-left
-		glEnd();
-		glDisable(GL_ALPHA_TEST);
-		glPopMatrix();
-}
-*/
