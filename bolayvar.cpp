@@ -1,5 +1,5 @@
 // Benjamin Olayvar
-// last revised: 4/15/2025
+// last revised: 4/22/2025
 //
 #include "blackjack.h"
 #include "button.h"
@@ -83,7 +83,7 @@ void drawMenuLogo()
     glDisable(GL_ALPHA_TEST);
     glPopMatrix();
 }
-void buttonIdleState(int x, int y, int z)
+void buttonIdleState(int x, int y, int z, int xScale, int yScale)
 {
     glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
     glPushMatrix();
@@ -92,8 +92,8 @@ void buttonIdleState(int x, int y, int z)
     glAlphaFunc(GL_GREATER, 0.0f);
     glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
     glBegin(GL_QUADS);
-    float h = g.tex.buttonImage->height / 4;
-    float w = g.tex.buttonImage->width / 4;
+    float h = g.tex.buttonImage->height / yScale;
+    float w = g.tex.buttonImage->width / xScale;
     glTexCoord2f(0.0f, 0.0f);
     glVertex2f(-w, h); // Top-left
     glTexCoord2f(1.0f, 0.0f);
@@ -106,7 +106,8 @@ void buttonIdleState(int x, int y, int z)
     glDisable(GL_ALPHA_TEST);
     glPopMatrix();
 }
-void buttonHoverState(int x, int y, int z)
+
+void buttonHoverState(int x, int y, int z, int xScale, int yScale)
 {
     glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
     glPushMatrix();
@@ -115,8 +116,8 @@ void buttonHoverState(int x, int y, int z)
     glAlphaFunc(GL_GREATER, 0.0f);
     glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
     glBegin(GL_QUADS);
-    float h = g.tex.buttonImage->height / 4;
-    float w = g.tex.buttonImage->width / 4;
+    float h = g.tex.buttonImage->height / yScale;
+    float w = g.tex.buttonImage->width / xScale;
     glTexCoord2f(0.0f, 0.0f);
     glVertex2f(-w, h); // Top-left
     glTexCoord2f(1.0f, 0.0f);
@@ -169,29 +170,29 @@ void drawMenuOptions(int x)
 {
     // slots
     if (x == 1) {
-        buttonHoverState(bslot.pos[0], bslot.pos[1], bslot.pos[2]);
+        buttonHoverState(bslot.pos[0], bslot.pos[1], bslot.pos[2], 4, 4);
     } else {
-        buttonIdleState(bslot.pos[0], bslot.pos[1], bslot.pos[2]);
+        buttonIdleState(bslot.pos[0], bslot.pos[1], bslot.pos[2], 4, 4);
     }
     // dice
     if (x == 2) {
-        buttonHoverState(bdice.pos[0], bdice.pos[1], bdice.pos[2]);
+        buttonHoverState(bdice.pos[0], bdice.pos[1], bdice.pos[2], 4, 4);
     } else {
-        buttonIdleState(bdice.pos[0], bdice.pos[1], bdice.pos[2]);
+        buttonIdleState(bdice.pos[0], bdice.pos[1], bdice.pos[2], 4, 4);
     }
     // blackjack
     if (x == 3) {
         buttonHoverState(bblackjack.pos[0], bblackjack.pos[1],
-                         bblackjack.pos[2]);
+                         bblackjack.pos[2], 4, 4);
     } else {
         buttonIdleState(bblackjack.pos[0], bblackjack.pos[1],
-                        bblackjack.pos[2]);
+                        bblackjack.pos[2], 4, 4);
     }
     // exit
     if (x == 4) {
-        buttonHoverState(bexit.pos[0], bexit.pos[1], bexit.pos[2]);
+        buttonHoverState(bexit.pos[0], bexit.pos[1], bexit.pos[2], 4, 4);
     } else {
-        buttonIdleState(bexit.pos[0], bexit.pos[1], bexit.pos[2]);
+        buttonIdleState(bexit.pos[0], bexit.pos[1], bexit.pos[2], 4, 4);
     }
 }
 int click(int savex, int savey, int& done)
@@ -342,14 +343,25 @@ void initFirstHand()
         bj.dealerHandTotal += bj.shoe[bj.currentPos];
         bj.currentPos++;
     }
-
     checkDealerHand();
 }
 void bjHit()
 {
     // Logic and Animation for Hit Here
 }
-void check_BlackJackKeys(int x)
+void showUI(){}
+
+void handleBlackJackGame()
+{
+    if(bj.showUI) {
+    	drawBJBackground();
+        initShoe();
+	    // beginBJPlay();
+        showUI();
+    }
+}
+
+void handleBlackJackKeys(int x)
 {
     // lock out the player from doing anything until the delt cards or animaiton
     // is complete
@@ -361,7 +373,6 @@ void check_BlackJackKeys(int x)
 
         case XK_d || XK_D:
             //bjDouble();
-        default:
             break;
         }
     }
