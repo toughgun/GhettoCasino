@@ -14,6 +14,7 @@ class Blackjack {
     bool shuffled;
     bool delt;
     bool split;
+    bool insure;
     // GLuint cards;
     float cardWidth;
     float cardHeight;
@@ -29,6 +30,7 @@ class Blackjack {
         shuffled        = false;
         delt            = false;
         split           = false;
+        insure          = false;
     }
 };
 
