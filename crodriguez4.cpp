@@ -174,7 +174,6 @@ void render_dice()
     glDisable(GL_ALPHA_TEST);
     glFlush();
 }
-/* draws cup at model origin – used by other modules if needed */
 void drawCup()
 {
     glEnable(GL_BLEND);
@@ -258,7 +257,6 @@ void draw_button(float x, float y, float width, float height,
     ggprint16(&r, 16, 0, "%s", label);
 }
 
-/* replace the whole body of draw_button_colored in crodriguez4.cpp */
 void draw_button_colored(float x,float y,float w,float h,
     const char *label,float r,float g,float b)
 {
