@@ -36,6 +36,7 @@ extern Reel* reels[3];
 
 //void calculate_framerate();
 GLfloat get_rand( GLfloat max );
+void quit(int retcode);
 int initGL(GLvoid);
 int draw(GLvoid);
 int resize(int width, int height);
