@@ -465,14 +465,17 @@ int X11_wrapper::check_keys(XEvent *e) {
 	int key = XLookupKeysym(&e->xkey, 0);
 	if (e->type == KeyPress) {
 		switch (key) {
+			/*
 			case XK_Escape:
 				g.exec = false;
 				break;
+			
 			case XK_space:
 				for (int i = 0; i < 3; ++i) {
 					reels[i]->start();
 				}
 				break;
+			*/
 			default:
 				break;
 		}
