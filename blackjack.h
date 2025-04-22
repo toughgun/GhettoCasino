@@ -18,6 +18,7 @@ class Blackjack {
     // GLuint cards;
     float cardWidth;
     float cardHeight;
+    float showUI;
     float cardPosX, cardPosY, cardVelX;
 
     Blackjack()
@@ -31,6 +32,7 @@ class Blackjack {
         delt            = false;
         split           = false;
         insure          = false;
+        showUI          = false;
     }
 };
 
