@@ -137,9 +137,9 @@ static void cupPhysics()
 {
     g.cupPosX += g.cupVelX;
     if (g.cupPosX >  g.cupRange) 
-        g.cupVelX = -abs(g.cupVelX) * 2;
+        g.cupVelX = -abs(g.cupVelX);
     if (g.cupPosX < -g.cupRange) 
-        g.cupVelX =  abs(g.cupVelX) * 2;
+        g.cupVelX =  abs(g.cupVelX);
 }
 /* ---------------------*/
 /*  rendering helpers   */
@@ -426,7 +426,13 @@ void handleResultInput(int mx,int my)
     }
     /* SAME BET */
     if (isInsideRect(mx,my, int(cx+20),int(y), int(bw), int(bh))) {
+        if (g.currentBet>g.currency) {
+            fprintf(stderr,"[ERROR] Not enough currency.\n");
+            return;
+        }
         resultUIActive  = false;
+        g.currency -= g.currentBet;
+        printf("[INFO] Bet locked at %d - starting dice.\n",g.currentBet);
         Start_Dice();              /* reuse current bet */
     }
 }
