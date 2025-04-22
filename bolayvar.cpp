@@ -282,7 +282,7 @@ void initShoe()
     cout << "[BLACKJACK] CARDS SHUFFLED, READY TO PLAY" << endl;
 
     // set the maker to indicate when to shuffle
-    bj.marker = = rand() % 62 + 218;
+    bj.marker = rand() % 62 + 218;
     cout << "Marker set At: " << bj.marker << endl;
 
     // debugging
@@ -303,6 +303,30 @@ void initShoe()
 
     bj.shuffled = true;
 }
+void insuranceScam()
+{
+    // Animation and Logic for insurance here
+}
+void checkDealerHand()
+{
+    // If dealer pulls 10 first, dealer always checks to see if they have 21
+    if (bj.dealerHand[0] == 10 && bj.dealerHand[1] == 1) {
+        // Place animation for 10 and Ace here
+
+        // debugging
+        cout << "DEALER WINS. 21 BJ" << endl;
+    }
+
+    // If dealer pulls Ace first, offer insurence
+    for (int i = 0; i < bj.dealerHandTotal; i++) {
+        if (bj.dealerHand[i] == 1) {
+            //int check =
+        }
+    }
+    if (bj.dealerHand[0] == 1) {
+        insuranceScam();
+    }
+}
 void initFirstHand()
 {
 
@@ -321,35 +345,11 @@ void initFirstHand()
 
     checkDealerHand();
 }
-void insuranceScam()
-{
-    // Animation and Logic for insurance here
-}
-void checkDealerHand()
-{
-    // If dealer pulls 10 first, dealer always checks to see if they have 21
-    if (bj.dealerHand[0] == 10 && bj.dealerHand[1] == 1) {
-        // Place animation for 10 and Ace here
-
-        // debugging
-        cout << "DEALER WINS. 21 BJ" << endl;
-    }
-
-    // If dealer pulls Ace first, offer insurence
-    for (int i = 0; i < bj.dealerHandTotal; i++) {
-        if (dealerHand[i] == 1) {
-            int check =
-        }
-    }
-    if (bj.dealerHand[0] == 1) {
-        insuranceScam();
-    }
-}
 void bjHit()
 {
     // Logic and Animation for Hit Here
 }
-check_BlackJackKeys(int x)
+void check_BlackJackKeys(int x)
 {
     // lock out the player from doing anything until the delt cards or animaiton
     // is complete
@@ -359,8 +359,8 @@ check_BlackJackKeys(int x)
             bjHit();
             break;
 
-        case XK_d || xK_D:
-            bjDouble();
+        case XK_d || XK_D:
+            //bjDouble();
         default:
             break;
         }
