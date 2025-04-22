@@ -551,7 +551,7 @@ static void show_child_credits_window()
             XDrawString(dpy, win, gc, 20, 80,
                         " Christian Rodriguez", 20);
             XDrawString(dpy, win, gc, 20, 110,
-                        " Philp Lakes", 12);
+                        " Phillip Lakes", 14);
             XDrawString(dpy, win, gc, 20, 140,
                         " Haonan Chen", 12);
             XDrawString(dpy, win, gc, 20, 170, " Ben", 4);
