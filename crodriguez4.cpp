@@ -194,6 +194,7 @@ void drawCup()
 /* -----------------------------------*/
 void Start_Dice()
 {
+    g.cupVelX = 4.0f;
     time_t start = time(nullptr);
     while (difftime(time(nullptr), start) < 7) {
         cupPhysics();

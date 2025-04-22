@@ -208,13 +208,12 @@ void init_opengl(void)
     glOrtho(0, g.xres, 0, g.yres, -1, 1);
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glEnable(GL_TEXTURE_2D);
-    //
-
-    //
+    
     // Load the cup texture.
     loadCupTexture();
-<<<<<<< HEAD
-    //
+    // load Dice texture
+	// loadDiceTextures();
+
     // init the position of the menu buttons and logo
     // buttons spaced out by 87 pixels
     MakeVector(g.xres / 2, 575, 0, menulogo.pos);              // logo
@@ -259,8 +258,8 @@ void init_opengl(void)
     glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    w                  = g.tex.buttonImage->width;
-    h                  = g.tex.buttonImage->height;
+    w = g.tex.buttonImage->width;
+    h = g.tex.buttonImage->height;
     unsigned char* but = buildAlphaData(&img[1]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  but);
@@ -302,134 +301,10 @@ void init_opengl(void)
     g.tex.yc[1] = 1.0;
     //
     initialize_fonts();
-=======
-	// load Dice texture
-	// loadDiceTextures();
-	//
-	// init the position of the menu buttons and logo
-    // buttons spaced out by 87 pixels
-    MakeVector(g.xres / 2, 575, 0, menulogo.pos);              // logo
-    MakeVector(g.xres / 2, g.yres / 2, 0, dev.pos);            // slots
-    MakeVector(g.xres / 2, 430, 0, bslot.pos);                 // slots
-    MakeVector(g.xres / 2, 430 - 87, 0, bdice.pos);            // dice
-    MakeVector(g.xres / 2, 430 - (87 * 2), 0, bblackjack.pos); // blackjack
-    MakeVector(g.xres / 2, 430 - (87 * 3), 0, bexit.pos);      // exit
-    //
-    g.tex.backImage   = &img[0];
-    g.tex.buttonImage = &img[1];
-    g.tex.menuLogo    = &img[2];
-    g.tex.devImage    = &img[3];
-    g.tex.slotImage   = &img[4];
-    g.tex.bjImage     = &img[5];
-    //
-    // create menu logo
-    glGenTextures(1, &g.tex.menulogotex);
-    int w = g.tex.menuLogo->width;
-    int h = g.tex.menuLogo->height;
-    glBindTexture(GL_TEXTURE_2D, g.tex.menulogotex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    unsigned char* lgo = buildAlphaData(&img[2]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                 lgo);
-    free(lgo);
-    //
-	// create menu background
-	glGenTextures(1, &g.tex.backTexture);
-	w = g.tex.backImage->width;
-	h = g.tex.backImage->height;
-	glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE,
-				g.tex.backImage->data);
-	g.tex.xc[0] = 1.0;
-	g.tex.yc[1] = 1.0;
-	//
-	// create menu button
-	glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	w = g.tex.buttonImage->width;
-	h = g.tex.buttonImage->height;
-	unsigned char* but = buildAlphaData(&img[1]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-				but);
-	free(but);
-	//
-	// create dev screen
-	glGenTextures(1, &g.tex.devtex);
-	w = g.tex.devImage->width;
-	h = g.tex.devImage->height;
-	glBindTexture(GL_TEXTURE_2D, g.tex.devtex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	unsigned char* devbut = buildAlphaData(&img[3]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-				devbut);
-	free(devbut);
-	//
-	// create slot face
-	glGenTextures(1, &g.tex.slottex);
-	w = g.tex.slotImage->width;
-	h = g.tex.slotImage->height;
-	glBindTexture(GL_TEXTURE_2D, g.tex.slottex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	unsigned char* slotface = buildAlphaData(&img[4]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-				slotface);
-	//
-	// create BJ Table
-	glGenTextures(1, &g.tex.bjtex);
-	w = g.tex.bjImage->width;
-	h = g.tex.bjImage->height;
-	glBindTexture(GL_TEXTURE_2D, g.tex.bjtex);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE,
-				g.tex.bjImage->data);
-	g.tex.xc[0] = 1.0;
-	g.tex.yc[1] = 1.0;
-	//
-	initialize_fonts();
->>>>>>> dice
 }
 
 void check_mouse(XEvent* e)
 {
-<<<<<<< HEAD
-    // Did the mouse move?
-    // Was a mouse button clicked?
-    static int savex = 0;
-    static int savey = 0;
-    //
-    if (e->type == ButtonRelease) {
-        return;
-    }
-    if (e->type == ButtonPress) {
-        if (e->xbutton.button == 1) {
-            // Left button is down
-            if (gameState == 0) {
-                disInfo   = infoButton(savex, savey);
-                gameState = click(savex, savey, kill);
-            }
-        }
-        if (e->xbutton.button == 3) {
-            // Right button is down
-        }
-    }
-
-    if (savex != e->xbutton.x || savey != e->xbutton.y) {
-        // Mouse moved
-        savex = e->xbutton.x;
-        savey = e->xbutton.y;
-    }
-    if (gameState == 0) {
-        // check mouse hover state
-        mouseposition = checkhover(savex, savey, mouseposition);
-    }
-=======
 	//Did the mouse move?
 	//Was a mouse button clicked?
 	static int savex = 0;
@@ -477,7 +352,6 @@ void check_mouse(XEvent* e)
 		//check mouse hover state
 		mouseposition = checkhover(savex,savey,mouseposition); 
 	}
->>>>>>> dice
 }
 
 int check_keys(XEvent* e)
@@ -498,34 +372,8 @@ int check_keys(XEvent* e)
         }
         ////////////////////////////////////////////
         if (gameState == 3) {
-<<<<<<< HEAD
-            if (key == XK_space) {
-                Start_Dice();
-                playerChoice = NONE;
-            }
-            if (key == XK_u || key == XK_U) {
-                playerChoice = UNDER;
-                cout << "[INPUT] Player chose UNDER.\n";
-            }
-            if (key == XK_o || key == XK_O) {
-                playerChoice = OVER;
-                cout << "[INPUT] Player chose OVER.\n";
-            }
-            if (key == XK_e || key == XK_E) {
-                playerChoice = EXACT;
-                cout << "[INPUT] Player chose EXACT.\n";
-            }
-            if (key == XK_r || key == XK_R) {
-                if (playerChoice != NONE)
-                    reveal_dice();
-                else
-                    printf("Make a choice first\n");
-            }
-        }
-=======
 			handleDiceKeys(key);
 		}
->>>>>>> dice
         if (key == XK_c) {
             show_credits();
         }
@@ -571,7 +419,6 @@ void render()
     if (introplay == 1) {
         intro_render();
     } else {
-<<<<<<< HEAD
         switch (gameState) {
 			case 0:
 				glClear(GL_COLOR_BUFFER_BIT);
@@ -617,65 +464,7 @@ void render()
 				break;
 				/////////////////////////////////////////////////
 
-			case 3:
-				render_dice();
-				break;
-
-			case 4:
-				drawBJBackground();
-				initShoe();
-				// beginBJPlay();
-
-				break;
-        }
-    }
-=======
-		switch (gameState) {
-			case 0:
-				glClear(GL_COLOR_BUFFER_BIT);
-				drawBackground();
-				drawDevscreen();
-				drawMenuLogo();
-				drawMenuOptions(mouseposition);
-				drawButtonTxt();
-				gameInfo();
-				if (disInfo == true) {
-					glClear(GL_COLOR_BUFFER_BIT);
-					drawBackground();
-					gameInfo();
-					displayInfo();
-				}
-				break;
-
-			case 2:
-				// render_slots();
-				cout << "[INFO] Rendering Slot game.\n";
-				//////From Phil's main///////////////////////////
-				drawSlotFace();
-				srand(time(0));
-				for (int x = 0; x < 3; ++x) {
-					reels[x] = new Reel();
-				}
-
-				if (initGL() == 1) {
-					printf("Successfully initialized OpenGL.\n");
-				}
-
-				resize(g.xres, g.yres);
-
-				while (g.exec) {
-					while (x11.getXPending()) {
-						XEvent e = x11.getXNextEvent();
-						check_keys(&e); // Process key events
-					}
-					draw();
-					x11.swapBuffers();
-				}
-
-				break;
-				/////////////////////////////////////////////////
-
-			case 3:
+                case 3:
 				if (bettingUIActive)
 					renderBettingUI();
 				else if (choiceUIActive) {
@@ -691,7 +480,8 @@ void render()
 
 				if (resultState != ResultState::IDLE)
 					renderResult();
-			break;
+			    
+                break;
 
 			case 4:
 				drawBJBackground();
@@ -699,7 +489,6 @@ void render()
 				// beginBJPlay();
 
 				break;
-		}
-	}
->>>>>>> dice
-
+        }
+    }
+}
