@@ -13,6 +13,7 @@ class Blackjack {
     int  marker;
     bool shuffled;
     bool delt;
+    bool split;
     // GLuint cards;
     float cardWidth;
     float cardHeight;
@@ -27,6 +28,7 @@ class Blackjack {
         marker          = 0;
         shuffled        = false;
         delt            = false;
+        split           = false;
     }
 };
 
