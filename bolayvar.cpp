@@ -83,9 +83,9 @@ void drawMenuLogo()
     glDisable(GL_ALPHA_TEST);
     glPopMatrix();
 }
-void buttonIdleState(int x, int y, int z, int xScale, int yScale)
+void buttonIdleState(int x, int y, int z, int xScale, int yScale, float r, float gg, float b)
 {
-    glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
+    glColor4f(r, gg, b, 1.0f);
     glPushMatrix();
     glTranslatef(x, y, z);
     glEnable(GL_ALPHA_TEST);
@@ -172,13 +172,13 @@ void drawMenuOptions(int x)
     if (x == 1) {
         buttonHoverState(bslot.pos[0], bslot.pos[1], bslot.pos[2], 4, 4);
     } else {
-        buttonIdleState(bslot.pos[0], bslot.pos[1], bslot.pos[2], 4, 4);
+        buttonIdleState(bslot.pos[0], bslot.pos[1], bslot.pos[2], 4, 4, 1, 1, 1);
     }
     // dice
     if (x == 2) {
         buttonHoverState(bdice.pos[0], bdice.pos[1], bdice.pos[2], 4, 4);
     } else {
-        buttonIdleState(bdice.pos[0], bdice.pos[1], bdice.pos[2], 4, 4);
+        buttonIdleState(bdice.pos[0], bdice.pos[1], bdice.pos[2], 4, 4, 1, 1, 1);
     }
     // blackjack
     if (x == 3) {
@@ -186,13 +186,13 @@ void drawMenuOptions(int x)
                          bblackjack.pos[2], 4, 4);
     } else {
         buttonIdleState(bblackjack.pos[0], bblackjack.pos[1],
-                        bblackjack.pos[2], 4, 4);
+                        bblackjack.pos[2], 4, 4, 1, 1, 1);
     }
     // exit
     if (x == 4) {
         buttonHoverState(bexit.pos[0], bexit.pos[1], bexit.pos[2], 4, 4);
     } else {
-        buttonIdleState(bexit.pos[0], bexit.pos[1], bexit.pos[2], 4, 4);
+        buttonIdleState(bexit.pos[0], bexit.pos[1], bexit.pos[2], 4, 4, 1, 1, 1);
     }
 }
 int click(int savex, int savey, int& done)
@@ -255,6 +255,155 @@ void drawBJBackground()
     glEnd();
     glPopMatrix();
 }
+void drawChipsFull(int x, int y, int z, float xScale, float yScale)
+{
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glPushMatrix();
+    glTranslatef(x, y, z);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glBindTexture(GL_TEXTURE_2D, g.tex.chiptex);
+    glBegin(GL_QUADS);
+    float h = g.tex.chipImage->height / yScale;
+    float w = g.tex.chipImage->width / xScale;
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(-w, h); // Top-left
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2f(w, h); // Top-right
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2f(w, -h); // Bottom-right
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex2f(-w, -h); // Botton-left
+    glEnd();
+    glDisable(GL_ALPHA_TEST);
+    glPopMatrix();
+}
+void drawChipText()
+{
+    Rect r[2];
+    // place your bet
+    glPushMatrix();
+    glTranslatef(g.xres/2, g.yres/1.47, 0);
+    glScalef(4.0f, 4.0f, 1); // scale up 500%
+    r[0].bot  = 0;
+    r[0].left = 0;
+    ggprint8b(&r[0], 16, 0xffffff, "place your bet");
+    glPopMatrix();
+    // 100
+    glPushMatrix();
+    glTranslatef(g.xres/1.62, g.yres/1.79 - 30, 0);
+    glScalef(3.5f, 3.5f, 1); // scale up 500%
+    r[0].bot  = 0;
+    r[0].left = 0;
+    ggprint8b(&r[0], 16, 0xffffff, "100");
+    glPopMatrix();
+    // 25
+    glPushMatrix();
+    glTranslatef((g.xres/1.613) - 100, g.yres/1.79 - 30, 0);
+    glScalef(3.5f, 3.5f, 1); // scale up 500%
+    r[0].bot  = 0;
+    r[0].left = 0;
+    ggprint8b(&r[0], 16, 0xffffff, "25");
+    glPopMatrix();
+    // 10
+    glPushMatrix();
+    glTranslatef((g.xres/1.613) - 204, g.yres/1.79 - 30, 0);
+    glScalef(3.5f, 3.5f, 1); // scale up 500%
+    r[0].bot  = 0;
+    r[0].left = 0;
+    ggprint8b(&r[0], 16, 0xffffff, "10");
+    glPopMatrix();
+    // 5
+    glPushMatrix();
+    glTranslatef((g.xres/1.613) - 304, g.yres/1.79 - 30, 0);
+    glScalef(3.5f, 3.5f, 1); // scale up 500%
+    r[0].bot  = 0;
+    r[0].left = 0;
+    ggprint8b(&r[0], 16, 0xffffff, "5");
+    glPopMatrix();
+}
+void drawBetText()
+{
+    Rect r[2];
+    // current Bet
+    char betStr[64];
+    glPushMatrix();
+    glTranslatef(g.xres/2, g.yres/2.745, 0);
+    glScalef(3.5f, 3.5f, 1); // scale up 500%
+    r[0].bot  = 0;
+    r[0].left = 0;
+    sprintf(betStr, "%d", g.currentBet);
+    ggprint8b(&r[0], 16, 0xffffff, betStr);
+    glPopMatrix();
+    // min bet max info
+    glPushMatrix();
+    glTranslatef(g.xres/2, g.yres/3.1, 0);
+    glScalef(1.5f, 1.5f, 1); // scale up 500%
+    r[0].bot  = 0;
+    r[0].left = 0;
+    sprintf(betStr, "Minimum Bet: 5 | Maxiumum Bet: %d", g.currency);
+    ggprint8b(&r[0], 16, 0xffffff, betStr);
+    glPopMatrix();
+    // CUrrent balance
+    glPushMatrix();
+    glTranslatef(g.xres/10.53, g.yres/150, 0);
+    glScalef(5.0f, 5.0f, 1); // scale up 500%
+    r[0].bot  = 0;
+    r[0].left = 0;
+    sprintf(betStr, "%d", g.currency);
+    ggprint8b(&r[0], 16, 0xffffff, betStr);
+    glPopMatrix();
+    // wallet text
+    glPushMatrix();
+    glTranslatef(g.xres/10.53, g.yres/12.53, 0);
+    glScalef(4.0f, 4.0f, 1); // scale up 500%
+    r[0].bot  = 0;
+    r[0].left = 0;
+    ggprint8b(&r[0], 16, 0xffffff, "wallet");
+    glPopMatrix();
+}
+void drawBJShoe(int x, int y, int z, float xScale, float yScale)
+{
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glPushMatrix();
+    glTranslatef(x, y, z);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBindTexture(GL_TEXTURE_2D, g.tex.shoetex);
+    glBegin(GL_QUADS);
+    float h = g.tex.shoeImage->height / yScale;
+    float w = g.tex.shoeImage->width / xScale;
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(-w, h); // Top-left
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2f(w, h); // Top-right
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2f(w, -h); // Bottom-right
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex2f(-w, -h); // Botton-left
+    glEnd();
+    glDisable(GL_BLEND);
+    glPopMatrix();
+}
+void dimBackground()
+{
+    glPushMatrix();
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+    float x = 0;
+    float y = 0;
+    float width = g.xres;
+    float height = g.yres;
+    glBegin(GL_QUADS);
+    glVertex2f(x, y);
+    glVertex2f(x + width, y);
+    glVertex2f(x + width, y + height);
+    glVertex2f(x, y + height);
+    glEnd();
+    //glDisable(GL_BLEND);
+
+}
 void initShoe()
 {
     if (bj.shuffled) {
@@ -303,6 +452,7 @@ void initShoe()
     // DEALER MUST HIT ON SOFT 17
 
     bj.shuffled = true;
+    bj.showUI = true;
 }
 void insuranceScam()
 {
@@ -349,14 +499,24 @@ void bjHit()
 {
     // Logic and Animation for Hit Here
 }
-void showUI(){}
+void showUI()
+{
+    drawBJBackground();
+    drawBJShoe(g.xres/1.13,g.yres/1.77,0, 3, 3);
+    dimBackground(); // ITS NOT WORKING FOR SOME REASON
+    drawChipsFull(g.xres/2, g.yres/1.82, 0, 5, 5);
+    drawChipText();
+    buttonIdleState(g.xres/2, g.yres/2.53, 0, 4, 6, 0, 0, 0);
+    buttonIdleState(g.xres/10.53, g.yres/24, 0, 5.5, 5, 0, 0, 0);
+    drawBetText();
+
+}
 
 void handleBlackJackGame()
 {
-    if(bj.showUI) {
-    	drawBJBackground();
+    if(!bj.shuffled) {
         initShoe();
-	    // beginBJPlay();
+    } else if(bj.showUI) {
         showUI();
     }
 }

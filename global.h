@@ -28,6 +28,12 @@ struct Texture {
     // Black Jack Table
     Image* bjImage;
     GLuint bjtex;
+    // Chips
+    Image* chipImage;
+    GLuint chiptex;
+    // Black Jack Shoe
+    Image* shoeImage;
+    GLuint shoetex;    
     float  xc[2];
     float  yc[2];
 };

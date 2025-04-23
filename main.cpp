@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-// #include <AL/al.h>
+//#include <AL/al.h>
 #include "blackjack.h"
 #include "bolayvar.h"
 #include "button.h"
@@ -34,9 +34,10 @@ using namespace std;
 
 Global g;
 
-Image img[6] = {"menu_bg.png",   "menu_button.png",
+Image img[8] = {"menu_bg.png",   "menu_button.png",
                 "logo.png",      "menu_bg_devscreen.png",
-                "slot_face.png", "blackjacktable.png"};
+                "slot_face.png", "blackjacktable.png",
+                "chipSheet.png", "shoe.png"};
 
 class X11_wrapper {
   private:
@@ -229,6 +230,8 @@ void init_opengl(void)
     g.tex.devImage    = &img[3];
     g.tex.slotImage   = &img[4];
     g.tex.bjImage     = &img[5];
+    g.tex.chipImage   = &img[6];
+    g.tex.shoeImage   = &img[7];
     //
     // create menu logo
     glGenTextures(1, &g.tex.menulogotex);
@@ -277,6 +280,18 @@ void init_opengl(void)
                  devbut);
     free(devbut);
     //
+    // create shoe
+    glGenTextures(1, &g.tex.shoetex);
+    w = g.tex.shoeImage->width;
+    h = g.tex.shoeImage->height;
+    glBindTexture(GL_TEXTURE_2D, g.tex.shoetex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    unsigned char* shoe = buildAlphaData(&img[7]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 shoe);
+    free(shoe);
+    //
     // create slot face
     glGenTextures(1, &g.tex.slottex);
     w = g.tex.slotImage->width;
@@ -299,6 +314,18 @@ void init_opengl(void)
                  g.tex.bjImage->data);
     g.tex.xc[0] = 1.0;
     g.tex.yc[1] = 1.0;
+    //
+    // create menu logo
+    glGenTextures(1, &g.tex.chiptex);
+    w = g.tex.chipImage->width;
+    h = g.tex.chipImage->height;
+    glBindTexture(GL_TEXTURE_2D, g.tex.chiptex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    unsigned char* chip = buildAlphaData(&img[6]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 chip);
+    free(chip);
     //
     initialize_fonts();
 }
@@ -487,10 +514,8 @@ void render()
                 break;
 
 			case 4:
-				drawBJBackground();
-				initShoe();
-				// beginBJPlay();
-
+            	glClear(GL_COLOR_BUFFER_BIT);
+                handleBlackJackGame();
 				break;
         }
     }
