@@ -361,10 +361,17 @@ void check_mouse(XEvent* e)
         }
 		if (e->xbutton.button == 1) {
 			//Left button is down
-			if (gameState == 0) {
-				disInfo = infoButton(savex, savey);
+            printf("x: %d | y: %d\n",savex,savey);
+            switch(gameState) {
+                case 0:
+                disInfo = infoButton(savex, savey);
 				gameState = click(savex, savey, kill);
-			}
+                break;
+
+                case 4:
+                bjUIClickListener(savex, savey);
+                break;
+            }
 		}
 		if (e->xbutton.button==3) {
 			//Right button is down
@@ -388,7 +395,6 @@ int check_keys(XEvent* e)
 
         if (key == XK_Escape) {
             gameState = check_esc(gameState);
-            quit(0);
         }
         ///////temporary add-in by Phil///////////
         if (gameState == 2) {

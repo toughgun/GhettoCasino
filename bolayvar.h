@@ -13,6 +13,7 @@ extern void drawDevscreen();
 extern void drawSlotFace();
 void        beginBJPlay();
 void handleBlackJackGame();
+void bjUIClickListener(int savex, int savey);
 extern int  checkhover(int savex, int savey, int mouseposition);
 
 // blackjack stuff

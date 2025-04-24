@@ -83,7 +83,8 @@ void drawMenuLogo()
     glDisable(GL_ALPHA_TEST);
     glPopMatrix();
 }
-void buttonIdleState(int x, int y, int z, int xScale, int yScale, float r, float gg, float b)
+void buttonIdleState(int x, int y, int z, int xScale, int yScale, float r,
+                     float gg, float b)
 {
     glColor4f(r, gg, b, 1.0f);
     glPushMatrix();
@@ -172,27 +173,30 @@ void drawMenuOptions(int x)
     if (x == 1) {
         buttonHoverState(bslot.pos[0], bslot.pos[1], bslot.pos[2], 4, 4);
     } else {
-        buttonIdleState(bslot.pos[0], bslot.pos[1], bslot.pos[2], 4, 4, 1, 1, 1);
+        buttonIdleState(bslot.pos[0], bslot.pos[1], bslot.pos[2], 4, 4, 1, 1,
+                        1);
     }
     // dice
     if (x == 2) {
         buttonHoverState(bdice.pos[0], bdice.pos[1], bdice.pos[2], 4, 4);
     } else {
-        buttonIdleState(bdice.pos[0], bdice.pos[1], bdice.pos[2], 4, 4, 1, 1, 1);
+        buttonIdleState(bdice.pos[0], bdice.pos[1], bdice.pos[2], 4, 4, 1, 1,
+                        1);
     }
     // blackjack
     if (x == 3) {
         buttonHoverState(bblackjack.pos[0], bblackjack.pos[1],
                          bblackjack.pos[2], 4, 4);
     } else {
-        buttonIdleState(bblackjack.pos[0], bblackjack.pos[1],
-                        bblackjack.pos[2], 4, 4, 1, 1, 1);
+        buttonIdleState(bblackjack.pos[0], bblackjack.pos[1], bblackjack.pos[2],
+                        4, 4, 1, 1, 1);
     }
     // exit
     if (x == 4) {
         buttonHoverState(bexit.pos[0], bexit.pos[1], bexit.pos[2], 4, 4);
     } else {
-        buttonIdleState(bexit.pos[0], bexit.pos[1], bexit.pos[2], 4, 4, 1, 1, 1);
+        buttonIdleState(bexit.pos[0], bexit.pos[1], bexit.pos[2], 4, 4, 1, 1,
+                        1);
     }
 }
 int click(int savex, int savey, int& done)
@@ -237,10 +241,74 @@ int checkhover(int savex, int savey, int mouseposition)
 //====================END DRAW MENU STUFF=====================================
 //
 //==================BEGIN BLACK JACK STUFF====================================
-
-void drawBJBackground()
+void bjUIClickListener(int savex, int savey)
 {
-    glColor3f(1.0, 1.0, 1.0);
+    if (!bj.allIn && bj.showUI) {
+        if (savex > 445 && savex < 531 && savey > 280 && savey < 365) {
+            g.currentBet += 5;
+            // g.currency -= 5;
+            bj.betarray[bj.betarraypointer++] = 5;
+        } else if (savex > 445 + (100 * 1) && savex < 531 + (100 * 1) &&
+                   savey > 280 && savey < 365) {
+            g.currentBet += 10;
+            // g.currency -= 10;
+            bj.betarray[bj.betarraypointer++] = 10;
+        } else if (savex > 445 + (100 * 2) && savex < 531 + (100 * 2) &&
+                   savey > 280 && savey < 365) {
+            g.currentBet += 25;
+            // g.currency -= 25;
+            bj.betarray[bj.betarraypointer++] = 25;
+        } else if (savex > 445 + (100 * 3) && savex < 531 + (100 * 3) &&
+                   savey > 280 && savey < 365) {
+            g.currentBet += 100;
+            // g.currency -= 100;
+            bj.betarray[bj.betarraypointer++] = 100;
+        }
+    }
+    if (bj.showUI && savex > 522 && savex < 758 && savey > 498 && savey < 554) {
+        bj.showUI         = false;
+        bj.allIn          = false;
+        bj.gameInProgress = true;
+        g.currency -= g.currentBet;
+
+        for (int i = 0; i < bj.betarraypointer + 1; i++) {
+            bj.betarray[i] = 0;
+        }
+        bj.betarraypointer = 0;
+    }
+
+    if (bj.showUI && savex > 567 && savex < 713 && savey > 570 && savey < 605) {
+        g.currentBet -= bj.betarray[bj.betarraypointer--];
+        if (g.currentBet < 0) {
+            g.currentBet       = 0;
+            bj.betarraypointer = 0;
+        }
+
+        if (bj.showUI && g.currentBet < g.currency) {
+            bj.allIn = false;
+        }
+    }
+
+    if (bj.showUI && g.currentBet >= g.currency) {
+        g.currentBet = g.currency;
+    }
+    /*
+        // correct the total amount in the array for undo
+        if (bj.allIn) {
+            g.currentBet = g.currency;
+
+            int temp = 0;
+            for (int i = 0; i < bj.betarraypointer - 1; i++) {
+                temp += bj.betarray[i];
+            }
+            temp = temp - bj.currency;
+            bj.betarray[bj.betarraypointer - 1] = temp;
+        }
+    */
+}
+void drawBJBackground(float r, float gg, float b)
+{
+    glColor3f(r, gg, b);
     glPushMatrix();
     glBindTexture(GL_TEXTURE_2D, g.tex.bjtex);
     glBegin(GL_QUADS);
@@ -283,7 +351,7 @@ void drawChipText()
     Rect r[2];
     // place your bet
     glPushMatrix();
-    glTranslatef(g.xres/2, g.yres/1.47, 0);
+    glTranslatef(g.xres / 2, g.yres / 1.47, 0);
     glScalef(4.0f, 4.0f, 1); // scale up 500%
     r[0].bot  = 0;
     r[0].left = 0;
@@ -291,7 +359,7 @@ void drawChipText()
     glPopMatrix();
     // 100
     glPushMatrix();
-    glTranslatef(g.xres/1.62, g.yres/1.79 - 30, 0);
+    glTranslatef(g.xres / 1.62, g.yres / 1.79 - 30, 0);
     glScalef(3.5f, 3.5f, 1); // scale up 500%
     r[0].bot  = 0;
     r[0].left = 0;
@@ -299,7 +367,7 @@ void drawChipText()
     glPopMatrix();
     // 25
     glPushMatrix();
-    glTranslatef((g.xres/1.613) - 100, g.yres/1.79 - 30, 0);
+    glTranslatef((g.xres / 1.613) - 100, g.yres / 1.79 - 30, 0);
     glScalef(3.5f, 3.5f, 1); // scale up 500%
     r[0].bot  = 0;
     r[0].left = 0;
@@ -307,7 +375,7 @@ void drawChipText()
     glPopMatrix();
     // 10
     glPushMatrix();
-    glTranslatef((g.xres/1.613) - 204, g.yres/1.79 - 30, 0);
+    glTranslatef((g.xres / 1.613) - 204, g.yres / 1.79 - 30, 0);
     glScalef(3.5f, 3.5f, 1); // scale up 500%
     r[0].bot  = 0;
     r[0].left = 0;
@@ -315,7 +383,7 @@ void drawChipText()
     glPopMatrix();
     // 5
     glPushMatrix();
-    glTranslatef((g.xres/1.613) - 304, g.yres/1.79 - 30, 0);
+    glTranslatef((g.xres / 1.613) - 304, g.yres / 1.79 - 30, 0);
     glScalef(3.5f, 3.5f, 1); // scale up 500%
     r[0].bot  = 0;
     r[0].left = 0;
@@ -325,19 +393,30 @@ void drawChipText()
 void drawBetText()
 {
     Rect r[2];
-    // current Bet
     char betStr[64];
-    glPushMatrix();
-    glTranslatef(g.xres/2, g.yres/2.745, 0);
-    glScalef(3.5f, 3.5f, 1); // scale up 500%
-    r[0].bot  = 0;
-    r[0].left = 0;
-    sprintf(betStr, "%d", g.currentBet);
-    ggprint8b(&r[0], 16, 0xffffff, betStr);
-    glPopMatrix();
+    // current Bet
+    if (g.currentBet < g.currency) {
+        glPushMatrix();
+        glTranslatef(g.xres / 2, g.yres / 2.745, 0);
+        glScalef(3.5f, 3.5f, 1); // scale up 500%
+        r[0].bot  = 0;
+        r[0].left = 0;
+        sprintf(betStr, "%d", g.currentBet);
+        ggprint8b(&r[0], 16, 0xffffff, betStr);
+        glPopMatrix();
+    } else {
+        glPushMatrix();
+        glTranslatef(g.xres / 2, g.yres / 2.745, 0);
+        glScalef(3.5f, 3.5f, 1); // scale up 500%
+        r[0].bot  = 0;
+        r[0].left = 0;
+        ggprint8b(&r[0], 16, 0xffffff, "ALL IN");
+        glPopMatrix();
+        bj.allIn = true;
+    }
     // min bet max info
     glPushMatrix();
-    glTranslatef(g.xres/2, g.yres/3.1, 0);
+    glTranslatef(g.xres / 2, g.yres / 3.1, 0);
     glScalef(1.5f, 1.5f, 1); // scale up 500%
     r[0].bot  = 0;
     r[0].left = 0;
@@ -346,7 +425,7 @@ void drawBetText()
     glPopMatrix();
     // CUrrent balance
     glPushMatrix();
-    glTranslatef(g.xres/10.53, g.yres/150, 0);
+    glTranslatef(g.xres / 10.53, g.yres / 720, 0);
     glScalef(5.0f, 5.0f, 1); // scale up 500%
     r[0].bot  = 0;
     r[0].left = 0;
@@ -355,16 +434,46 @@ void drawBetText()
     glPopMatrix();
     // wallet text
     glPushMatrix();
-    glTranslatef(g.xres/10.53, g.yres/12.53, 0);
+    glTranslatef(g.xres / 10.53, g.yres / 12.53, 0);
     glScalef(4.0f, 4.0f, 1); // scale up 500%
     r[0].bot  = 0;
     r[0].left = 0;
     ggprint8b(&r[0], 16, 0xffffff, "wallet");
     glPopMatrix();
+
+    // play button
+    if (g.currentBet >= 5) {
+        glPushMatrix();
+        glTranslatef(g.xres / 2, g.yres / 4.45, 0);
+        glScalef(5.0f, 5.0f, 1); // scale up 500%
+        r[0].bot  = 0;
+        r[0].left = 0;
+        ggprint8b(&r[0], 16, 0xffffff, "PLAY");
+        glPopMatrix();
+    } else {
+        glPushMatrix();
+        glTranslatef(g.xres / 2, g.yres / 4.45, 0);
+        glScalef(5.0f, 5.0f, 1); // scale up 500%
+        r[0].bot  = 0;
+        r[0].left = 0;
+        ggprint8b(&r[0], 16, 0xc8c8c8, "PLAY");
+        glPopMatrix();
+    }
+    // buttonIdleState(g.xres/2, g.yres/5.5, 0, 8.5, 8.5, 0.7, 0, 0);
+    if (g.currentBet >= 5) {
+        glPushMatrix();
+        glTranslatef(g.xres / 2, g.yres / 6.35, 0);
+        glScalef(3.0f, 3.0f, 1); // scale up 500%
+        r[0].bot  = 0;
+        r[0].left = 0;
+        ggprint8b(&r[0], 16, 0xffffff, "undo");
+        glPopMatrix();
+    }
 }
-void drawBJShoe(int x, int y, int z, float xScale, float yScale)
+void drawBJShoe(int x, int y, int z, float xScale, float yScale, float r,
+                float gg, float b)
 {
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glColor4f(r, gg, b, 1.0f);
     glPushMatrix();
     glTranslatef(x, y, z);
     glEnable(GL_BLEND);
@@ -391,9 +500,9 @@ void dimBackground()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-    float x = 0;
-    float y = 0;
-    float width = g.xres;
+    float x      = 0;
+    float y      = 0;
+    float width  = g.xres;
     float height = g.yres;
     glBegin(GL_QUADS);
     glVertex2f(x, y);
@@ -401,8 +510,7 @@ void dimBackground()
     glVertex2f(x + width, y + height);
     glVertex2f(x, y + height);
     glEnd();
-    //glDisable(GL_BLEND);
-
+    // glDisable(GL_BLEND);
 }
 void initShoe()
 {
@@ -452,7 +560,7 @@ void initShoe()
     // DEALER MUST HIT ON SOFT 17
 
     bj.shuffled = true;
-    bj.showUI = true;
+    bj.showUI   = true;
 }
 void insuranceScam()
 {
@@ -466,12 +574,13 @@ void checkDealerHand()
 
         // debugging
         cout << "DEALER WINS. 21 BJ" << endl;
+        g.currentBet = 0;
+        bj.showUI    = !bj.showUI;
     }
 
     // If dealer pulls Ace first, offer insurence
     for (int i = 0; i < bj.dealerHandTotal; i++) {
         if (bj.dealerHand[i] == 1) {
-            //int check =
         }
     }
     if (bj.dealerHand[0] == 1) {
@@ -480,10 +589,12 @@ void checkDealerHand()
 }
 void initFirstHand()
 {
-
-    bj.discard[0] = bj.shoe[0];
-    bj.shoe[0]    = 0;
-    bj.currentPos++;
+    if (!bj.initialhand) {
+        bj.discard[0] = bj.shoe[0];
+        bj.shoe[0]    = 0;
+        bj.currentPos++;
+    }
+    bj.initialhand = true;
 
     for (int i = 0; i < 2; i++) {
         bj.playerHand[i] = bj.shoe[bj.currentPos];
@@ -493,7 +604,6 @@ void initFirstHand()
         bj.dealerHandTotal += bj.shoe[bj.currentPos];
         bj.currentPos++;
     }
-    checkDealerHand();
 }
 void bjHit()
 {
@@ -501,26 +611,45 @@ void bjHit()
 }
 void showUI()
 {
-    drawBJBackground();
-    drawBJShoe(g.xres/1.13,g.yres/1.77,0, 3, 3);
-    dimBackground(); // ITS NOT WORKING FOR SOME REASON
-    drawChipsFull(g.xres/2, g.yres/1.82, 0, 5, 5);
+    drawBJBackground(0.5, 0.5, 0.5);
+    drawBJShoe(g.xres / 1.13, g.yres / 1.77, 0, 3, 3, 0.5, 0.5, 0.5);
+    // dimBackground(); // ITS NOT WORKING FOR SOME REASON
+    drawChipsFull(g.xres / 2, g.yres / 1.82, 0, 5, 5);
     drawChipText();
-    buttonIdleState(g.xres/2, g.yres/2.53, 0, 4, 6, 0, 0, 0);
-    buttonIdleState(g.xres/10.53, g.yres/24, 0, 5.5, 5, 0, 0, 0);
+    buttonIdleState(g.xres / 2, g.yres / 2.53, 0, 4, 6, 0, 0, 0); // black bet
+    buttonIdleState(g.xres / 10.53, g.yres / 24, 0, 5.5, 5, 0, 0,
+                    0); // black wallet
+
+    // play button
+    if (g.currentBet >= 5) {
+        buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 0.75, 0);
+    } else {
+        buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 0.5, 0);
+    }
+
+    // undo button
+    if (g.currentBet >= 5) {
+        buttonIdleState(g.xres / 2, g.yres / 5.5, 0, 8.5, 8.5, 0.75, 0, 0);
+    }
     drawBetText();
-
 }
-
+void playBlackJack()
+{
+    initFirstHand();
+    // animation here
+    checkDealerHand();
+}
 void handleBlackJackGame()
 {
-    if(!bj.shuffled) {
+    if (!bj.shuffled) {
         initShoe();
-    } else if(bj.showUI) {
+    }
+    if (bj.showUI) {
         showUI();
+    } else {
+        playBlackJack();
     }
 }
-
 void handleBlackJackKeys(int x)
 {
     // lock out the player from doing anything until the delt cards or animaiton
@@ -532,7 +661,7 @@ void handleBlackJackKeys(int x)
             break;
 
         case XK_d || XK_D:
-            //bjDouble();
+            // bjDouble();
             break;
         }
     }
