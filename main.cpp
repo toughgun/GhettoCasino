@@ -361,13 +361,17 @@ void check_mouse(XEvent* e)
         }
 		if (e->xbutton.button == 1) {
 			//Left button is down
+
+            // Use print below to get x and y pos
             printf("x: %d | y: %d\n",savex,savey);
+
             switch(gameState) {
                 case 0:
+                if (introplay != 1) {
                 disInfo = infoButton(savex, savey);
 				gameState = click(savex, savey, kill);
+                }
                 break;
-
                 case 4:
                 bjUIClickListener(savex, savey);
                 break;
@@ -382,10 +386,17 @@ void check_mouse(XEvent* e)
 		savex = e->xbutton.x;
 		savey = e->xbutton.y;
 	}
-	if (gameState == 0) {
-		//check mouse hover state
+	
+    // checks were the mouse is and returns a position value for hover
+    switch (gameState) {
+        case 0:
 		mouseposition = checkhover(savex,savey,mouseposition); 
-	}
+        break;
+        
+        case 4:
+        mouseposition = bjUIHoverListener(savex,savey,mouseposition);
+        break;
+    }
 }
 
 int check_keys(XEvent* e)
@@ -462,11 +473,11 @@ void render()
 				drawMenuLogo();
 				drawMenuOptions(mouseposition);
 				drawButtonTxt();
-				gameInfo();
+				gameInfo(mouseposition);
 				if (disInfo == true) {
 					glClear(GL_COLOR_BUFFER_BIT);
 					drawBackground();
-					gameInfo();
+					gameInfo(mouseposition);
 					displayInfo();
 				}
 				break;
@@ -521,7 +532,7 @@ void render()
 
 			case 4:
             	glClear(GL_COLOR_BUFFER_BIT);
-                handleBlackJackGame();
+                handleBlackJackGame(mouseposition);
 				break;
         }
     }

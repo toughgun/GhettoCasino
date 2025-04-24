@@ -33,17 +33,18 @@ float centerX;
 float centerY;
 float logoPosY = 0.0f;
 int splitVal = 0;
-void gameInfo()
+void gameInfo(int xx)
 {
-    glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
+    if (xx == 5) {
+    glColor4f(1.0f, 0.53f, 0.0f, 1.0f);
     glPushMatrix();
-    glTranslatef(1120, 50, 0);
+    glTranslatef(1200, 35, 0);
     glEnable(GL_ALPHA_TEST);
     glAlphaFunc(GL_GREATER, 0.0f);
     glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
     glBegin(GL_QUADS);
-    float h = g.tex.buttonImage->height / 4;
-    float w = g.tex.buttonImage->width / 4;
+    float h = g.tex.buttonImage->height / 12;
+    float w = g.tex.buttonImage->width / 15;
     glTexCoord2f(0.0f, 0.0f);
     glVertex2f(-w, h); // Top-left
     glTexCoord2f(1.0f, 0.0f);
@@ -55,27 +56,49 @@ void gameInfo()
     glEnd();
     glDisable(GL_ALPHA_TEST);
     glPopMatrix();
+    } else {
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glPushMatrix();
+    glTranslatef(1200, 35, 0);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
+    glBegin(GL_QUADS);
+    float h = g.tex.buttonImage->height / 12;
+    float w = g.tex.buttonImage->width / 15;
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(-w, h); // Top-left
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2f(w, h); // Top-right
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2f(w, -h); // Bottom-right
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex2f(-w, -h); // Botton-left
+    glEnd();
+    glDisable(GL_ALPHA_TEST);
+    glPopMatrix();
+    }
 
     Rect r;
     glPushMatrix();
-    glTranslatef(1120, 25, 0);
-    glScalef(5.0f, 5.0f, 1);
+    glTranslatef(1200, 23.5, 0);
+    glScalef(2.0f, 2.0f, 1);
     r.bot  = 0;
     r.left = 0;
     if (disInfo == false) {
         //r.left = -32;
         ggprint8b(&r, 16, 0xffffff, "INFO");
     } else if ( disInfo == true) {
-        r.left = -15;
+        //r.left = -15;
         ggprint8b(&r, 16, 0xffffff, "BACK");
     }
     glPopMatrix();
 }
 bool infoButton(int x, int y)
 {
-    if (x > 970 && x < 1260 && y > 635 && y < 710) {
+    if (x > 1162 && x < 1238 && y > 672 && y < 696) {
         disInfo = !disInfo;
-        gameInfo();
+        gameInfo(5);
     }
     return disInfo;
 }

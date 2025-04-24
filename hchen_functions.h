@@ -16,7 +16,7 @@ extern void renderSplitButton();
 extern void renderInsuranceButton();
 extern int splitVal;
 
-extern void gameInfo();
+extern void gameInfo(int xx);
 extern void displayInfo();
 extern void infoRetangle();
 extern bool infoButton(int x, int y);

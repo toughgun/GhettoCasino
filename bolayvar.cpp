@@ -110,7 +110,7 @@ void buttonIdleState(int x, int y, int z, int xScale, int yScale, float r,
 
 void buttonHoverState(int x, int y, int z, int xScale, int yScale)
 {
-    glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+    glColor4f(1.0f, 0.53f, 0.0f, 1.0f);
     glPushMatrix();
     glTranslatef(x, y, z);
     glEnable(GL_ALPHA_TEST);
@@ -233,6 +233,8 @@ int checkhover(int savex, int savey, int mouseposition)
     } else if (savex > 490 && savex < 490 + 300 && savey > 512 &&
                savey < 512 + 75) {
         mouseposition = 4;
+    } else if (savex > 1162 && savex < 1238 && savey > 672 && savey < 696) {
+        mouseposition = 5;
     } else {
         mouseposition = 0;
     }
@@ -305,6 +307,19 @@ void bjUIClickListener(int savex, int savey)
             bj.betarray[bj.betarraypointer - 1] = temp;
         }
     */
+}
+int bjUIHoverListener(int savex, int savey, int mouseposition)
+{
+    if (bj.showUI) {
+        if (bj.showUI && savex > 522 && savex < 758 && savey > 498 && savey < 554) {
+            mouseposition = 6;
+        } else if (bj.showUI && savex > 567 && savex < 713 && savey > 570 && savey < 605) {
+            mouseposition = 7;
+        } else {
+        mouseposition = 0;
+        }
+    }
+    return mouseposition;
 }
 void drawBJBackground(float r, float gg, float b)
 {
@@ -572,6 +587,9 @@ void checkDealerHand()
     if (bj.dealerHand[0] == 10 && bj.dealerHand[1] == 1) {
         // Place animation for 10 and Ace here
 
+
+
+        bj.wait = true;
         // debugging
         cout << "DEALER WINS. 21 BJ" << endl;
         g.currentBet = 0;
@@ -598,18 +616,19 @@ void initFirstHand()
 
     for (int i = 0; i < 2; i++) {
         bj.playerHand[i] = bj.shoe[bj.currentPos];
-        bj.currentPos++;
         bj.playerHandTotal += bj.shoe[bj.currentPos];
+        bj.currentPos++;
         bj.dealerHand[i] = bj.shoe[bj.currentPos];
         bj.dealerHandTotal += bj.shoe[bj.currentPos];
         bj.currentPos++;
     }
+    printf("Dealer: %d %d\nPlayer: %d %d\n", bj.dealerHand[0], bj.dealerHand[1], bj.playerHand[0], bj.playerHand[1]);
 }
 void bjHit()
 {
     // Logic and Animation for Hit Here
 }
-void showUI()
+void showUI(int xx)
 {
     drawBJBackground(0.5, 0.5, 0.5);
     drawBJShoe(g.xres / 1.13, g.yres / 1.77, 0, 3, 3, 0.5, 0.5, 0.5);
@@ -622,30 +641,40 @@ void showUI()
 
     // play button
     if (g.currentBet >= 5) {
-        buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 0.75, 0);
+        if (xx == 6) {
+            buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 1.0, 0);
+        } else {
+            buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 0.75, 0);
+        }
     } else {
         buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 0.5, 0);
     }
 
     // undo button
     if (g.currentBet >= 5) {
-        buttonIdleState(g.xres / 2, g.yres / 5.5, 0, 8.5, 8.5, 0.75, 0, 0);
+        if (xx == 7) {
+            buttonIdleState(g.xres / 2, g.yres / 5.5, 0, 8.5, 8.5, 1.0, 0, 0);
+        } else {
+            buttonIdleState(g.xres / 2, g.yres / 5.5, 0, 8.5, 8.5, 0.75, 0, 0);
+        }
     }
     drawBetText();
 }
 void playBlackJack()
 {
+    drawBJBackground(1.0, 1.0, 1.0);
+    drawBJShoe(g.xres / 1.13, g.yres / 1.77, 0, 3, 3, 1.0, 1.0, 1.0);
     initFirstHand();
     // animation here
     checkDealerHand();
 }
-void handleBlackJackGame()
+void handleBlackJackGame(int x)
 {
     if (!bj.shuffled) {
         initShoe();
     }
     if (bj.showUI) {
-        showUI();
+        showUI(x);
     } else {
         playBlackJack();
     }
@@ -654,7 +683,7 @@ void handleBlackJackKeys(int x)
 {
     // lock out the player from doing anything until the delt cards or animaiton
     // is complete
-    if (bj.delt) {
+    if (bj.delt && !bj.wait) {
         switch (x) {
         case XK_space:
             bjHit();

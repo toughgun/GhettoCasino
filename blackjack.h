@@ -19,6 +19,7 @@ class Blackjack {
     bool insure;
     bool initialhand;
     bool gameInProgress;
+    bool wait;
     // GLuint cards;
     float cardWidth;
     float cardHeight;
@@ -42,6 +43,7 @@ class Blackjack {
         allIn           = false;
         initialhand     = false;
         gameInProgress  = false;
+        wait            = false;
     }
 };
 
