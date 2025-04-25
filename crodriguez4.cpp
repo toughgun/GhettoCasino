@@ -26,6 +26,7 @@ using namespace std;
 /* global dice object + convenient aliases to preserve old references */
 Dice dice;
 GLuint diceTex[4][6];
+GLuint DiceCupTex = 0;
 
 #define die1             (dice.die1)
 #define die2             (dice.die2)
@@ -57,22 +58,6 @@ static inline void seed_rng_once(void)
 	}
 }
 
-static GLuint makeTextureRGBA(Image *src)
-{
-	GLuint id;
-	int w = src->width, h = src->height;
-	unsigned char *pix = buildAlphaData(src);
-
-	glGenTextures(1, &id);
-	glBindTexture(GL_TEXTURE_2D, id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0,
-	             GL_RGBA, GL_UNSIGNED_BYTE, pix);
-	free(pix);
-	return id;
-}
-
 /*=================================*/
 /* window-size-dependent metrics   */
 /*=================================*/
@@ -83,15 +68,25 @@ void updateUIForWindowSize(void)
 }
 
 /* ------ texture loading ------ */
-
 void loadCupTexture(void)
 {
-	Image cup("cup.png");
-	if (!cup.data) {
-		fprintf(stderr, "[ERROR] cup.png not found\n");
-		return;
-	}
-	g.cupTexture = makeTextureRGBA(&cup);
+    Image sheet("cup.png");     /* 1×1 “sheet” – matches dice logic   */
+    if (!sheet.data) {
+        fprintf(stderr,"[ERROR] cup.png not found\n");
+        return;
+    }
+    const int cw = sheet.width; /* single tile dimensions             */
+    const int ch = sheet.height;
+
+    unsigned char *rgba = buildAlphaData(&sheet);
+
+    glGenTextures(1,&DiceCupTex);
+    glBindTexture(GL_TEXTURE_2D,DiceCupTex);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,cw,ch,0,
+                 GL_RGBA,GL_UNSIGNED_BYTE,rgba);
+    free(rgba);
 }
 void loadDiceTextures(void)
 {
@@ -196,27 +191,37 @@ static inline void push_ortho(void)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
+static void drawCup(float cx,float cy,float w,float h)
+{
+    GLboolean wasTex = glIsEnabled(GL_TEXTURE_2D);
+    if (!wasTex) glEnable(GL_TEXTURE_2D);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER,0.0f);
+
+    glBindTexture(GL_TEXTURE_2D,DiceCupTex);
+    glColor3f(1,1,1);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0,0); glVertex2f(cx-w,cy-h);
+        glTexCoord2f(1,0); glVertex2f(cx+w,cy-h);
+        glTexCoord2f(1,1); glVertex2f(cx+w,cy+h);
+        glTexCoord2f(0,1); glVertex2f(cx-w,cy+h);
+    glEnd();
+    glDisable(GL_ALPHA_TEST);
+    if (!wasTex) glDisable(GL_TEXTURE_2D);
+}
 void render_dice(void)
 {
 	push_ortho();
-	glClear(GL_COLOR_BUFFER_BIT);
-	drawBackground();
-	glBindTexture(GL_TEXTURE_2D, g.cupTexture);
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.0f);
-	float cx = g.xres * 0.5f + dice.cupPosX;
-	float cy = g.yres * 0.5f;
-	float hw = dice.cupWidth  * 0.5f;
-	float hh = dice.cupHeight * 0.5f;
-	glColor3f(1, 1, 1);
-	glBegin(GL_QUADS);
-		glTexCoord2f(0, 0); glVertex2f(cx - hw, cy - hh);
-		glTexCoord2f(1, 0); glVertex2f(cx + hw, cy - hh);
-		glTexCoord2f(1, 1); glVertex2f(cx + hw, cy + hh);
-		glTexCoord2f(0, 1); glVertex2f(cx - hw, cy + hh);
-	glEnd();
-	glDisable(GL_ALPHA_TEST);
-	glFlush();
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawBackground();
+
+    float cx = g.xres*0.5f + dice.cupPosX;
+    float cy = g.yres*0.5f;
+    float hw = dice.cupWidth*0.5f;
+    float hh = dice.cupHeight*0.5f;
+
+    drawCup(cx,cy,hw,hh);         /* replaces inline quad */
+    glFlush();
 }
 
 /* 7-second rolling animation, then prompt for choice */
@@ -235,11 +240,9 @@ void Start_Dice(void)
 	roll_dice();
 	choiceUIActive = true;
 }
-
 /* --------------------------------------------
 * Dice‑specific keyboard handler
 *----------------------------------------------*/
-
 void handleDiceKeys(KeySym key)
 {
 	if (bettingUIActive) {                 /* betting overlay */
@@ -258,11 +261,9 @@ void handleDiceKeys(KeySym key)
 		reveal_dice();
 	}
 }
-
 /*======================*/
 /*      GUI widgets     */
 /*======================*/
-
 void draw_button_colored(float x, float y, float w, float h,
     const char *label,
     float r, float g, float b)
@@ -286,7 +287,6 @@ void draw_button_colored(float x, float y, float w, float h,
 	rc.bot    = y - h / 2 - 4;
 	ggprint16(&rc, 16, 0, "%s", label);
 }
-
 static bool isInsideRect(int px, int py,int rx, int ry, int rw, int rh)
 {
     int xMin = min(rx, rx + rw);

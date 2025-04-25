@@ -44,5 +44,6 @@ struct Dice {
 
 extern Dice dice;
 extern GLuint diceTex[4][6];
+extern GLuint DiceCupTex;
 
 #endif /* DICE_H */

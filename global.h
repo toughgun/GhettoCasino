@@ -40,8 +40,7 @@ class Global {
     Texture tex;
     GLuint  silhouetteTexture;
     int     devmode;
-    // Dice variables
-    GLuint cupTexture;
+    //
     int vsync;
     int winstreak;
     //
@@ -57,7 +56,6 @@ class Global {
         devmode           = 0;
         xres              = 1280;
         yres              = 720;
-        cupTexture        = 0;
         silhouetteTexture = 0; // Initialized
         //dice
         winstreak = 0;
