@@ -3,7 +3,6 @@
 #include "image.h"
 #include <GL/gl.h>
 
-
 struct Texture {
     // menu background
     Image* backImage;
@@ -19,9 +18,6 @@ struct Texture {
     // devmode
     Image* devImage;
     GLuint devtex;
-    //Dice
-    GLuint diceTex[6] = {0};
-    Image* diceImage;
     // slot face
     Image* slotImage;
     GLuint slottex;
@@ -46,11 +42,6 @@ class Global {
     int     devmode;
     // Dice variables
     GLuint cupTexture;
-    float cupWidth;
-    float cupHeight;
-    float cupPosX;
-    float cupVelX;
-    float cupRange;
     int vsync;
     int winstreak;
     //
@@ -69,11 +60,6 @@ class Global {
         cupTexture        = 0;
         silhouetteTexture = 0; // Initialized
         //dice
-        cupWidth = 50.0f;
-        cupHeight = 50.0f;
-        cupPosX = 0.0f;
-        cupVelX = 4.0f;
-        cupRange = 50.0f;
         winstreak = 0;
         vsync = 0;
         //

@@ -19,6 +19,7 @@
 #include "blackjack.h"
 #include "bolayvar.h"
 #include "button.h"
+#include "dice.h"
 #include "crodriguez4.h"
 #include "fonts.h"
 #include "global.h"
@@ -31,6 +32,14 @@ using namespace std;
 
 // macros
 #define MakeVector(x, y, z, v) (v)[0] = (x), (v)[1] = (y), (v)[2] = (z)
+
+/* Aliases so old variable names still compile ------------------ */
+extern Dice dice;
+#define bettingUIActive  (dice.bettingUIActive)
+#define choiceUIActive   (dice.choiceUIActive)
+#define revealUIActive   (dice.revealUIActive)
+#define resultUIActive   (dice.resultUIActive)
+#define resultState      (dice.resultState)
 
 Global g;
 
@@ -213,7 +222,7 @@ void init_opengl(void)
     // Load the cup texture.
     loadCupTexture();
     // load Dice texture
-	// loadDiceTextures();
+	loadDiceTextures();
 
     // init the position of the menu buttons and logo
     // buttons spaced out by 87 pixels
@@ -525,7 +534,7 @@ void render()
 				else
 					render_dice();
 
-				if (resultState != ResultState::IDLE)
+				if (resultState != IDLE)
 					renderResult();
 			    
                 break;

@@ -3,63 +3,62 @@
 
 #include "global.h"
 #include "image.h"
+#include "dice.h"
 #include <algorithm>
 
 /*---------------------------------------------------------------------
  * Dice‑module public interface
  * Author: Christian Rodriguez          Last modified: 2025‑04‑21
- *----------------------------------------------------------------------*/
+ *----------------------------------------------------------------------
+*/
 
-/* ---------- rendering ---------- */
-extern void render_dice(void);
-extern void renderBettingUI(void);
-extern void renderChoiceUI(void);
-extern void renderResultUI(void);          /* dice faces + buttons */
-extern void renderRevealButton(void);
-extern void renderResult(void);
-extern void drawCup(void);
-extern void draw_button(float x, float y, float w, float h, const char *label);
-void draw_button_colored(float x,float y,float w,float h,
-                const char *label,float r,float g,float b);
-extern void show_credits(void);
+/*--------------------------------------------------------------
+ * Helper to generate RGBA textures (main.cpp style)
+ *-------------------------------------------------------------
+*/
+unsigned char *buildAlphaData(Image *img);
 
-/* ---------- dice control ---------- */
-extern void roll_dice(void);
-extern void reveal_dice(void);
-extern void Start_Dice(void);
+/*--------------------------------------------------------------
+* Dice-module public interface
+*-------------------------------------------------------------*/
+/* size/update */
+void updateUIForWindowSize(void);
 
-/* ---------- betting control ---------- */
-extern void processBettingInput(int mx, int my, int button);
-extern void finalizeBet(void);
-extern void resetBet(void);
-extern void toggleBetMode(void);
+/* texture loading */
+void loadCupTexture(void);
+void loadDiceTextures(void);
 
+/* dice control */
+void roll_dice(void);
+void reveal_dice(void);
+void Start_Dice(void);
 
-/* ---------- helpers ---------- */
-extern void loadCupTexture(void);
-extern void loadDiceTextures(void);
-extern void updateUIForWindowSize(void);
-extern unsigned char *buildAlphaData(Image *img);
+/* input */
+void handleDiceKeys(KeySym key);
+void handleChoiceInput(int mx, int my);
+void handleRevealClick(int mx, int my);
+void handleResultInput(int mx, int my);
 
-/* ---------- key input ---------- */
-extern void handleDiceKeys(KeySym key);
-extern void handleChoiceInput(int mx, int my);
-extern void handleRevealClick(int mx, int my);
-extern void handleResultInput(int mx, int my);
+/* betting */
+void processBettingInput(int mx, int my, int button);
+void finalizeBet(void);
+void resetBet(void);
 
-/* ---------- state ---------- */
-enum Choice { UNDER, OVER, EXACT, NONE };
-extern bool   diceRevealed;
-extern int    die1, die2, total;
-extern Choice playerChoice;
-extern bool   addMode;
-extern int    gameState;
+/* rendering */
+void render_dice(void);
+void renderBettingUI(void);
+void renderChoiceUI(void);
+void renderResultUI(void);
+void renderRevealButton(void);
+void renderResult(void);
 
-enum class ResultState { IDLE, SHOW_WIN, SHOW_LOSS };
-extern bool bettingUIActive;
-extern bool choiceUIActive;   // show Over/Under/Exact buttons
-extern bool revealUIActive;   // show the REVEAL button
-extern bool resultUIActive;   /* true after Reveal */
-extern ResultState resultState;
+/* widgets */
+void draw_button_colored(float x, float y,
+                        float w, float h,
+                        const char *label,
+                        float r, float g, float b);
+
+/* credits */
+void show_credits(void);
 
 #endif
