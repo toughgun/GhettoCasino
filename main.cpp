@@ -146,10 +146,11 @@ int mouseposition = 0;
 int kill          = 0;
 //===========================================================================
 //===========================================================================
-int main()
+int main(int argc, char *argv[])
 {
     printf("```Welcome to the Ghetto```\n");
     //===================================================
+    glutInit(&argc, argv);
     init_opengl();
     while (gameState != 1) {
         while (x11.getXPending()) {
