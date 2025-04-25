@@ -14,7 +14,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
-#include <sys/wait.h>
 #include "time.h"
 #include "phil_funcs.h"
 #include "image.h"
