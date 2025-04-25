@@ -13,6 +13,8 @@
 #include <GL/glx.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <GL/glut.h>
+#include <sys/wait.h>
 #include "time.h"
 #include "phil_funcs.h"
 #include "image.h"
@@ -27,8 +29,8 @@
 #include <array>
 #include <chrono>
 
-std::chrono::time_point<std::chrono::high_resolution_clock> 
-last_time = std::chrono::high_resolution_clock::now();
+std::chrono::time_point<std::chrono::high_resolution_clock>
+last_time = std::chrono::high_resolution_clock::now();; 
 
 Surface *surface;
 
@@ -59,6 +61,18 @@ void calculate_framerate() {
     float fps = 1.0f / elapsed.count();
     std::cout << "FPS: " << fps << std::endl;
 }
+
+//////2D/////////
+void renderText(float x, float y, const char* text, float r, float g, float b) {
+	glDisable(GL_LIGHTING);
+	glColor3f(r, g, b);
+	glRasterPos2f(x, y);
+	for (const char* c = text; *c != '\0'; ++c) {
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
+	}
+	glEnable(GL_LIGHTING);
+}
+////////2D////////
 
 void quit(int retcode) {
 	gluDeleteQuadric(quadratic);
@@ -224,8 +238,34 @@ void Reel::spin() {
                         std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
                         std::cout << "```Behold the Ghetto Kingpin!```" << std::endl;
                         std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
-                    }
-                }
+
+						//////2D////////
+						// orthographic projection for 2D
+						glMatrixMode(GL_PROJECTION);
+						glPushMatrix();
+						glLoadIdentity();
+						glOrtho(0, g.xres, 0, g.yres, -1, 1);
+						glMatrixMode(GL_MODELVIEW);
+						glPushMatrix();
+						glLoadIdentity();
+
+						// text on top layer
+						glDisable(GL_DEPTH_TEST);
+
+						// Render text
+						renderText(100, g.yres - 20, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", 1.0f, 1.0f, 0.0f);
+						renderText(100, g.yres - 40, "```Behold the Ghetto Kingpin!```", 1.0f, 1.0f, 0.0f);
+						renderText(100, g.yres - 60, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", 1.0f, 1.0f, 0.0f);
+
+						// Restore projection
+						glEnable(GL_DEPTH_TEST);
+						glPopMatrix();
+						glMatrixMode(GL_PROJECTION);
+						glPopMatrix();
+						glMatrixMode(GL_MODELVIEW);
+						////////2D////////
+					}
+				}
             }
         }
     } else {
@@ -521,6 +561,32 @@ int draw(GLvoid) {
 
 	// Draw the reels
 	drawReels();
+	//////2D////////
+
+	// orthographic projection for 2D
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, g.xres, 0, g.yres, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // text on top layer
+    glDisable(GL_DEPTH_TEST);
+
+    // Render text
+    renderText(10, g.yres - 20, "```Welcome to the Ghetto```", 1.0f, 1.0f, 0.0f);
+    renderText(10, g.yres - 60, "Press SPACE to spin the reels!", 1.0f, 1.0f, 0.0f);
+
+    // Restore projection
+    glEnable(GL_DEPTH_TEST);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+
+	////////2D////////
 	GLenum err = glGetError();
 		if (err != GL_NO_ERROR) {
     		std::cerr << "OpenGL Error: " << gluErrorString(err) << std::endl;
