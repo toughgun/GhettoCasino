@@ -8,6 +8,7 @@
 // In this example, only the x coordinates change.
 //
 #include <GL/glx.h>
+#include <GL/glut.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <math.h>
