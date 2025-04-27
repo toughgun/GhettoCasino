@@ -7,14 +7,14 @@ extern void intro_render();
 extern int introplay;
 extern bool introstart;
 
-extern void dealerHands();
-extern void playerHands();
+extern void dealerHands(int x);
+extern void playerHands(int x);
+extern void dealerHandrecheck();
+extern void playerHandrecheck();
 extern void bjPayout();
 extern void bjButtonRender();
 extern void renderDoubleButton();
-extern void renderSplitButton();
 extern void renderInsuranceButton();
-extern int splitVal;
 
 extern void gameInfo(int xx);
 extern void displayInfo();
