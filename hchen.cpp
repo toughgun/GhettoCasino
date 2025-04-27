@@ -1,12 +1,13 @@
 //Haonan Chen
-//april 22, 2025
+//april 27, 2025
 //
 //This file has
 //intro animation
 //info display
 //black jack player/dealer hands logic
-//black jack split 
+//black jack split
 //black jack payout
+//black jack insure, double buttons
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -14,6 +15,7 @@
 #include <sys/wait.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
+#include <math.h>
 #include "hchen_functions.h"
 #include "global.h"
 #include "image.h"
@@ -32,51 +34,52 @@ bool disInfo = false;
 float centerX;
 float centerY;
 float logoPosY = 0.0f;
-int splitVal = 0;
+float fade = 0.0f;
+bool doubleDown = false;
 void gameInfo(int xx)
 {
     if (xx == 5) {
-    glColor4f(1.0f, 0.53f, 0.0f, 1.0f);
-    glPushMatrix();
-    glTranslatef(1200, 35, 0);
-    glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_GREATER, 0.0f);
-    glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
-    glBegin(GL_QUADS);
-    float h = g.tex.buttonImage->height / 12;
-    float w = g.tex.buttonImage->width / 15;
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex2f(-w, h); // Top-left
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex2f(w, h); // Top-right
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex2f(w, -h); // Bottom-right
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex2f(-w, -h); // Botton-left
-    glEnd();
-    glDisable(GL_ALPHA_TEST);
-    glPopMatrix();
+        glColor4f(1.0f, 0.53f, 0.0f, 1.0f);
+        glPushMatrix();
+        glTranslatef(1200, 35, 0);
+        glEnable(GL_ALPHA_TEST);
+        glAlphaFunc(GL_GREATER, 0.0f);
+        glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
+        glBegin(GL_QUADS);
+        float h = g.tex.buttonImage->height / 12;
+        float w = g.tex.buttonImage->width / 15;
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex2f(-w, h); // Top-left
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex2f(w, h); // Top-right
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex2f(w, -h); // Bottom-right
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex2f(-w, -h); // Botton-left
+        glEnd();
+        glDisable(GL_ALPHA_TEST);
+        glPopMatrix();
     } else {
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    glPushMatrix();
-    glTranslatef(1200, 35, 0);
-    glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_GREATER, 0.0f);
-    glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
-    glBegin(GL_QUADS);
-    float h = g.tex.buttonImage->height / 12;
-    float w = g.tex.buttonImage->width / 15;
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex2f(-w, h); // Top-left
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex2f(w, h); // Top-right
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex2f(w, -h); // Bottom-right
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex2f(-w, -h); // Botton-left
-    glEnd();
-    glDisable(GL_ALPHA_TEST);
-    glPopMatrix();
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        glPushMatrix();
+        glTranslatef(1200, 35, 0);
+        glEnable(GL_ALPHA_TEST);
+        glAlphaFunc(GL_GREATER, 0.0f);
+        glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
+        glBegin(GL_QUADS);
+        float h = g.tex.buttonImage->height / 12;
+        float w = g.tex.buttonImage->width / 15;
+        glTexCoord2f(0.0f, 0.0f);
+        glVertex2f(-w, h); // Top-left
+        glTexCoord2f(1.0f, 0.0f);
+        glVertex2f(w, h); // Top-right
+        glTexCoord2f(1.0f, 1.0f);
+        glVertex2f(w, -h); // Bottom-right
+        glTexCoord2f(0.0f, 1.0f);
+        glVertex2f(-w, -h); // Botton-left
+        glEnd();
+        glDisable(GL_ALPHA_TEST);
+        glPopMatrix();
     }
 
     Rect r;
@@ -134,6 +137,30 @@ void infoRetangle()
     glEnd();
     glFlush();
 }
+void init_background()
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glColor4f(1.0f, 1.0f, 1.0f, fade);
+
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
+    glBegin(GL_QUADS);
+
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex2i(0, 0);
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2i(0, g.yres);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2i(g.xres, g.yres);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2i(g.xres, 0);
+    glEnd();
+    glPopMatrix();
+
+    glDisable(GL_BLEND);
+}
 void init_intro_logo()
 {
     g.tex.logo_xc[0] = 0.0f;  // Left of the texture
@@ -148,23 +175,29 @@ void intro_physics()
     float startY = g.yres + 150.0f;
     float endY = g.yres / 2.0f;
     float duration = 5.0f;
-
     float t = elapsedTime / duration;
 
-    if (elapsedTime >= 5.0f)
+    if (elapsedTime >= 9.0f)
         return;
 
     if (t > 1.0f)
         t = 1.0f;
 
     logoPosY = startY * (1.0f - t) + endY * t;
+
+    if (elapsedTime > 4.5f) {
+        fade += 0.08f;
+        if (fade > 1.0f) {
+            fade = 1.0f;
+        }
+    }
 }
 void intro_logo()
 {
     float centerX = g.xres / 2.0f;
     float centerY = logoPosY;
 
-    glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glPushMatrix();
     glTranslatef(centerX, centerY, 0.0f);
 
@@ -197,10 +230,11 @@ void intro_render()
         }
 
         current_time = time(nullptr);
-        if (current_time - start_time < 6) {
+        if (current_time - start_time < 8.0f) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             intro_logo();
             intro_physics();
+            init_background();
             Rect r;
             glPushMatrix();
             glTranslatef(640, 50, 0);
@@ -233,6 +267,9 @@ void dealerHands(int x)
         else
             bj.dealerHandTotal =+ 1;
     }
+}
+void dealerHandrecheck()
+{
     //recheck if game end & dealer has ace for greater total
     if (bj.dealerHand[1] > 1) {
         if (bj.dealerHandTotal < 21 && bj.dealerHandTotal + 10 <= 21)
@@ -257,28 +294,21 @@ void playerHands(int x)
         else
             bj.playerHandTotal =+ 1;
     }
+}
+void playerHandrecheck()
+{
     //recheck if game end & player has ace for greater total
     if (bj.playerHand[1] > 1) {
         if (bj.playerHandTotal < 21 && bj.playerHandTotal + 10 <= 21)
             bj.playerHandTotal =+ 10;
     }
 }
-void splitHand()
-{
-    if (bj.split == true) {
-        splitVal = bj.playerHandTotal / 2;
-        bj.playerHandTotal =- splitVal;
-        g.currentBet = g.currentBet * 2;
-
-    }
-}
 void bjPayout()
 {
-    bool doubleDown = false;
     //double down bet
     if (doubleDown == true) {
         g.currentBet = g.currentBet * 2;
-        if (bj.playerHandTotal <= 21 && 
+        if (bj.playerHandTotal <= 21 &&
                 bj.playerHandTotal > bj.dealerHandTotal) {
             g.currency =+ g.currentBet * 2;
         } else {
@@ -286,54 +316,29 @@ void bjPayout()
         }
     }
 
-    //player win 
-    if (bj.playerHandTotal <= 21 
+    //player win
+    if (bj.playerHandTotal <= 21
             && bj.playerHandTotal > bj.dealerHandTotal) {
         g.currency =+ g.currentBet * 2;
 
         //dealer wins with 21 /  player bust  / dealer > player
-    } else if (bj.dealerHandTotal == 21 || bj.playerHandTotal > 21 
+    } else if (bj.dealerHandTotal == 21 || bj.playerHandTotal > 21
             || bj.dealerHandTotal > bj.playerHandTotal) {
         g.currency =- g.currentBet;
-
-        //split
-    } else if (bj.split == true) {
-
-        //both hands win
-        if ((splitVal == 21 && bj.playerHandTotal == 21)
-                || ((splitVal <= 21 && splitVal > bj.dealerHandTotal) && 
-                    (bj.playerHandTotal <= 21 && 
-                     bj.playerHandTotal > bj.dealerHandTotal))) {
-            g.currency =+ g.currentBet * 2;
-
-            // 1 hand win
-        } else if (splitVal == 21 || bj.playerHandTotal == 21 
-                || (splitVal > 21 && 
-                    bj.playerHandTotal > bj.dealerHandTotal)
-                || (bj.playerHandTotal > 21 && 
-                    splitVal > bj.dealerHandTotal)) {
-            g.currency =+ g.currentBet * 1.5;
-
-            //both hand lose
-        } else {
-            g.currency =- g.currentBet;
-        }
-
-    }
-    //insurance
-    if (bj.dealerHandTotal == 21 && bj.insure == true) {
+    } else if (bj.dealerHandTotal == 21 && bj.insure == true) {
+        //insure
         g.currency =+ g.currentBet;
     }
 }
 void bjButtonRender()
 {
-    //add if statements on when to render buttons
     renderDoubleButton();
-    renderSplitButton();
-    renderInsuranceButton();
+    if (bj.dealerHand[1] > 0) {
+        renderInsuranceButton();
+    }
 }
 void renderDoubleButton()
-{ 
+{
     glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
     glPushMatrix();
     glTranslatef(1120, 50, 0);
@@ -362,39 +367,6 @@ void renderDoubleButton()
     r.bot = 0;
     r.left = 0;
     ggprint8b(&r, 16, 0xffffff, "DOUBLE");
-    glPopMatrix();
-
-}
-void renderSplitButton()
-{ 
-    glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
-    glPushMatrix();
-    glTranslatef(1120, 100, 0);
-    glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_GREATER, 0.0f);
-    glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
-    glBegin(GL_QUADS);
-    float h = g.tex.buttonImage->height / 6;
-    float w = g.tex.buttonImage->width / 6;
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex2f(-w, h); // Top-left
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex2f(w, h); // Top-right
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex2f(w, -h); // Bottom-right
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex2f(-w, -h); // Botton-left
-    glEnd();
-    glDisable(GL_ALPHA_TEST);
-    glPopMatrix();
-
-    Rect r;
-    glPushMatrix();
-    glTranslatef(1120, 100, 0);
-    glScalef(2.0f, 2.0f, 1);
-    r.bot = 0;
-    r.left = 0;
-    ggprint8b(&r, 16, 0xffffff, "SPLIT");
     glPopMatrix();
 
 }
@@ -429,5 +401,4 @@ void renderInsuranceButton()
     r.left = 0;
     ggprint8b(&r, 16, 0xffffff, "INSURANCE");
     glPopMatrix();
-
 }
