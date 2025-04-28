@@ -47,6 +47,7 @@ void quit(int retcode);
 GLfloat get_rand( GLfloat max );
 Surface* loadPNG(const char *fp);
 bool initGLTexture(const char *name, GLuint *addr);
+bool isWinner = false;
 int loadGLTextures();
 int initGL(GLvoid);
 int resize(int width, int height);
@@ -121,6 +122,7 @@ void Reel::start() {
     begin = 0;
     begin = speed;
 	gluttony = -1;
+	isWinner = false;
 }
 
 void Reel::stop() {
@@ -234,35 +236,11 @@ void Reel::spin() {
                     std::cout << 	 "################################" << std::endl;
                     int winner = Reel::winner();
                     if (winner != -1) {
+						isWinner = true;
                         std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
                         std::cout << "```Behold the Ghetto Kingpin!```" << std::endl;
                         std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
 
-						//////2D////////
-						// orthographic projection for 2D
-						glMatrixMode(GL_PROJECTION);
-						glPushMatrix();
-						glLoadIdentity();
-						glOrtho(0, g.xres, 0, g.yres, -1, 1);
-						glMatrixMode(GL_MODELVIEW);
-						glPushMatrix();
-						glLoadIdentity();
-
-						// text on top layer
-						glDisable(GL_DEPTH_TEST);
-
-						// Render text
-						renderText(100, g.yres - 20, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", 1.0f, 1.0f, 0.0f);
-						renderText(100, g.yres - 40, "```Behold the Ghetto Kingpin!```", 1.0f, 1.0f, 0.0f);
-						renderText(100, g.yres - 60, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", 1.0f, 1.0f, 0.0f);
-
-						// Restore projection
-						glEnable(GL_DEPTH_TEST);
-						glPopMatrix();
-						glMatrixMode(GL_PROJECTION);
-						glPopMatrix();
-						glMatrixMode(GL_MODELVIEW);
-						////////2D////////
 					}
 				}
             }
@@ -577,6 +555,13 @@ int draw(GLvoid) {
     // Render text
     renderText(10, g.yres - 20, "```Welcome to the Ghetto```", 1.0f, 1.0f, 0.0f);
     renderText(10, g.yres - 60, "Press SPACE to spin the reels!", 1.0f, 1.0f, 0.0f);
+
+	if (isWinner) {
+        renderText(500, g.yres - 20, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", 1.0f, 1.0f, 0.0f);
+        renderText(500, g.yres - 40, "      ```Behold the Ghetto Kingpin!```", 1.0f, 1.0f, 0.0f);
+        renderText(500, g.yres - 60, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", 1.0f, 1.0f, 0.0f);
+		
+    }
 
     // Restore projection
     glEnable(GL_DEPTH_TEST);
