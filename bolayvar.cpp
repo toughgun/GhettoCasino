@@ -361,6 +361,33 @@ void drawChipsFull(int x, int y, int z, float xScale, float yScale)
     glDisable(GL_ALPHA_TEST);
     glPopMatrix();
 }
+void drawCard(int num, int suit, float posx, float posy)
+{
+    float cx = posx;
+	float cy = posy;
+    float h = 180;
+	float w = 118;
+	glPushMatrix();
+	glEnable(GL_ALPHA_TEST);
+	glAlphaFunc(GL_GREATER, 0.0f);
+	glColor3f(1.0, 1.0, 1.0);
+	glBindTexture(GL_TEXTURE_2D, g.tex.cardtex);
+	glTranslatef(0,0, 0);
+	glColor4ub(255,255,255,255);
+	int ix = num % 14;
+	int iy = suit;
+	float tx = (float)ix / 14.0;
+	float ty = (float)iy / 4.0;
+	glBegin(GL_QUADS);
+		glTexCoord2f(tx,      ty+0.25); glVertex2i(cx-w, cy-h);
+		glTexCoord2f(tx,      ty);    glVertex2i(cx-w, cy+h);
+		glTexCoord2f(tx+0.0714, ty);    glVertex2i(cx+w, cy+h);
+		glTexCoord2f(tx+0.0714, ty+0.25); glVertex2i(cx+w, cy-h);
+	glEnd();
+	glPopMatrix();
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glDisable(GL_ALPHA_TEST);
+}
 void drawChipText()
 {
     Rect r[2];
@@ -665,8 +692,9 @@ void playBlackJack()
     drawBJBackground(1.0, 1.0, 1.0);
     drawBJShoe(g.xres / 1.13, g.yres / 1.77, 0, 3, 3, 1.0, 1.0, 1.0);
     initFirstHand();
+
     // animation here
-    checkDealerHand();
+    //checkDealerHand();
 }
 void handleBlackJackGame(int x)
 {
@@ -675,6 +703,7 @@ void handleBlackJackGame(int x)
     }
     if (bj.showUI) {
         showUI(x);
+        drawCard(12,0, g.xres/2, g.yres/2);
     } else {
         playBlackJack();
     }

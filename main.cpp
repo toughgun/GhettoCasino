@@ -44,11 +44,12 @@ extern Dice dice;
 
 Global g;
 
-Image img[10] = { "menu_bg.png",   "menu_button.png",
+Image img[11] = { "menu_bg.png",   "menu_button.png",
                 "logo.png",      "menu_bg_devscreen.png",
                 "slot_face.png", "blackjacktable.png",
                 "chipSheet.png", "shoe.png",
-                "cup.png", "dicetable.png" };
+                "cup.png", "dicetable.png",
+                "cardsSheet.png" };
 
 class X11_wrapper {
   private:
@@ -168,7 +169,48 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
-
+unsigned char* buildGreyAlphaData(Image* img)
+{
+    // Add 4th component to an RGB stream...
+    // RGBA
+    // When you do this, OpenGL is able to use the A component to determine
+    // transparency information.
+    // It is used in this application to erase parts of a texture-map from view.
+    int            i;
+    int            a, b, c;
+    unsigned char *newdata, *ptr;
+    unsigned char* data = (unsigned char*)img->data;
+    newdata             = (unsigned char*)malloc(img->width * img->height * 4);
+    ptr                 = newdata;
+    for (i = 0; i < img->width * img->height * 3; i += 3) {
+        a          = *(data + 0);
+        b          = *(data + 1);
+        c          = *(data + 2);
+        *(ptr + 0) = a;
+        *(ptr + 1) = b;
+        *(ptr + 2) = c;
+        //-----------------------------------------------
+        // get largest color component...
+        //*(ptr+3) = (unsigned char)((
+        //		(int)*(ptr+0) +
+        //		(int)*(ptr+1) +
+        //		(int)*(ptr+2)) / 3);
+        // d = a;
+        // if (b >= a && b >= c) d = b;
+        // if (c >= a && c >= b) d = c;
+        //*(ptr+3) = d;
+        //-----------------------------------------------
+        if (abs(a - 188) < 10 && abs(b - 190) < 10 && abs(c - 192) < 10) {
+            *(ptr + 3) = 0;   // transparent
+        } else {
+            *(ptr + 3) = 255; // opaque
+        }
+        //-----------------------------------------------
+        ptr += 4;
+        data += 3;
+    }
+    return newdata;
+}
 unsigned char* buildAlphaData(Image* img)
 {
     // Add 4th component to an RGB stream...
@@ -248,7 +290,7 @@ void init_opengl(void)
     g.tex.shoeImage   = &img[7];
     g.tex.cupImage    = &img[8];
     g.tex.diceImage   = &img[9];
-    
+    g.tex.cardImage   = &img[10];    
 
     //
     // create menu logo
@@ -356,8 +398,20 @@ void init_opengl(void)
                  g.tex.diceImage->data);
     g.tex.xc[0] = 1.0;
     g.tex.yc[1] = 1.0;
-
-    // create menu logo
+    //
+    // create cards
+    glGenTextures(1, &g.tex.cardtex);
+    w = g.tex.cardImage->width;
+    h = g.tex.cardImage->height;
+    glBindTexture(GL_TEXTURE_2D, g.tex.cardtex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    unsigned char* card = buildGreyAlphaData(&img[10]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 card);
+    free(card);
+    //
+    // create chips
     glGenTextures(1, &g.tex.chiptex);
     w = g.tex.chipImage->width;
     h = g.tex.chipImage->height;
