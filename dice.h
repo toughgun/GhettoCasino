@@ -26,8 +26,8 @@ struct Dice {
     int colDie1, colDie2;
 
     Dice() :
-        cupWidth(50.0f), 
-        cupHeight(50.0f),
+        cupWidth(70.0f), 
+        cupHeight(70.0f),
         cupPosX(0),
         cupVelX(4.0f),
         cupRange(50.0f),

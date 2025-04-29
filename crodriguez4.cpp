@@ -23,8 +23,12 @@
 
 using namespace std;
 
+// click add bettingUI
+// drawtextclick()
 /* global dice object + convenient aliases to preserve old references */
 Dice dice;
+/* ---------- new global ---------- */
+static GLuint chipTex[4] = {0, 0, 0, 0};
 GLuint diceTex[4][6];
 GLuint DiceCupTex = 0;
 
@@ -41,6 +45,21 @@ GLuint DiceCupTex = 0;
 #define resultState      (dice.resultState)
 /* ------------------------------------------------------------------ */
 
+// in main
+/* for cup
+    // create menu logo
+    glGenTextures(1, &g.tex.chiptex);
+    w = g.tex.chipImage->width;
+    h = g.tex.chipImage->height;
+    glBindTexture(GL_TEXTURE_2D, g.tex.chiptex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    unsigned char* chip = buildAlphaData(&img[6]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE,chip);
+    free(chip);
+*/
+
 extern Global g;
 extern X11_wrapper x11;
 extern void drawBackground();
@@ -49,25 +68,28 @@ unsigned char *buildAlphaData(Image *img);
 /*==================*/
 /*     helpers      */
 /*==================*/
+/* Ensure RNG is seeded exactly once */
 static inline void seed_rng_once(void)
 {
-	static bool seeded = false;
-	if (!seeded) {
-		srand((unsigned)time(nullptr));
-		seeded = true;
-	}
+    static bool seeded = false;
+    if (!seeded) {
+        srand((unsigned)time(nullptr));
+        seeded = true;
+    }
 }
 
 /*=================================*/
 /* window-size-dependent metrics   */
 /*=================================*/
+/* Re‑compute dice cup size whenever window resizes */
 void updateUIForWindowSize(void)
 {
-	dice.cupWidth  = g.xres * 0.10f;
-	dice.cupHeight = g.yres * 0.10f;
+    dice.cupWidth  = g.xres * 0.10f;
+    dice.cupHeight = g.yres * 0.10f;
 }
 
 /* ------ texture loading ------ */
+/* Load cup.png as RGBA texture into DiceCupTex */
 void loadCupTexture(void)
 {
     Image sheet("cup.png");     /* 1×1 “sheet” – matches dice logic   */
@@ -88,6 +110,42 @@ void loadCupTexture(void)
                  GL_RGBA,GL_UNSIGNED_BYTE,rgba);
     free(rgba);
 }
+
+/* ---------- new loader ---------- */
+void loadChipTextures(void)
+/* chips.png == one horizontal strip: blue, green, yellow, red */
+{
+    Image strip("chipSheet.png");          /* 4 × 1 grid  */
+    if (!strip.data) {
+        fprintf(stderr, "[ERROR] chips.png not found\n");
+        return;
+    }
+    const int cols = 4;
+    const int cw   = strip.width / cols;
+    const int ch   = strip.height;
+    unsigned char *rgba = buildAlphaData(&strip);
+
+    for (int c = 0; c < cols; ++c) {
+        unsigned char *tile = (unsigned char *)malloc(cw * ch * 4);
+        for (int y = 0; y < ch; ++y) {
+            int src = (y * strip.width + c * cw) * 4;
+            memcpy(tile + y * cw * 4, rgba + src, cw * 4);
+        }
+        glGenTextures(1, &chipTex[c]);
+        glBindTexture(GL_TEXTURE_2D, chipTex[c]);
+        glTexParameteri(GL_TEXTURE_2D,
+                        GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D,
+                        GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                     cw, ch, 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, tile);
+        free(tile);
+    }
+    free(rgba);
+}
+
+/* Slice diceSheet.png into 4×6 tiles and upload each to diceTex */
 void loadDiceTextures(void)
 {
     Image sheet("diceSheet.png");              /* 600×900: 4×6 tiles */
@@ -125,20 +183,21 @@ void loadDiceTextures(void)
     }
     free(rgba);
 }
-
 /* -------- dice logic -------- */
+/* Randomize dice, reset UI state, prompt player for choice */
 void roll_dice(void)
 {
-	seed_rng_once();
-	die1  = rand() % 6 + 1;
-	die2  = rand() % 6 + 1;
-	total = die1 + die2;
-	diceRevealed = false;
-	playerChoice = NONE;
-	resultState  = IDLE;
-	printf("[INFO] Dice rolled - choose UNDER / OVER / EXACT.\n");
+    seed_rng_once();
+    die1  = rand() % 6 + 1;
+    die2  = rand() % 6 + 1;
+    total = die1 + die2;
+    diceRevealed = false;
+    playerChoice = NONE;
+    resultState  = IDLE;
+    printf("[INFO] Dice rolled - choose UNDER / OVER / EXACT.\n");
 }
 
+/* Reveal dice faces, evaluate win/lose, update currency */
 void reveal_dice(void)
 {
     if (diceRevealed)
@@ -172,14 +231,16 @@ void reveal_dice(void)
 }
 
 /* ------------ cup physics ------------- */
+/* Simple side‑to‑side physics for rolling cup */
 static void cupPhysics(void)
 {
-	dice.cupPosX += dice.cupVelX;
-	if (dice.cupPosX >  dice.cupRange)
-		dice.cupVelX = -fabs(dice.cupVelX);
-	if (dice.cupPosX < -dice.cupRange)
-		dice.cupVelX =  fabs(dice.cupVelX);
+    dice.cupPosX += dice.cupVelX;
+    if (dice.cupPosX >  dice.cupRange)
+        dice.cupVelX = -fabs(dice.cupVelX);
+    if (dice.cupPosX < -dice.cupRange)
+        dice.cupVelX =  fabs(dice.cupVelX);
 }
+
 /* ---------------------*/
 /*  rendering helpers   */
 /* ---------------------*/
@@ -190,6 +251,23 @@ static inline void push_ortho(void)
 	glOrtho(0, g.xres, 0, g.yres, -1, 1);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+}
+void drawDiceBackground()
+{
+    glColor3f(1.0, 1.0, 1.0);
+    glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, g.tex.dicetex);
+    glBegin(GL_QUADS);
+        glTexCoord2f(-g.tex.xc[0], g.tex.yc[1]);
+        glVertex2i(0, 0);
+        glTexCoord2f(-g.tex.xc[0], g.tex.yc[0]);
+        glVertex2i(0, g.yres);
+        glTexCoord2f(g.tex.xc[1], g.tex.yc[0]);
+        glVertex2i(g.xres, g.yres);
+        glTexCoord2f(g.tex.xc[1], g.tex.yc[1]);
+        glVertex2i(g.xres, 0);
+    glEnd();
+    glPopMatrix();
 }
 static void drawCup(float cx,float cy,float w,float h)
 {
@@ -209,14 +287,51 @@ static void drawCup(float cx,float cy,float w,float h)
     glDisable(GL_ALPHA_TEST);
     if (!wasTex) glDisable(GL_TEXTURE_2D);
 }
+
+/*----------------------------------------------------------------
+* Draw one circular poker-chip sprite, centred on (cx,cy) with the
+*--------------------------------------------------------------*/
+static inline void drawChip(GLuint tex, float cx, float cy,
+                                float dia, const char *amount)
+{
+    float hw = dia * 0.5f;              /* half-width / half-height  */
+
+    GLboolean texEn = glIsEnabled(GL_TEXTURE_2D);
+    if (!texEn)
+        glEnable(GL_TEXTURE_2D);
+
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    
+    glColor3f(1, 1, 1);
+    glBegin(GL_QUADS);
+        glTexCoord2f(0, 0); glVertex2f(cx - hw, cy + hw);
+        glTexCoord2f(1, 0); glVertex2f(cx + hw, cy + hw);
+        glTexCoord2f(1, 1); glVertex2f(cx + hw, cy - hw);
+        glTexCoord2f(0, 1); glVertex2f(cx - hw, cy - hw);
+    glEnd();
+
+    glDisable(GL_ALPHA_TEST);
+    if (!texEn)
+        glDisable(GL_TEXTURE_2D);
+
+        /* big amount text */
+    Rect r;
+    r.center = 1;
+    r.left   = cx;
+    r.bot    = cy - dia * 0.18f;   /* vertical centring tweak */
+    ggprint16(&r, 48, 0xffffff, "%s", amount);
+}
+
 void render_dice(void)
 {
 	push_ortho();
     glClear(GL_COLOR_BUFFER_BIT);
-    drawBackground();
+    drawDiceBackground();
 
     float cx = g.xres*0.5f + dice.cupPosX;
-    float cy = g.yres*0.5f;
+    float cy = g.yres*0.3f;
     float hw = dice.cupWidth*0.5f;
     float hh = dice.cupHeight*0.5f;
 
@@ -296,52 +411,60 @@ static bool isInsideRect(int px, int py,int rx, int ry, int rw, int rh)
     return px >= xMin && px <= xMax &&
             py >= yMin && py <= yMax;
 }
-/*  Betting overlay */
+
+/* ---------------- BETTING OVERLAY (textured chips) ---------------- */
 void renderBettingUI(void)
 {
     push_ortho();
     glClear(GL_COLOR_BUFFER_BIT);
-    drawBackground();
+    drawDiceBackground();
 
-    const int bw = 100;
-    const int bh = 40;
-    const int spacing = 20;
-    const int totalW = 6*bw + 5*spacing;
-    const int startX = (g.xres-totalW)/2;
-    const int topY = g.yres/4;
+    /* ---- geometry ---- */
+    const float chipDia   = g.yres * 0.12f;      /* circle diameter      */
+    const float chipGap   = chipDia * 0.30f;     /* space between chips  */
+    const float chipY     = g.yres / 6.0f;
+    const float firstX    = g.xres * 0.48f
+                           - (1.5f * chipDia)    /* centres @ −1.5,-.5,.5,1.5 */
+                           - (1.5f * chipGap);
 
-    /* toggle */
-    draw_button_colored(startX,topY,bw,bh,
+    /* ---- toggle (+/-) & BET! buttons reuse old rectangles ---------- */
+    const int bw = 100, bh = 40, spacing = 20;
+    const int startX = (g.xres - (bw * 6 + spacing * 5)) / 2;
+    const int topY   = g.yres / 6;
+
+    draw_button_colored(startX, topY, bw, bh,
                         addMode ? "+" : "-",
                         addMode ? 0.0f : 1.0f,
-                        addMode ? 0.6f : 0.2f,1.0f);
+                        addMode ? 0.6f : 0.2f, 1.0f);
+    draw_button_colored(startX + 5.25 * (bw + spacing), topY,
+                        bw, bh, "BET!", 0.1f, 0.8f, 0.1f);
 
-    /* chips */
-    const int chips[4]={25,50,75,100};
-    for(int i=0; i < 4; ++i){
-        char s[4]; snprintf(s,4,"%d",chips[i]);
-        draw_button_colored(startX + (i+1) * (bw + spacing),
-                            topY, bw, bh, s,
-                            0.2f, 0.6f, 1.0f);
+    /* ---- draw four chips ------------------------------------------ */
+    static const char *chipTxt[4] = {"5", "10", "25", "100"};
+    for (int i = 0; i < 4; ++i) {
+        float cx = firstX + i * (chipDia + chipGap) + chipDia * 0.5f;
+
+        /* textured disc */
+        drawChip(chipTex[i], cx, chipY, chipDia, chipTxt[i]);
     }
 
-    /* BET! */
-    draw_button_colored(startX + 5 * (bw + spacing),
-                        topY,bw,bh,"BET!",
-                        0.1f,0.8f,0.1f);
-
-    /* status */
+    /* ---------- status ribbon ---------- */
     char info[128];
-   	snprintf(info,sizeof(info),
-	         "Currency: $%d | Bet: $%d | Win Streak: %d",
-	         g.currency,g.currentBet,g.winstreak);
-	Rect t; t.left=g.xres/2; t.center=1; t.bot=20;
-	ggprint16(&t,16,0x00ff00ff,"%s",info);
+    snprintf(info, sizeof(info),
+             "Balance $%d    Current Bet $%d    Streak %d",
+             g.currency, g.currentBet, g.winstreak);
+
+    Rect t;
+    t.center = 1;
+    t.left   = g.xres / 2;
+    t.bot    = g.yres * 0.07f;
+    ggprint16(&t, 24, 0xffffffff, "%s", info);
 }
+
 /*  Choice UI    */
 void renderChoiceUI(void)
 {
-    int y=g.yres/3;
+    int y = g.yres/4;
     draw_button_colored(g.xres/2-160,y,100,40,"UNDER",.4f,.5f,1);
     draw_button_colored(g.xres/2-50 ,y,100,40,"EXACT",1,.5f,0);
     draw_button_colored(g.xres/2+60 ,y,100,40,"OVER" ,.5f,1,.5f);
@@ -351,7 +474,7 @@ void renderResultUI(void)
 {
     push_ortho();
     glClear(GL_COLOR_BUFFER_BIT);
-    drawBackground();
+    drawDiceBackground();
 
     /* dice faces */
     float dw = g.xres * 0.10f;
@@ -397,7 +520,7 @@ void renderResultUI(void)
 
 void renderRevealButton(void)
 {
-    draw_button_colored(g.xres/2-50, g.yres/3-60,
+    draw_button_colored(g.xres/2-50, g.yres/4-60,
                         100,40,"REVEAL",.8f,.1f,.1f);
 }
 
@@ -424,15 +547,15 @@ void handleResultInput(int mx,int my)
     float y = g.yres*0.25f;
 
     /* NEW BET */
-    if(isInsideRect(mx, my, int(cx - bw - 20), int(y), int(bw), int(bh))){
+    if (isInsideRect(mx, my, int(cx - bw - 20), int(y), int(bw), int(bh))) {
         resultUIActive = false;
         bettingUIActive = true;
         resultState = IDLE;
         return;
     }
     /* SAME BET */
-    if(isInsideRect(mx, my, int(cx + 20), int(y), int(bw), int(bh))){
-        if(g.currentBet > g.currency){
+    if (isInsideRect(mx, my, int(cx + 20), int(y), int(bw), int(bh))) {
+        if (g.currentBet > g.currency) {
             fprintf(stderr,"[ERROR] Not enough currency.\n");
             return;
         }
@@ -449,13 +572,13 @@ void handleChoiceInput(int mx,int my)
     my = g.yres - my;
     const int bw = 100;
     const int bh = 40;
-    int topY = g.yres/3;
+    int topY = g.yres/4;
 
-    if(isInsideRect(mx, my, g.xres/2 - 160, topY, bw, bh))
+    if (isInsideRect(mx, my, g.xres/2 - 160, topY, bw, bh))
         playerChoice = UNDER;
-    else if(isInsideRect(mx, my, g.xres/2 - 50, topY, bw, bh))
+    else if (isInsideRect(mx, my, g.xres/2 - 50, topY, bw, bh))
         playerChoice = EXACT;
-    else if(isInsideRect(mx, my, g.xres/2 + 60, topY, bw, bh))
+    else if (isInsideRect(mx, my, g.xres/2 + 60, topY, bw, bh))
         playerChoice = OVER;
     else
         return;
@@ -467,41 +590,51 @@ void handleChoiceInput(int mx,int my)
 void handleRevealClick(int mx, int my)
 {
     my = g.yres - my;
-    if (isInsideRect(mx, my, g.xres/2 - 50, g.yres/3 - 60, 100, 40))
+    if (isInsideRect(mx, my, g.xres/2 - 50, g.yres/4 - 60, 100, 40))
         reveal_dice();
 }
 
 void processBettingInput(int mx, int my, int /*button*/)
 {
-	my = g.yres - my;
+    my = g.yres - my;                       /* y-flip */
 
-	const int bw = 100, bh = 40, spacing = 20;
-	const int totalW = 6 * bw + 5 * spacing;
-	const int startX = (g.xres - totalW) / 2;
-	const int topY   = g.yres / 4;
+    /* ----- rectangle buttons (+/- and BET!) ------------------------ */
+    const int bw = 100, bh = 40, spacing = 20;
+    const int startX = (g.xres - (bw * 6 + spacing * 5)) / 2;
+    const int topY   = g.yres / 6;
 
-	/* 0. toggle + / - */
-	if (isInsideRect(mx, my, startX, topY, bw, bh)) {
-		addMode = !addMode;
-		return;
-	}
+    /* toggle */
+    if (isInsideRect(mx, my, startX, topY, bw, bh)) {
+        addMode = !addMode;
+        return;
+    }
+    /* BET! */
+    if (isInsideRect(mx, my, startX + 5.25 * (bw + spacing),
+                     topY, bw, bh)) {
+        finalizeBet();
+        return;
+    }
 
-	/* 1-4. chip amounts */
-	const int chips[4] = {25, 50, 75, 100};
-	for (int i = 0; i < 4; ++i) {
-		int bx = startX + (i + 1) * (bw + spacing);
-		if (isInsideRect(mx, my, bx, topY, bw, bh)) {
-			int delta = addMode ? chips[i] : -chips[i];
-			g.currentBet = clamp(g.currentBet + delta, 0, g.currency);
-			return;
-		}
-	}
+    /* ----- circular chip hit-tests -------------------------------- */
+    const float chipDia = g.yres * 0.12f;
+    const float chipGap = chipDia * 0.30f;
+    const float chipY   = g.yres / 6.0f;
+    const float firstX  = g.xres * 0.5f
+                         - (1.5f * chipDia) - (1.5f * chipGap);
+    static const int chipVal[4] = {5, 10, 25, 100};
 
-	/* 5. BET! */
-	int bxBet = startX + 5 * (bw + spacing);
-	if (isInsideRect(mx, my, bxBet, topY, bw, bh))
-		finalizeBet();
+    for (int i = 0; i < 4; ++i) {
+        float cx = firstX + i * (chipDia + chipGap) + chipDia * 0.5f;
+        float dx = mx - cx;
+        float dy = my - chipY;
+        if (dx * dx + dy * dy <= (chipDia * 0.5f) * (chipDia * 0.5f)) {
+            int delta = addMode ? chipVal[i] : -chipVal[i];
+            g.currentBet = clamp(g.currentBet + delta, 0, g.currency);
+            return;
+        }
+    }
 }
+
 void finalizeBet(void)
 {
 	if (g.currentBet <= 0) {

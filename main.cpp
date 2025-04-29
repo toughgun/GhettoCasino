@@ -44,10 +44,11 @@ extern Dice dice;
 
 Global g;
 
-Image img[8] = {"menu_bg.png",   "menu_button.png",
+Image img[10] = { "menu_bg.png",   "menu_button.png",
                 "logo.png",      "menu_bg_devscreen.png",
                 "slot_face.png", "blackjacktable.png",
-                "chipSheet.png", "shoe.png"};
+                "chipSheet.png", "shoe.png",
+                "cup.png", "dicetable.png" };
 
 class X11_wrapper {
   private:
@@ -225,6 +226,8 @@ void init_opengl(void)
     loadCupTexture();
     // load Dice texture
 	loadDiceTextures();
+    //load Chip Textures for dice
+    loadChipTextures();
 
     // init the position of the menu buttons and logo
     // buttons spaced out by 87 pixels
@@ -243,6 +246,10 @@ void init_opengl(void)
     g.tex.bjImage     = &img[5];
     g.tex.chipImage   = &img[6];
     g.tex.shoeImage   = &img[7];
+    g.tex.cupImage    = &img[8];
+    g.tex.diceImage   = &img[9];
+    
+
     //
     // create menu logo
     glGenTextures(1, &g.tex.menulogotex);
@@ -256,6 +263,17 @@ void init_opengl(void)
                  lgo);
     free(lgo);
     //
+    // CupImage
+    glBindTexture(GL_TEXTURE_2D, g.tex.cuptex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    w = g.tex.cupImage->width;
+    h = g.tex.cupImage->height;
+    unsigned char* cup = buildAlphaData(&img[8]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                    cup);
+    free(cup);
+
     // create menu background
     glGenTextures(1, &g.tex.backTexture);
     w = g.tex.backImage->width;
@@ -267,6 +285,7 @@ void init_opengl(void)
                  g.tex.backImage->data);
     g.tex.xc[0] = 1.0;
     g.tex.yc[1] = 1.0;
+
     //
     // create menu button
     glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
@@ -326,6 +345,18 @@ void init_opengl(void)
     g.tex.xc[0] = 1.0;
     g.tex.yc[1] = 1.0;
     //
+    // create Dice Table background
+    glGenTextures(1, &g.tex.dicetex);
+    w = g.tex.diceImage->width;
+    h = g.tex.diceImage->height;
+    glBindTexture(GL_TEXTURE_2D, g.tex.dicetex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE,
+                 g.tex.diceImage->data);
+    g.tex.xc[0] = 1.0;
+    g.tex.yc[1] = 1.0;
+
     // create menu logo
     glGenTextures(1, &g.tex.chiptex);
     w = g.tex.chipImage->width;
@@ -417,6 +448,7 @@ int check_keys(XEvent* e)
 
         if (key == XK_Escape) {
             gameState = check_esc(gameState);
+            resetBet();
         }
         ///////temporary add-in by Phil///////////
         if (gameState == 2) {
@@ -522,7 +554,7 @@ void render()
 				break;
 				/////////////////////////////////////////////////
 
-                case 3:
+            case 3:
 				if (bettingUIActive)
 					renderBettingUI();
 				else if (choiceUIActive) {

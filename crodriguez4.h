@@ -27,6 +27,7 @@ void updateUIForWindowSize(void);
 /* texture loading */
 void loadCupTexture(void);
 void loadDiceTextures(void);
+extern void loadChipTextures(void);
 
 /* dice control */
 void roll_dice(void);
@@ -45,7 +46,9 @@ void finalizeBet(void);
 void resetBet(void);
 
 /* rendering */
+
 void render_dice(void);
+void drawDiceBackground();
 void renderBettingUI(void);
 void renderChoiceUI(void);
 void renderResultUI(void);

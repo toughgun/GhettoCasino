@@ -15,6 +15,12 @@ struct Texture {
     // button
     Image* buttonImage;
     GLuint buttontex;
+    // Dice Cup
+    Image* cupImage;
+    GLuint cuptex;
+    // Dice Table
+    Image* diceImage;
+    GLuint dicetex;
     // devmode
     Image* devImage;
     GLuint devtex;
