@@ -43,13 +43,11 @@ extern Dice dice;
 #define resultState      (dice.resultState)
 
 Global g;
-
-Image img[11] = { "menu_bg.png",   "menu_button.png",
+bool reelsInitialized = false;
+Image img[8] = {"menu_bg.png",   "menu_button.png",
                 "logo.png",      "menu_bg_devscreen.png",
                 "slot_face.png", "blackjacktable.png",
-                "chipSheet.png", "shoe.png",
-                "cup.png", "dicetable.png",
-                "cardsSheet.png" };
+                "chipSheet.png", "shoe.png"};
 
 class X11_wrapper {
   private:
@@ -169,48 +167,7 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
-unsigned char* buildGreyAlphaData(Image* img)
-{
-    // Add 4th component to an RGB stream...
-    // RGBA
-    // When you do this, OpenGL is able to use the A component to determine
-    // transparency information.
-    // It is used in this application to erase parts of a texture-map from view.
-    int            i;
-    int            a, b, c;
-    unsigned char *newdata, *ptr;
-    unsigned char* data = (unsigned char*)img->data;
-    newdata             = (unsigned char*)malloc(img->width * img->height * 4);
-    ptr                 = newdata;
-    for (i = 0; i < img->width * img->height * 3; i += 3) {
-        a          = *(data + 0);
-        b          = *(data + 1);
-        c          = *(data + 2);
-        *(ptr + 0) = a;
-        *(ptr + 1) = b;
-        *(ptr + 2) = c;
-        //-----------------------------------------------
-        // get largest color component...
-        //*(ptr+3) = (unsigned char)((
-        //		(int)*(ptr+0) +
-        //		(int)*(ptr+1) +
-        //		(int)*(ptr+2)) / 3);
-        // d = a;
-        // if (b >= a && b >= c) d = b;
-        // if (c >= a && c >= b) d = c;
-        //*(ptr+3) = d;
-        //-----------------------------------------------
-        if (abs(a - 188) < 10 && abs(b - 190) < 10 && abs(c - 192) < 10) {
-            *(ptr + 3) = 0;   // transparent
-        } else {
-            *(ptr + 3) = 255; // opaque
-        }
-        //-----------------------------------------------
-        ptr += 4;
-        data += 3;
-    }
-    return newdata;
-}
+
 unsigned char* buildAlphaData(Image* img)
 {
     // Add 4th component to an RGB stream...
@@ -268,8 +225,6 @@ void init_opengl(void)
     loadCupTexture();
     // load Dice texture
 	loadDiceTextures();
-    //load Chip Textures for dice
-    loadChipTextures();
 
     // init the position of the menu buttons and logo
     // buttons spaced out by 87 pixels
@@ -288,10 +243,6 @@ void init_opengl(void)
     g.tex.bjImage     = &img[5];
     g.tex.chipImage   = &img[6];
     g.tex.shoeImage   = &img[7];
-    g.tex.cupImage    = &img[8];
-    g.tex.diceImage   = &img[9];
-    g.tex.cardImage   = &img[10];    
-
     //
     // create menu logo
     glGenTextures(1, &g.tex.menulogotex);
@@ -305,17 +256,6 @@ void init_opengl(void)
                  lgo);
     free(lgo);
     //
-    // CupImage
-    glBindTexture(GL_TEXTURE_2D, g.tex.cuptex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    w = g.tex.cupImage->width;
-    h = g.tex.cupImage->height;
-    unsigned char* cup = buildAlphaData(&img[8]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                    cup);
-    free(cup);
-
     // create menu background
     glGenTextures(1, &g.tex.backTexture);
     w = g.tex.backImage->width;
@@ -327,7 +267,6 @@ void init_opengl(void)
                  g.tex.backImage->data);
     g.tex.xc[0] = 1.0;
     g.tex.yc[1] = 1.0;
-
     //
     // create menu button
     glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
@@ -387,31 +326,7 @@ void init_opengl(void)
     g.tex.xc[0] = 1.0;
     g.tex.yc[1] = 1.0;
     //
-    // create Dice Table background
-    glGenTextures(1, &g.tex.dicetex);
-    w = g.tex.diceImage->width;
-    h = g.tex.diceImage->height;
-    glBindTexture(GL_TEXTURE_2D, g.tex.dicetex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE,
-                 g.tex.diceImage->data);
-    g.tex.xc[0] = 1.0;
-    g.tex.yc[1] = 1.0;
-    //
-    // create cards
-    glGenTextures(1, &g.tex.cardtex);
-    w = g.tex.cardImage->width;
-    h = g.tex.cardImage->height;
-    glBindTexture(GL_TEXTURE_2D, g.tex.cardtex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    unsigned char* card = buildGreyAlphaData(&img[10]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                 card);
-    free(card);
-    //
-    // create chips
+    // create menu logo
     glGenTextures(1, &g.tex.chiptex);
     w = g.tex.chipImage->width;
     h = g.tex.chipImage->height;
@@ -502,8 +417,8 @@ int check_keys(XEvent* e)
 
         if (key == XK_Escape) {
             gameState = check_esc(gameState);
-            resetBet();
         }
+        
         ///////temporary add-in by Phil///////////
         if (gameState == 2) {
             if (key == XK_space) {
@@ -511,9 +426,15 @@ int check_keys(XEvent* e)
                     reels[i]->start();
                 }
             }
+
+            if (key == XK_Tab) {
+                
+                gameState = 0;
+            }
             
         }
         ////////////////////////////////////////////
+
         if (gameState == 3) {
 			handleDiceKeys(key);
 		}
@@ -564,6 +485,7 @@ void render()
     } else {
         switch (gameState) {
 			case 0:
+menu_render:
 				glClear(GL_COLOR_BUFFER_BIT);
 				drawBackground();
 				drawDevscreen();
@@ -580,6 +502,7 @@ void render()
 				break;
 
 			case 2:
+                /*
 				// render_slots();
 				cout << "[INFO] Rendering Slot game.\n";
 				//////From Phil's main///////////////////////////
@@ -594,21 +517,59 @@ void render()
 				}
 
 				resize(g.xres, g.yres);
-
-				while (g.exec) {
+                
+				while (gameState == 2) {
+                    
                     while (x11.getXPending()) {
                         XEvent e = x11.getXNextEvent();
                         check_keys(&e);  // Process key events
                     }
                     
+                    
 					draw();
 					x11.swapBuffers();
+                    if (gameState != 2) {
+                        //render_dice();
+                        break;
+                    }
 				}
-
+                */
+               if (!reelsInitialized) {
+                    cout << "[INFO] Initializing Slot game.\n";
+                    for (int x = 0; x < 3; ++x) {
+                        reels[x] = new Reel();
+                    }
+            
+                    if (initGL() == 1) {
+                        printf("Successfully initialized OpenGL.\n");
+                    }
+            
+                    resize(g.xres, g.yres);
+                    reelsInitialized = true;
+                }
+        
+                while (gameState == 2) {
+                    while (x11.getXPending()) {
+                        XEvent e = x11.getXNextEvent();
+                        check_keys(&e);  // Process key events
+                    }
+            
+                    draw();
+                    x11.swapBuffers();
+            
+                    if (gameState != 2) {
+                        reelsInitialized = false;
+                        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                        glLoadIdentity();
+                        goto menu_render;
+                        //render_dice();
+                        break;
+                    }
+                }
 				break;
 				/////////////////////////////////////////////////
 
-            case 3:
+                case 3:
 				if (bettingUIActive)
 					renderBettingUI();
 				else if (choiceUIActive) {
