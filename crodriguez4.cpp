@@ -45,25 +45,8 @@ GLuint DiceCupTex = 0;
 #define resultState      (dice.resultState)
 /* ------------------------------------------------------------------ */
 
-// in main
-/* for cup
-    // create menu logo
-    glGenTextures(1, &g.tex.chiptex);
-    w = g.tex.chipImage->width;
-    h = g.tex.chipImage->height;
-    glBindTexture(GL_TEXTURE_2D, g.tex.chiptex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    unsigned char* chip = buildAlphaData(&img[6]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE,chip);
-    free(chip);
-*/
-
 extern Global g;
 extern X11_wrapper x11;
-extern void drawBackground();
-unsigned char *buildAlphaData(Image *img);
 
 /*==================*/
 /*     helpers      */
@@ -92,15 +75,15 @@ void updateUIForWindowSize(void)
 /* Load cup.png as RGBA texture into DiceCupTex */
 void loadCupTexture(void)
 {
-    Image sheet("cup.png");     /* 1×1 “sheet” – matches dice logic   */
-    if (!sheet.data) {
+    Image cup("cup.png");
+    if (!cup.data) {
         fprintf(stderr,"[ERROR] cup.png not found\n");
         return;
     }
-    const int cw = sheet.width; /* single tile dimensions             */
-    const int ch = sheet.height;
+    const int cw = cup.width;
+    const int ch = cup.height;
 
-    unsigned char *rgba = buildAlphaData(&sheet);
+    unsigned char *rgba = buildGreenAlphaData(&cup);
 
     glGenTextures(1,&DiceCupTex);
     glBindTexture(GL_TEXTURE_2D,DiceCupTex);

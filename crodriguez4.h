@@ -17,6 +17,7 @@
  *-------------------------------------------------------------
 */
 unsigned char *buildAlphaData(Image *img);
+unsigned char *buildGreenAlphaData(Image *img);
 
 /*--------------------------------------------------------------
 * Dice-module public interface

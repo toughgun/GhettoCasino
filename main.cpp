@@ -44,12 +44,13 @@ extern Dice dice;
 
 Global g;
 bool reelsInitialized = false;
-Image img[10] = {"menu_bg.png",   "menu_button.png",
+Image img[12] = { "menu_bg.png",   "menu_button.png",
                 "logo.png",      "menu_bg_devscreen.png",
                 "slot_face.png", "blackjacktable.png",
                 "chipSheet.png", "shoe.png",
-                "reelFaceSheet.png", "cardsSheet.png"};
-
+                "reelFaceSheet.png", "cardsSheet.png",
+                "cup.png", "dicetable.png",
+                };
 class X11_wrapper {
   private:
     Display*   dpy;
@@ -288,7 +289,9 @@ void init_opengl(void)
     // Load the cup texture.
     loadCupTexture();
     // load Dice texture
-	loadDiceTextures();
+    loadDiceTextures();
+    //load Chip Textures for dice
+    loadChipTextures();
 
     // init the position of the menu buttons and logo
     // buttons spaced out by 87 pixels
@@ -309,6 +312,8 @@ void init_opengl(void)
     g.tex.shoeImage   = &img[7];
     g.tex.reelImage   = &img[8];
     g.tex.cardImage   = &img[9];
+    g.tex.cupImage    = &img[10];
+    g.tex.diceImage   = &img[11];
     //
     // create menu logo
     glGenTextures(1, &g.tex.menulogotex);
@@ -333,6 +338,17 @@ void init_opengl(void)
                  g.tex.backImage->data);
     g.tex.xc[0] = 1.0;
     g.tex.yc[1] = 1.0;
+    //
+    // CupImage /* called from  ->   loadCupTexture(); */
+    // glBindTexture(GL_TEXTURE_2D, g.tex.cuptex);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // w = g.tex.cupImage->width;
+    // h = g.tex.cupImage->height;
+    // unsigned char* cup = buildAlphaData(&img[10]);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+    //                 cup);
+    // free(cup);
     //
     // create menu button
     glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
@@ -377,6 +393,18 @@ void init_opengl(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE,
                  g.tex.bjImage->data);
+    g.tex.xc[0] = 1.0;
+    g.tex.yc[1] = 1.0;
+    //
+    // create Dice Table background
+    glGenTextures(1, &g.tex.dicetex);
+    w = g.tex.diceImage->width;
+    h = g.tex.diceImage->height;
+    glBindTexture(GL_TEXTURE_2D, g.tex.dicetex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE,
+                 g.tex.diceImage->data);
     g.tex.xc[0] = 1.0;
     g.tex.yc[1] = 1.0;
     //
