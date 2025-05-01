@@ -345,18 +345,6 @@ void init_opengl(void)
                  but);
     free(but);
     //
-    // create dev screen
-    glGenTextures(1, &g.tex.devtex);
-    w = g.tex.devImage->width;
-    h = g.tex.devImage->height;
-    glBindTexture(GL_TEXTURE_2D, g.tex.devtex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    unsigned char* devbut = buildAlphaData(&img[3]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                 devbut);
-    free(devbut);
-    //
     // create shoe
     glGenTextures(1, &g.tex.shoetex);
     w = g.tex.shoeImage->width;
@@ -578,7 +566,6 @@ void render()
 menu_render:
 				glClear(GL_COLOR_BUFFER_BIT);
 				drawBackground();
-				drawDevscreen();
 				drawMenuLogo();
 				drawMenuOptions(mouseposition);
 				drawButtonTxt();

@@ -9,7 +9,6 @@ extern void drawBJBackground();
 extern void drawMenuLogo();
 extern void drawMenuOptions(int x);
 extern void drawButtonTxt();
-extern void drawDevscreen();
 extern void beginSlots();
 extern void initBensTexture();
 void        beginBJPlay();
