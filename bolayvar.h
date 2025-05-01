@@ -10,12 +10,13 @@ extern void drawMenuLogo();
 extern void drawMenuOptions(int x);
 extern void drawButtonTxt();
 extern void drawDevscreen();
-extern void drawSlotFace();
+extern void beginSlots();
+extern void initBensTexture();
 void        beginBJPlay();
-void handleBlackJackGame(int x);
-void bjUIClickListener(int savex, int savey);
-int bjUIHoverListener(int savex, int savey, int mouseposition);
-int  checkhover(int savex, int savey, int mouseposition);
+void        handleBlackJackGame(int x);
+void        bjUIClickListener(int savex, int savey);
+int         bjUIHoverListener(int savex, int savey, int mouseposition);
+int         checkhover(int savex, int savey, int mouseposition);
 
 // blackjack stuff
 extern void initShoe();

@@ -3,6 +3,7 @@
 #include "image.h"
 #include <GL/gl.h>
 
+
 struct Texture {
     // menu background
     Image* backImage;
@@ -38,7 +39,10 @@ struct Texture {
     GLuint shoetex;   
     // Cards
     Image* cardImage;
-    GLuint cardtex;        
+    GLuint cardtex;   
+    // reel
+    Image* reelImage;
+    GLuint reeltex;       
     float  xc[2];
     float  yc[2];
 };
@@ -48,7 +52,7 @@ class Global {
     int     xres, yres;
     Texture tex;
     GLuint  silhouetteTexture;
-    int     devmode;
+    int     slotpos[3];
     //
     int vsync;
     int winstreak;
@@ -56,13 +60,13 @@ class Global {
     float w;
     float h;
     bool  exec;
+    bool  initialSlotPosSet;
     // Betting variables
     int currency;   // Starting currency (chips)
     int currentBet; // Current bet amount
 
     Global()
     {
-        devmode           = 0;
         xres              = 1280;
         yres              = 720;
         silhouetteTexture = 0; // Initialized
@@ -71,6 +75,7 @@ class Global {
         vsync = 0;
         //
         exec = true;
+        initialSlotPosSet = false;
         currency = 1000;     // Start with 1000 chips
         currentBet = 0;      // Initial bet is 0
     }

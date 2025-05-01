@@ -1,17 +1,19 @@
 // Benjamin Olayvar
-// last revised: 4/22/2025
+// last revised: 4/30/2025
 //
 #include "blackjack.h"
 #include "button.h"
 #include "fonts.h"
 #include "global.h"
 #include "hchen_functions.h"
+#include "image.h"
 #include <GL/glx.h>
 #include <X11/Xlib.h>
 #include <algorithm>
 #include <ctime>
 #include <iostream>
 #include <random>
+
 
 using namespace std;
 
@@ -311,12 +313,14 @@ void bjUIClickListener(int savex, int savey)
 int bjUIHoverListener(int savex, int savey, int mouseposition)
 {
     if (bj.showUI) {
-        if (bj.showUI && savex > 522 && savex < 758 && savey > 498 && savey < 554) {
+        if (bj.showUI && savex > 522 && savex < 758 && savey > 498 &&
+            savey < 554) {
             mouseposition = 6;
-        } else if (bj.showUI && savex > 567 && savex < 713 && savey > 570 && savey < 605) {
+        } else if (bj.showUI && savex > 567 && savex < 713 && savey > 570 &&
+                   savey < 605) {
             mouseposition = 7;
         } else {
-        mouseposition = 0;
+            mouseposition = 0;
         }
     }
     return mouseposition;
@@ -364,29 +368,33 @@ void drawChipsFull(int x, int y, int z, float xScale, float yScale)
 void drawCard(int num, int suit, float posx, float posy)
 {
     float cx = posx;
-	float cy = posy;
-    float h = 180;
-	float w = 118;
-	glPushMatrix();
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_GREATER, 0.0f);
-	glColor3f(1.0, 1.0, 1.0);
-	glBindTexture(GL_TEXTURE_2D, g.tex.cardtex);
-	glTranslatef(0,0, 0);
-	glColor4ub(255,255,255,255);
-	int ix = num % 14;
-	int iy = suit;
-	float tx = (float)ix / 14.0;
-	float ty = (float)iy / 4.0;
-	glBegin(GL_QUADS);
-		glTexCoord2f(tx,      ty+0.25); glVertex2i(cx-w, cy-h);
-		glTexCoord2f(tx,      ty);    glVertex2i(cx-w, cy+h);
-		glTexCoord2f(tx+0.0714, ty);    glVertex2i(cx+w, cy+h);
-		glTexCoord2f(tx+0.0714, ty+0.25); glVertex2i(cx+w, cy-h);
-	glEnd();
-	glPopMatrix();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glDisable(GL_ALPHA_TEST);
+    float cy = posy;
+    float h  = 180;
+    float w  = 118;
+    glPushMatrix();
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glColor3f(1.0, 1.0, 1.0);
+    glBindTexture(GL_TEXTURE_2D, g.tex.cardtex);
+    glTranslatef(0, 0, 0);
+    glColor4ub(255, 255, 255, 255);
+    int   ix = num % 14;
+    int   iy = suit;
+    float tx = (float)ix / 14.0;
+    float ty = (float)iy / 4.0;
+    glBegin(GL_QUADS);
+    glTexCoord2f(tx, ty + 0.25);
+    glVertex2i(cx - w, cy - h);
+    glTexCoord2f(tx, ty);
+    glVertex2i(cx - w, cy + h);
+    glTexCoord2f(tx + 0.0714, ty);
+    glVertex2i(cx + w, cy + h);
+    glTexCoord2f(tx + 0.0714, ty + 0.25);
+    glVertex2i(cx + w, cy - h);
+    glEnd();
+    glPopMatrix();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_ALPHA_TEST);
 }
 void drawChipText()
 {
@@ -614,8 +622,6 @@ void checkDealerHand()
     if (bj.dealerHand[0] == 10 && bj.dealerHand[1] == 1) {
         // Place animation for 10 and Ace here
 
-
-
         bj.wait = true;
         // debugging
         cout << "DEALER WINS. 21 BJ" << endl;
@@ -649,7 +655,8 @@ void initFirstHand()
         bj.dealerHandTotal += bj.shoe[bj.currentPos];
         bj.currentPos++;
     }
-    printf("Dealer: %d %d\nPlayer: %d %d\n", bj.dealerHand[0], bj.dealerHand[1], bj.playerHand[0], bj.playerHand[1]);
+    printf("Dealer: %d %d\nPlayer: %d %d\n", bj.dealerHand[0], bj.dealerHand[1],
+           bj.playerHand[0], bj.playerHand[1]);
 }
 void bjHit()
 {
@@ -659,7 +666,6 @@ void showUI(int xx)
 {
     drawBJBackground(0.5, 0.5, 0.5);
     drawBJShoe(g.xres / 1.13, g.yres / 1.77, 0, 3, 3, 0.5, 0.5, 0.5);
-    // dimBackground(); // ITS NOT WORKING FOR SOME REASON
     drawChipsFull(g.xres / 2, g.yres / 1.82, 0, 5, 5);
     drawChipText();
     buttonIdleState(g.xres / 2, g.yres / 2.53, 0, 4, 6, 0, 0, 0); // black bet
@@ -694,7 +700,7 @@ void playBlackJack()
     initFirstHand();
 
     // animation here
-    //checkDealerHand();
+    // checkDealerHand();
 }
 void handleBlackJackGame(int x)
 {
@@ -703,7 +709,7 @@ void handleBlackJackGame(int x)
     }
     if (bj.showUI) {
         showUI(x);
-        drawCard(12,0, g.xres/2, g.yres/2);
+        drawCard(12, 0, g.xres / 2, g.yres / 2);
     } else {
         playBlackJack();
     }
@@ -726,7 +732,7 @@ void handleBlackJackKeys(int x)
 }
 //====================END BLACK JACK STUFF====================================
 //
-//======================BEGIN MISC STUFF======================================
+//====================BEGIN BACKUP SLOT STUFF================================
 void drawSlotFace()
 {
     glColor4f(1.0, 1.0, 1.0, 0.9f);
@@ -748,6 +754,187 @@ void drawSlotFace()
     glDisable(GL_ALPHA_TEST);
     glPopMatrix();
 }
+void drawSlotScreens()
+{
+    // Blue screen
+    glColor3f(0.0f, 0.0f, 1.0f);
+    float x      = g.xres / 2.0f;
+    float y      = g.yres / 5.83f;
+    float width  = 345.0f;
+    float height = 42.0f;
+
+    float halfW = width / 2.0f;
+    float halfH = height / 2.0f;
+
+    glBegin(GL_QUADS);
+    glVertex2f(x - halfW, y - halfH); // bottom-left
+    glVertex2f(x + halfW, y - halfH); // bottom-right
+    glVertex2f(x + halfW, y + halfH); // top-right
+    glVertex2f(x - halfW, y + halfH); // top-left
+    glEnd();
+    glFlush();
+    // Red screen
+    glColor3f(0.75f, 0.0f, 0.1f);
+    x      = g.xres / 2.0f;
+    y      = g.yres / 9.06f;
+    width  = 345.0f;
+    height = 42.0f;
+
+    halfW = width / 2.0f;
+    halfH = height / 2.0f;
+
+    glBegin(GL_QUADS);
+    glVertex2f(x - halfW, y - halfH); // bottom-left
+    glVertex2f(x + halfW, y - halfH); // bottom-right
+    glVertex2f(x + halfW, y + halfH); // top-right
+    glVertex2f(x - halfW, y + halfH); // top-left
+    glEnd();
+    glFlush();
+    // Red screen 2
+    glColor3f(0.75f, 0.0f, 0.1f);
+    x      = g.xres / 1.11f;
+    y      = g.yres / 2.96f;
+    width  = 165.0f;
+    height = 58.0f;
+
+    halfW = width / 2.0f;
+    halfH = height / 2.0f;
+
+    glBegin(GL_QUADS);
+    glVertex2f(x - halfW, y - halfH); // bottom-left
+    glVertex2f(x + halfW, y - halfH); // bottom-right
+    glVertex2f(x + halfW, y + halfH); // top-right
+    glVertex2f(x - halfW, y + halfH); // top-left
+    glEnd();
+    glFlush();
+}
+void drawSlotReels()
+{
+    if (!g.initialSlotPosSet) {
+        // init slot reel pos
+        srand(time(NULL));
+        for (int i = 0; i < 3; i++) {
+            g.slotpos[i] = rand() % 9;
+        }
+        g.initialSlotPosSet = true;
+    }
+
+    float h  = 251.0 / 2;
+    float w  = h;
+    float cx = g.xres / 3.49;
+    float cy = g.yres / 1.63;
+
+    float currentPos = g.slotpos[0];
+    int   baseIndex  = (int)floor(currentPos);
+    float frac       = currentPos - baseIndex;
+
+    // Left Reel
+    for (int i = -1; i <= 1; i++) {
+        int index = (baseIndex + i + 9) % 9;
+        int ix    = index % 3;
+        int iy    = index / 3;
+
+        float tx = (float)ix / 3.0;
+        float ty = (float)iy / 3.0;
+
+        // vertical offset: each image is 2h tall, and we scroll based on 'frac'
+        float yOffset = (i - frac) * (h * 2.0);
+        float yPos    = cy - yOffset;
+
+        glPushMatrix();
+        glBindTexture(GL_TEXTURE_2D, g.tex.reeltex);
+        glColor4ub(255, 255, 255, 255);
+        glBegin(GL_QUADS);
+        glTexCoord2f(tx, ty + 0.3333f);
+        glVertex2i(cx - w, yPos - h);
+        glTexCoord2f(tx, ty);
+        glVertex2i(cx - w, yPos + h);
+        glTexCoord2f(tx + 0.3333f, ty);
+        glVertex2i(cx + w, yPos + h);
+        glTexCoord2f(tx + 0.3333f, ty + 0.3333f);
+        glVertex2i(cx + w, yPos - h);
+        glEnd();
+        glPopMatrix();
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+    //
+    // Middle Reel
+    cx         = g.xres / 2.002;
+    currentPos = g.slotpos[1];
+    baseIndex  = (int)floor(currentPos);
+    frac       = currentPos - baseIndex;
+    for (int i = -1; i <= 1; i++) {
+        int index = (baseIndex + i + 9) % 9;
+        int ix    = index % 3;
+        int iy    = index / 3;
+
+        float tx = (float)ix / 3.0;
+        float ty = (float)iy / 3.0;
+
+        // vertical offset: each image is 2h tall, and we scroll based on 'frac'
+        float yOffset = (i - frac) * (h * 2.0);
+        float yPos    = cy - yOffset;
+
+        glPushMatrix();
+        glBindTexture(GL_TEXTURE_2D, g.tex.reeltex);
+        glColor4ub(255, 255, 255, 255);
+        glBegin(GL_QUADS);
+        glTexCoord2f(tx, ty + 0.3333f);
+        glVertex2i(cx - w, yPos - h);
+        glTexCoord2f(tx, ty);
+        glVertex2i(cx - w, yPos + h);
+        glTexCoord2f(tx + 0.3333f, ty);
+        glVertex2i(cx + w, yPos + h);
+        glTexCoord2f(tx + 0.3333f, ty + 0.3333f);
+        glVertex2i(cx + w, yPos - h);
+        glEnd();
+        glPopMatrix();
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+    //
+    // Right Reel
+    cx         = g.xres / 1.405;
+    currentPos = g.slotpos[2];
+    baseIndex  = (int)floor(currentPos);
+    frac       = currentPos - baseIndex;
+    for (int i = -1; i <= 1; i++) {
+        int index = (baseIndex + i + 9) % 9;
+        int ix    = index % 3;
+        int iy    = index / 3;
+
+        float tx = (float)ix / 3.0;
+        float ty = (float)iy / 3.0;
+
+        // vertical offset: each image is 2h tall, and we scroll based on 'frac'
+        float yOffset = (i - frac) * (h * 2.0);
+        float yPos    = cy - yOffset;
+
+        glPushMatrix();
+        glBindTexture(GL_TEXTURE_2D, g.tex.reeltex);
+        glColor4ub(255, 255, 255, 255);
+        glBegin(GL_QUADS);
+        glTexCoord2f(tx, ty + 0.3333f);
+        glVertex2i(cx - w, yPos - h);
+        glTexCoord2f(tx, ty);
+        glVertex2i(cx - w, yPos + h);
+        glTexCoord2f(tx + 0.3333f, ty);
+        glVertex2i(cx + w, yPos + h);
+        glTexCoord2f(tx + 0.3333f, ty + 0.3333f);
+        glVertex2i(cx + w, yPos - h);
+        glEnd();
+        glPopMatrix();
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+void beginSlots()
+{
+    drawSlotReels();
+    drawSlotScreens();
+    drawSlotFace();
+}
+//====================END OF BACKUP SLOT STUFF===============================
+//
+//======================BEGIN MISC STUFF======================================
 int check_esc(int x)
 {
     // switch case for the esc key

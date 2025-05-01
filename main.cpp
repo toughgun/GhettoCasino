@@ -44,10 +44,11 @@ extern Dice dice;
 
 Global g;
 bool reelsInitialized = false;
-Image img[8] = {"menu_bg.png",   "menu_button.png",
+Image img[10] = {"menu_bg.png",   "menu_button.png",
                 "logo.png",      "menu_bg_devscreen.png",
                 "slot_face.png", "blackjacktable.png",
-                "chipSheet.png", "shoe.png"};
+                "chipSheet.png", "shoe.png",
+                "reelFaceSheet.png", "cardsSheet.png"};
 
 class X11_wrapper {
   private:
@@ -167,7 +168,70 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
+unsigned char* buildGreenAlphaData(Image* img)
+{
+    // Add 4th component to an RGB stream...
+    // RGBA
+    // When you do this, OpenGL is able to use the A component to determine
+    // transparency information.
+    // It is used in this application to erase parts of a texture-map from view.
+    int            i;
+    int            a, b, c;
+    unsigned char *newdata, *ptr;
+    unsigned char* data = (unsigned char*)img->data;
+    newdata             = (unsigned char*)malloc(img->width * img->height * 4);
+    ptr                 = newdata;
+    for (i = 0; i < img->width * img->height * 3; i += 3) {
+        a          = *(data + 0);
+        b          = *(data + 1);
+        c          = *(data + 2);
+        *(ptr + 0) = a;
+        *(ptr + 1) = b;
+        *(ptr + 2) = c;
 
+        if (abs(a - 24) < 10 && abs(b - 254) < 10 && abs(c - 0) < 10) {
+            *(ptr + 3) = 0;   // transparent
+        } else {
+            *(ptr + 3) = 255; // opaque
+        }
+
+        ptr += 4;
+        data += 3;
+    }
+    return newdata;
+}
+unsigned char* buildGreyAlphaData(Image* img)
+{
+    // Add 4th component to an RGB stream...
+    // RGBA
+    // When you do this, OpenGL is able to use the A component to determine
+    // transparency information.
+    // It is used in this application to erase parts of a texture-map from view.
+    int            i;
+    int            a, b, c;
+    unsigned char *newdata, *ptr;
+    unsigned char* data = (unsigned char*)img->data;
+    newdata             = (unsigned char*)malloc(img->width * img->height * 4);
+    ptr                 = newdata;
+    for (i = 0; i < img->width * img->height * 3; i += 3) {
+        a          = *(data + 0);
+        b          = *(data + 1);
+        c          = *(data + 2);
+        *(ptr + 0) = a;
+        *(ptr + 1) = b;
+        *(ptr + 2) = c;
+
+        if (abs(a - 188) < 10 && abs(b - 190) < 10 && abs(c - 192) < 10) {
+            *(ptr + 3) = 0;   // transparent
+        } else {
+            *(ptr + 3) = 255; // opaque
+        }
+
+        ptr += 4;
+        data += 3;
+    }
+    return newdata;
+}
 unsigned char* buildAlphaData(Image* img)
 {
     // Add 4th component to an RGB stream...
@@ -243,6 +307,8 @@ void init_opengl(void)
     g.tex.bjImage     = &img[5];
     g.tex.chipImage   = &img[6];
     g.tex.shoeImage   = &img[7];
+    g.tex.reelImage   = &img[8];
+    g.tex.cardImage   = &img[9];
     //
     // create menu logo
     glGenTextures(1, &g.tex.menulogotex);
@@ -337,6 +403,30 @@ void init_opengl(void)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  chip);
     free(chip);
+    //
+    // create reel
+    glGenTextures(1, &g.tex.reeltex);
+    w = g.tex.reelImage->width;
+    h = g.tex.reelImage->height;
+    glBindTexture(GL_TEXTURE_2D, g.tex.reeltex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    unsigned char* reel = buildAlphaData(&img[8]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 reel);
+    free(reel);
+    //
+    // create cards
+    glGenTextures(1, &g.tex.cardtex);
+    w = g.tex.cardImage->width;
+    h = g.tex.cardImage->height;
+    glBindTexture(GL_TEXTURE_2D, g.tex.cardtex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    unsigned char* card = buildGreyAlphaData(&img[9]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 card);
+    free(card);
     //
     initialize_fonts();
 }
@@ -567,9 +657,8 @@ menu_render:
                     }
                 }
 				break;
-				/////////////////////////////////////////////////
 
-                case 3:
+            case 3:
 				if (bettingUIActive)
 					renderBettingUI();
 				else if (choiceUIActive) {
