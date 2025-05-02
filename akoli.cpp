@@ -13,7 +13,7 @@
 #include <GL/glx.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <GL/glut.h>
+#include "fonts.h"
 #include "time.h"
 #include "phil_funcs.h"
 #include "image.h"
@@ -29,11 +29,11 @@
 #include <chrono>
 
 std::chrono::time_point<std::chrono::high_resolution_clock>
-last_time = std::chrono::high_resolution_clock::now();; 
+last_time = std::chrono::high_resolution_clock::now();
 
 Surface *surface;
 
-GLUquadricObj *quadratic;     // Storage object
+GLUquadricObj *quadratic;	// Storage object
 GLuint cylinder_side_tex;
 GLuint cylinder_spinner_tex;
 GLuint reels_tex;
@@ -44,8 +44,8 @@ GLfloat L_Pos[] = { 0.0f, 0.0f, 2.0f, 1.0f };
 
 void calculate_framerate();
 void quit(int retcode);
-GLfloat get_rand( GLfloat max );
-Surface* loadPNG(const char *fp);
+GLfloat get_rand(GLfloat max);
+Surface *loadPNG(const char *fp);
 bool initGLTexture(const char *name, GLuint *addr);
 bool isWinner = false;
 int loadGLTextures();
@@ -54,261 +54,249 @@ int resize(int width, int height);
 void drawReels();
 int draw(GLvoid);
 
-void calculate_framerate() {
-    auto current_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<float> elapsed = current_time - last_time;
-    last_time = current_time;
-    float fps = 1.0f / elapsed.count();
-    std::cout << "FPS: " << fps << std::endl;
+void calculate_framerate()
+{
+	auto current_time = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float> elapsed = current_time - last_time;
+	last_time = current_time;
+	float fps = 1.0f / elapsed.count();
+	std::cout << "FPS: " << fps << std::endl;
 }
 
-//////2D/////////
-void renderText(float x, float y, const char* text, float r, float g, float b) {
-	glDisable(GL_LIGHTING);
-	glColor3f(r, g, b);
-	glRasterPos2f(x, y);
-	for (const char* c = text; *c != '\0'; ++c) {
-		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);
-	}
-	glEnable(GL_LIGHTING);
-}
-////////2D////////
-
-void quit(int retcode) {
+void quit(int retcode)
+{
 	gluDeleteQuadric(quadratic);
-    glDeleteTextures(1, &cylinder_side_tex);
+	glDeleteTextures(1, &cylinder_side_tex);
 	glDeleteTextures(1, &cylinder_spinner_tex);
 	glDeleteTextures(1, &reels_tex);
 	exit(retcode);
 }
 
-Surface* loadPNG(const char *fp) {
-    Image img(fp); // Properly initialize the Image object with the file path
-    if (!img.data) { // Check if the image data is valid
-        std::cerr << "Error: Failed to load image: " << fp << std::endl;
-        return nullptr;
-    }
-    surface = new Surface();
-    surface->width = img.width;
-    surface->height = img.height;
-	// Allocate and copy due to Segmentation Fault for large dimensions?
-    surface->data = new unsigned char[img.width * img.height * 3];
-    std::memcpy(surface->data, img.data, img.width * img.height * 3);
-    std::cout << "loadPNG(): " << fp << " (" << surface->width << "x" << surface->height << ")\n";
-	if ( !surface ) {
-	    fprintf( stderr,  "No Surface! \n");
-	    quit(1);
+Surface *loadPNG(const char *fp)
+{
+	Image img(fp);
+	if (!img.data) {
+		std::cerr << "Error: Failed to load image: " << fp << std::endl;
+		return nullptr;
 	}
-    return surface;
+	surface = new Surface();
+	surface->width = img.width;
+	surface->height = img.height;
+	surface->data = new unsigned char[img.width * img.height * 3];
+	std::memcpy(surface->data, img.data, img.width * img.height * 3);
+	std::cout << "loadPNG(): " << fp << " (" << surface->width << "x"
+		  << surface->height << ")\n";
+	if (!surface) {
+		fprintf(stderr, "No Surface!\n");
+		quit(1);
+	}
+	return surface;
 }
 
 // reel.cpp
 static int gluttony = -1;
 struct Reel;
-Reel* reels[3];
+Reel *reels[3];
 
-GLfloat get_rand( GLfloat max ){
-	return ( 1 + (float) ( max * (rand() / (RAND_MAX + 1.0))) );
+GLfloat get_rand(GLfloat max)
+{
+	return (1 + (float)(max * (rand() / (RAND_MAX + 1.0))));
 }
 
-Reel::Reel() {
-    //start();
+Reel::Reel()
+{
+	//start();
 }
 
-void Reel::start() {
-    stopped = false;
-    speed = get_rand(2);
-    degree = get_rand(360);
-    begin = 0;
-    begin = speed;
+void Reel::start()
+{
+	stopped = false;
+	speed = get_rand(2);
+	degree = get_rand(360);
+	begin = 0;
+	begin = speed;
 	gluttony = -1;
 	isWinner = false;
 }
 
-void Reel::stop() {
-    int r = 0;
-    for (int x = 0; x < 3; ++x) {
-        if (reels[x]->speed < reels[r]->speed) {
-            r = x;
-        }
-    }
-    reels[r]->stopped = true;
+void Reel::stop()
+{
+	int r = 0;
+	for (int x = 0; x < 3; ++x) {
+		if (reels[x]->speed < reels[r]->speed) {
+			r = x;
+		}
+	}
+	reels[r]->stopped = true;
 }
 
-int Reel::winner() {
-    int win = reels[0]->position();
-    for (int x = 1; x < 3; ++x) {
-        if (win != reels[x]->position()) {
-            return -1;
-        }
-    }
-    return win;
+int Reel::winner()
+{
+	int win = reels[0]->position();
+	for (int x = 1; x < 3; ++x) {
+		if (win != reels[x]->position()) {
+			return -1;
+		}
+	}
+	return win;
 }
 
-int Reel::num_stopped() {
-    int num = 0;
-    for (int x = 0; x < 3; ++x) {
-        if (reels[x]->stopped) {
-            ++num;
-        }
-    }
-    return num;
+int Reel::num_stopped()
+{
+	int num = 0;
+	for (int x = 0; x < 3; ++x) {
+		if (reels[x]->stopped) {
+			++num;
+		}
+	}
+	return num;
 }
 
-bool Reel::all_stopped() {
-    return (num_stopped() == 3);
+bool Reel::all_stopped()
+{
+	return (num_stopped() == 3);
 }
 
-int Reel::position() {
-    return static_cast<int>(roundf((degree - 30) / 40));
+int Reel::position()
+{
+	return static_cast<int>(roundf((degree - 30) / 40));
 }
 
-bool Reel::at_stop_position() {
-    return (static_cast<GLint>(roundf(degree + 10)) % 40 == 0);
+bool Reel::at_stop_position()
+{
+	return (static_cast<GLint>(roundf(degree + 10)) % 40 == 0);
 }
 
-int Reel::stop_position(Reel *reel) {
-    int position = reel->position();
-    if (gluttony != -1) {
-        return gluttony;
-    }
-    //std::cout << "Halting Reels..." << Reel::num_stopped() << std::endl;
-    switch (Reel::num_stopped()) {
-        case 0:
-            return position;
-        case 1:
-            for (int x = 0; x < 3; ++x) {
-                if (reels[x]->stopped) {
-                    return reels[x]->position();
-                }
-            }
-            return position;
-        default:
-            int reel_stopped;
-            for (int x = 0; x < 3; ++x) {
-                if (reels[x]->stopped) {
-                    reel_stopped = reels[x]->position();
-                }
-            }
-            //std::cout << "Second Results: " << reel_stopped << std::endl;
-
-            int w = static_cast<int>(get_rand(3));
-            std::cout << "A partial act of gluttony: " << (w == 1) << std::endl;
-            if (w == 1) {
-                return gluttony = reel_stopped;
-            } else {
-                if (position == reel_stopped) {
-                    if (++position > 9) {
-                        position = 0;
-                    }
-                }
-                return gluttony = position;
-            }
-    }
+int Reel::stop_position(Reel *reel)
+{
+	int position = reel->position();
+	if (gluttony != -1) {
+		return gluttony;
+	}
+	switch (Reel::num_stopped()) {
+	case 0:
+		return position;
+	case 1:
+		for (int x = 0; x < 3; ++x) {
+			if (reels[x]->stopped) {
+				return reels[x]->position();
+			}
+		}
+		return position;
+	default:
+		int reel_stopped;
+		for (int x = 0; x < 3; ++x) {
+			if (reels[x]->stopped) {
+				reel_stopped = reels[x]->position();
+			}
+		}
+		int w = static_cast<int>(get_rand(3));
+		std::cout << "A partial act of gluttony: " << (w == 1) << std::endl;
+		if (w == 1) {
+			return gluttony = reel_stopped;
+		} else {
+			if (position == reel_stopped) {
+				if (++position > 9) {
+					position = 0;
+				}
+			}
+			return gluttony = position;
+		}
+	}
 }
 
-void Reel::spin() {
-    if (this->stopped) {
-        return;
-    }
-    if (speed < 0.2) {
-        if (this->at_stop_position()) {
-            if (Reel::stop_position(this) == this->position()) {
-                stopped = true;
-                //std::cout << "Reel halts on: " << this->position() << std::endl;
+void Reel::spin()
+{
+	if (this->stopped) {
+		return;
+	}
+	if (speed < 0.2) {
+		if (this->at_stop_position()) {
+			if (Reel::stop_position(this) == this->position()) {
+				stopped = true;
 				if (Reel::all_stopped()) {
-                    // Array to map reel positions to text
-                    const std::array<std::string, 9> rSymbol = {
-                        "Cherry", "Ol' No.7", "Watermelon", 
+					const std::array<std::string, 9> rSymbol = {
+						"Cherry", "Ol' No.7", "Watermelon",
 						"Diamond", "Horseshoe",
-                        "Bell", "3 BAR", "2 BAR", "BAR"
+						"Bell", "3 BAR", "2 BAR", "BAR"
 					};
 
-                    for (int i = 0; i < 3; ++i) {
-                        int position = reels[i]->position();
-                        if (position >= 0 && position < static_cast<int>(rSymbol.size())) {
-                            std::cout << "Reel halts on: " << rSymbol[position] << std::endl;
-                        } else {
-                            std::cout << "Reel halts on: yomama" << std::endl;
-                        }
-                    }
+					for (int i = 0; i < 3; ++i) {
+						int position = reels[i]->position();
+						if (position >= 0 &&
+						    position < static_cast<int>(rSymbol.size())) {
+							std::cout << "Reel halts on: "
+								  << rSymbol[position] << std::endl;
+						} else {
+							std::cout << "Reel halts on: yomama"
+								  << std::endl;
+						}
+					}
 
-                    std::cout << 	 "################################" << std::endl;
-                    int winner = Reel::winner();
-                    if (winner != -1) {
+					std::cout << "################################"
+						  << std::endl;
+					int winner = Reel::winner();
+					if (winner != -1) {
 						isWinner = true;
-                        std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
-                        std::cout << "```Behold the Ghetto Kingpin!```" << std::endl;
-                        std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
-
+						std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+							  << std::endl;
+						std::cout << "```Behold the Ghetto Kingpin!```"
+							  << std::endl;
+						std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
+							  << std::endl;
 					}
 				}
-            }
-        }
-    } else {
-        speed -= 0.005;
-    }
-    degree += speed;
-    if (degree > 360) {
-        degree -= 360;
-    }
+			}
+		}
+	} else {
+		speed -= 0.005;
+	}
+	degree += speed;
+	if (degree > 360) {
+		degree -= 360;
+	}
 }
 
-
-///
-
-bool initGLTexture(const char *name, GLuint *addr) {
-	//Surface *surface;
+bool initGLTexture(const char *name, GLuint *addr)
+{
 	surface = loadPNG(name);
 	glGenTextures(1, addr);
 	glBindTexture(GL_TEXTURE_2D, *addr);
-	// Stretch Property
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// Texture Image Data
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->width, surface->height, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->data);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->width, surface->height,
+		     0, GL_RGB, GL_UNSIGNED_BYTE, surface->data);
 	return true;
 }
 
-int loadGLTextures() {
-	if (initGLTexture("cyl_side_tex.png", &cylinder_side_tex));
+int loadGLTextures()
+{
+	initGLTexture("cyl_side_tex.png", &cylinder_side_tex);
 	initGLTexture("cyl_spinner_tex.png", &cylinder_spinner_tex);
 	initGLTexture("reels_tex.png", &reels_tex);
 
 	return 1;
 }
 
-
-
-int initGL(GLvoid) {
+int initGL(GLvoid)
+{
 	if (loadGLTextures() == 1) {
 		std::cout << "loadGLTextures() success\n";
 	}
-	//loadGLTextures();
-	// background
 	glShadeModel(GL_SMOOTH);
 	glClearColor(0.1f, 0.25f, 0.25f, 1.0f);
-	// depth
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
 	glLineWidth(1.5);
-	// QoL stuff
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 	glEnable(GL_TEXTURE_2D);
-	// Let there be light
-    glLightfv( GL_LIGHT1, GL_AMBIENT, L_Ambient );
-
-    glLightfv( GL_LIGHT1, GL_DIFFUSE, L_Diffuse );
-
-    glLightfv( GL_LIGHT1, GL_POSITION, L_Pos );
-
-    glEnable( GL_LIGHT1 );
-	///
-
-	// Quadratic Object
+	glLightfv(GL_LIGHT1, GL_AMBIENT, L_Ambient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, L_Diffuse);
+	glLightfv(GL_LIGHT1, GL_POSITION, L_Pos);
+	glEnable(GL_LIGHT1);
 	quadratic = gluNewQuadric();
 	gluQuadricDrawStyle(quadratic, GLU_FILL);
 	gluQuadricNormals(quadratic, GLU_SMOOTH);
@@ -316,14 +304,13 @@ int initGL(GLvoid) {
 	return 1;
 }
 
-int resize(int width, int height) {
-	// width : height
+int resize(int width, int height)
+{
 	GLfloat ratio;
 	if (height == 0) {
 		height = 1;
 	}
 	ratio = GLfloat(width) / GLfloat(height);
-	// Switch to projection matrix, set view
 	glViewport(0, 0, (GLint)width, (GLint)height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -333,82 +320,74 @@ int resize(int width, int height) {
 	return 1;
 }
 
-void drawReels() {
-	glEnable( GL_LIGHTING );
-	glDisable( GL_BLEND );
-	glTranslatef(1.0f,-0.4f,-3.9);
-	
+void drawReels()
+{
+	glEnable(GL_LIGHTING);
+	glDisable(GL_BLEND);
+	glTranslatef(1.0f, -0.4f, -3.9);
+
 	for (int x = 0; x < 3; ++x) {
 		Reel *reel = reels[x];
-		//reels[x] = new Reel();
 		reel->spin();
-		//std::cout << x << " " << reels[x] << std::endl;
 	}
 
-	//glColor4f( 128, 128, 128, 128 );
-	glColor4f( 0.5f, 0.5f, 0.5f, 0.5f );
-	// spinner rod
+	glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 	glPushMatrix();
-	    glRotatef(90,0.0f,1.0f,0.0f);		            // Rotate On The Y Axis
- 	    glTranslatef(0.0f,0.0f,-3.4f);	                // Center the cylinder 
-	    glBindTexture( GL_TEXTURE_2D, cylinder_spinner_tex );
-	    gluCylinder(quadratic,0.2f,0.2f,5.0f,9,3);      // Draw Our Cylinder 
-	glPopMatrix();
-
-	// right cylinder mask
-	glPushMatrix();
-	    glRotatef( reels[0]->degree,1.0f,0.0f,0.0f);
-	    glRotatef( 90,0.0f,1.0f,0.0f);
- 	    glTranslatef(0.0f,0.0f,-0.20f);
-	    glBindTexture( GL_TEXTURE_2D, cylinder_side_tex );
-	    gluDisk(quadratic,0.2f,1.0f,9,3);             // Draw A Disc
-	glPopMatrix();
-
-	// right cylinder
-	glPushMatrix();
-	    glRotatef(reels[0]->degree,1.0f,0.0f,0.0f);	  // Rotate On The X Axis
-	    glRotatef(90,0.0f,1.0f,0.0f);		              // Rotate On The Y Axis
- 	    glTranslatef(0.0f,0.0f,-0.20f);	                  // Center the cylinder 
-	    glBindTexture( GL_TEXTURE_2D, reels_tex );
-	    gluCylinder(quadratic,1.0f,1.0f,0.7f,9,3);        // Draw Our Cylinder 
-	glPopMatrix();
-
-	// center cylinder
-	glPushMatrix();
-	    glRotatef(reels[1]->degree, 1.0f,0.0f,0.0f);
-	    glRotatef(90,0.0f,1.0f,0.0f);
- 	    glTranslatef(0.0f, 0.0f,-1.38f ); 
-	    glBindTexture(GL_TEXTURE_2D, reels_tex );
-	    gluCylinder(quadratic, 1.0f, 1.0f, 0.7f, 9, 1);
+		glRotatef(90, 0.0f, 1.0f, 0.0f);
+		glTranslatef(0.0f, 0.0f, -3.4f);
+		glBindTexture(GL_TEXTURE_2D, cylinder_spinner_tex);
+		gluCylinder(quadratic, 0.2f, 0.2f, 5.0f, 9, 3);
 	glPopMatrix();
 
 	glPushMatrix();
-	    glRotatef( reels[2]->degree,1.0f,0.0f,0.0f);
-	    glRotatef( 90,0.0f,1.0f,0.0f);
-	    glTranslatef( 0.0f,0.0f,-1.9f );
-	    glBindTexture( GL_TEXTURE_2D, cylinder_side_tex );
-	    gluDisk(quadratic,0.2f,1.0f,9,3);             // Draw A Disc
+		glRotatef(reels[0]->degree, 1.0f, 0.0f, 0.0f);
+		glRotatef(90, 0.0f, 1.0f, 0.0f);
+		glTranslatef(0.0f, 0.0f, -0.20f);
+		glBindTexture(GL_TEXTURE_2D, cylinder_side_tex);
+		gluDisk(quadratic, 0.2f, 1.0f, 9, 3);
 	glPopMatrix();
-	
-	// left cylinder
+
 	glPushMatrix();
-	    glRotatef(reels[2]->degree,1.0f,0.0f,0.0f);
-	    glRotatef(90,0.0f,1.0f,0.0f);
-	    glTranslatef(0.0f,0.0f,-2.5f );
-	    glBindTexture(GL_TEXTURE_2D, reels_tex );
-	    gluCylinder(quadratic,1.0f,1.0f,0.6f,9,3);
+		glRotatef(reels[0]->degree, 1.0f, 0.0f, 0.0f);
+		glRotatef(90, 0.0f, 1.0f, 0.0f);
+		glTranslatef(0.0f, 0.0f, -0.20f);
+		glBindTexture(GL_TEXTURE_2D, reels_tex);
+		gluCylinder(quadratic, 1.0f, 1.0f, 0.7f, 9, 3);
 	glPopMatrix();
-	
+
+	glPushMatrix();
+		glRotatef(reels[1]->degree, 1.0f, 0.0f, 0.0f);
+		glRotatef(90, 0.0f, 1.0f, 0.0f);
+		glTranslatef(0.0f, 0.0f, -1.38f);
+		glBindTexture(GL_TEXTURE_2D, reels_tex);
+		gluCylinder(quadratic, 1.0f, 1.0f, 0.7f, 9, 1);
+	glPopMatrix();
+
+	glPushMatrix();
+		glRotatef(reels[2]->degree, 1.0f, 0.0f, 0.0f);
+		glRotatef(90, 0.0f, 1.0f, 0.0f);
+		glTranslatef(0.0f, 0.0f, -1.9f);
+		glBindTexture(GL_TEXTURE_2D, cylinder_side_tex);
+		gluDisk(quadratic, 0.2f, 1.0f, 9, 3);
+	glPopMatrix();
+
+	glPushMatrix();
+		glRotatef(reels[2]->degree, 1.0f, 0.0f, 0.0f);
+		glRotatef(90, 0.0f, 1.0f, 0.0f);
+		glTranslatef(0.0f, 0.0f, -2.5f);
+		glBindTexture(GL_TEXTURE_2D, reels_tex);
+		gluCylinder(quadratic, 1.0f, 1.0f, 0.6f, 9, 3);
+	glPopMatrix();
 }
 
-// x11.cpp
-
-X11_wrapper::~X11_wrapper() {
+X11_wrapper::~X11_wrapper()
+{
 	XDestroyWindow(dpy, win);
 	XCloseDisplay(dpy);
 }
 
-X11_wrapper::X11_wrapper() {
+X11_wrapper::X11_wrapper()
+{
 	GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
 	int w = g.xres, h = g.yres;
 	dpy = XOpenDisplay(NULL);
@@ -437,144 +416,129 @@ X11_wrapper::X11_wrapper() {
 	glXMakeCurrent(dpy, win, glc);
 }
 
-void X11_wrapper::check_mouse(XEvent *e) {
+void X11_wrapper::check_mouse(XEvent *e)
+{
 	static int savex = 0;
 	static int savey = 0;
 
-	//Weed out non-mouse events
 	if (e->type != ButtonRelease &&
-		e->type != ButtonPress &&
-		e->type != MotionNotify) {
-		//This is not a mouse event that we care about.
+	    e->type != ButtonPress &&
+	    e->type != MotionNotify) {
 		return;
 	}
-	//
 	if (e->type == ButtonRelease) {
 		return;
 	}
 	if (e->type == ButtonPress) {
-		if (e->xbutton.button==1) {
-			//Left button was pressed.
-			//int y = g.yres - e->xbutton.y;
+		if (e->xbutton.button == 1) {
 			return;
 		}
-		if (e->xbutton.button==3) {
-			//Right button was pressed.
+		if (e->xbutton.button == 3) {
 			return;
 		}
 	}
 	if (e->type == MotionNotify) {
-		//The mouse moved!
 		if (savex != e->xbutton.x || savey != e->xbutton.y) {
 			savex = e->xbutton.x;
 			savey = e->xbutton.y;
-			//Code placed here will execute whenever the mouse moves.
-
-
 		}
 	}
 }
 
-
-int X11_wrapper::check_keys(XEvent *e) {
+int X11_wrapper::check_keys(XEvent *e)
+{
 	if (e->type != KeyPress && e->type != KeyRelease)
 		return 0;
 	int key = XLookupKeysym(&e->xkey, 0);
 	if (e->type == KeyPress) {
 		switch (key) {
-			/*
-			case XK_Escape:
-				g.exec = false;
-				break;
-			
-			case XK_space:
-				for (int i = 0; i < 3; ++i) {
-					reels[i]->start();
-				}
-				break;
-			*/
-			default:
-				break;
+		default:
+			break;
 		}
 	}
 	return 0;
 }
 
-
-void X11_wrapper::set_title() {
-	//Set the window title bar.
+void X11_wrapper::set_title()
+{
 	XMapWindow(dpy, win);
 	XStoreName(dpy, win, "Ghetto Casino - Slot Machine");
 }
 
-bool X11_wrapper::getXPending() {
-	//See if there are pending events.
+bool X11_wrapper::getXPending()
+{
 	return XPending(dpy);
 }
 
-XEvent X11_wrapper::getXNextEvent() {
-	//Get a pending event.
+XEvent X11_wrapper::getXNextEvent()
+{
 	XEvent e;
 	XNextEvent(dpy, &e);
 	return e;
 }
 
-void X11_wrapper::swapBuffers() {
+void X11_wrapper::swapBuffers()
+{
 	glXSwapBuffers(dpy, win);
 }
-///
 
-int draw(GLvoid) {
-	// Clear && Reset View
+int draw(GLvoid)
+{
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
-	/*
-	// Set up the camera
-	gluLookAt(0.0f, 0.0f, 5.0f,  // Camera position
-	          0.0f, 0.0f, 0.0f,  // Look-at point
-	          0.0f, 1.0f, 0.0f); // Up vector
-	*/
-
-	// Draw the reels
 	drawReels();
-	//////2D////////
 
-	// orthographic projection for 2D
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, g.xres, 0, g.yres, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0, g.xres, 0, g.yres, -1, 1);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
 
-    // text on top layer
-    glDisable(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);
 
-    // Render text
-    renderText(10, g.yres - 20, "```Welcome to the Ghetto```", 1.0f, 1.0f, 0.0f);
-    renderText(10, g.yres - 60, "Press SPACE to spin the reels!", 1.0f, 1.0f, 0.0f);
+	Rect r;
+	r.bot = g.yres - 30;
+	r.left = 10;
+	r.center = 0;
+	ggprint16(&r, 32, 0x00ffffff, "```Welcome to the Ghetto```");
+
+	Rect r2;
+	r2.bot = g.yres - 50;
+	r2.left = 10;
+	r2.center = 0;
+	ggprint16(&r2, 32, 0x00ffffff, "Press SPACE to spin the reels!");
 
 	if (isWinner) {
-        renderText(500, g.yres - 20, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", 1.0f, 1.0f, 0.0f);
-        renderText(500, g.yres - 40, "      ```Behold the Ghetto Kingpin!```", 1.0f, 1.0f, 0.0f);
-        renderText(500, g.yres - 60, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", 1.0f, 1.0f, 0.0f);
-		
-    }
+		Rect x1;
+		x1.bot = g.yres - 50;
+		x1.left = 500;
+		x1.center = 0;
+		ggprint16(&x1, 32, 0x00ffffff, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+		Rect x2;
+		x2.bot = g.yres - 70;
+		x2.left = 500;
+		x2.center = 0;
+		ggprint16(&x2, 32, 0x00ffffff, "      ```Behold the Ghetto Kingpin!```");
+		Rect x3;
+		x3.bot = g.yres - 90;
+		x3.left = 500;
+		x3.center = 0;
+		ggprint16(&x3, 32, 0x00ffffff, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+	}
 
-    // Restore projection
-    glEnable(GL_DEPTH_TEST);
-    glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
+	glEnable(GL_DEPTH_TEST);
+	glPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
 
-	////////2D////////
 	GLenum err = glGetError();
-		if (err != GL_NO_ERROR) {
-    		std::cerr << "OpenGL Error: " << gluErrorString(err) << std::endl;
-		}
-	
+	if (err != GL_NO_ERROR) {
+		std::cerr << "OpenGL Error: " << gluErrorString(err) << std::endl;
+	}
+
 	return 1;
 }
