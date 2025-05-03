@@ -43,11 +43,14 @@ GLfloat L_Diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
 GLfloat L_Pos[] = { 0.0f, 0.0f, 2.0f, 1.0f };
 
 void calculate_framerate();
+bool blink_state = true;
+time_t last_blink_time = time(nullptr);
 void quit(int retcode);
 GLfloat get_rand(GLfloat max);
 Surface *loadPNG(const char *fp);
 bool initGLTexture(const char *name, GLuint *addr);
 bool isWinner = false;
+bool IRS;
 int loadGLTextures();
 int initGL(GLvoid);
 int resize(int width, int height);
@@ -117,6 +120,7 @@ void Reel::start()
 	begin = speed;
 	gluttony = -1;
 	isWinner = false;
+	IRS = true;
 }
 
 void Reel::stop()
@@ -482,13 +486,22 @@ void X11_wrapper::swapBuffers()
 	glXSwapBuffers(dpy, win);
 }
 
+void updateBlinkState()
+{
+    time_t current_time = time(nullptr);
+    if (difftime(current_time, last_blink_time) >= 0.10) {
+        blink_state = !blink_state;
+        last_blink_time = current_time;
+    }
+}
+
 int draw(GLvoid)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-
 	drawReels();
 
+	glDisable(GL_LIGHTING);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
@@ -496,8 +509,8 @@ int draw(GLvoid)
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
-
 	glDisable(GL_DEPTH_TEST);
+	updateBlinkState();
 
 	Rect r;
 	r.bot = g.yres - 30;
@@ -511,22 +524,45 @@ int draw(GLvoid)
 	r2.center = 0;
 	ggprint16(&r2, 32, 0x00ffffff, "Press SPACE to spin the reels!");
 
+	Rect r3;
+	r3.bot = g.yres - 30;
+	r3.left = 1000;
+	r3.center = 0;
+	std::string str_obj = "Chips: " + std::to_string(g.currency);
+	const char* chip_str = str_obj.c_str();
+	ggprint16(&r3, 32, 0x00ffffff, chip_str);
+
 	if (isWinner) {
 		Rect x1;
 		x1.bot = g.yres - 50;
 		x1.left = 500;
 		x1.center = 0;
-		ggprint16(&x1, 32, 0x00ffffff, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 		Rect x2;
 		x2.bot = g.yres - 70;
 		x2.left = 500;
 		x2.center = 0;
-		ggprint16(&x2, 32, 0x00ffffff, "      ```Behold the Ghetto Kingpin!```");
 		Rect x3;
 		x3.bot = g.yres - 90;
 		x3.left = 500;
 		x3.center = 0;
-		ggprint16(&x3, 32, 0x00ffffff, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+		g.currency += 10;
+		if (blink_state) {
+			ggprint16(&x1, 32, 0x00ffff00, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+			ggprint16(&x2, 32, 0x00ffff00, "      ```Behold the Ghetto Kingpin!```");
+			ggprint16(&x3, 32, 0x00ffff00, "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+		}
+
+	}
+	else if (Reel::all_stopped()) {
+		Rect x4;
+		x4.bot = g.yres - 50;
+		x4.left = 500;
+		x4.center = 0;
+		ggprint16(&x4, 32, 0x00ffff00, "         No se Jose!");
+		if (IRS) {
+			g.currency -= 5;
+			IRS = false;
+		}
 	}
 
 	glEnable(GL_DEPTH_TEST);
@@ -534,6 +570,7 @@ int draw(GLvoid)
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
+	glEnable(GL_LIGHTING);
 
 	GLenum err = glGetError();
 	if (err != GL_NO_ERROR) {
