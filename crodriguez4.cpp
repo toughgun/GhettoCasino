@@ -682,7 +682,7 @@ static void show_child_credits_window()
                         " Philp Lakes", 12);
             XDrawString(dpy, win, gc, 20, 140,
                         " Haonan Chen", 12);
-            XDrawString(dpy, win, gc, 20, 170, " Ben", 4);
+            XDrawString(dpy, win, gc, 20, 170, " Benjamin Olayvar", 4);
         }
         if (e.type == KeyPress || e.type == DestroyNotify)
             done = true;
