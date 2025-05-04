@@ -4,8 +4,8 @@
 class Blackjack {
   public:
     int  maxCards;
-    int  playerHand[15];
-    int  dealerHand[15];
+    int  playerHand[5];
+    int  dealerHand[5];
     int  betarray[100];
     int  betarraypointer;
     int  playerHandTotal, dealerHandTotal;
@@ -17,9 +17,17 @@ class Blackjack {
     bool delt;
     bool split;
     bool insure;
+    bool dDown;
     bool initialhand;
     bool gameInProgress;
     bool wait;
+    bool dealerTurn;
+    bool playerTurn;
+    bool dealerBust;
+    bool playerBust;
+    int pTotalCards;
+    int dTotalCards;
+
     // GLuint cards;
     float cardWidth;
     float cardHeight;
@@ -44,6 +52,13 @@ class Blackjack {
         initialhand     = false;
         gameInProgress  = false;
         wait            = false;
+        dealerTurn      = false;
+        playerTurn      = false;
+        dDown           = false;
+        dealerBust      = false;
+        playerBust      = false;
+        pTotalCards     = 0;
+        dTotalCards     = 0;
     }
 };
 
