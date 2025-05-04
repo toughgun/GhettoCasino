@@ -1,13 +1,10 @@
 //Haonan Chen
-//april 27, 2025
+//May 4, 2025
 //
 //This file has
 //intro animation
 //info display
-//black jack player/dealer hands logic
-//black jack split
-//black jack payout
-//black jack insure, double buttons
+//black jack logic n stuff
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -35,7 +32,9 @@ float centerX;
 float centerY;
 float logoPosY = 0.0f;
 float fade = 0.0f;
-bool doubleDown = false;
+
+/*===========================GAME INFO START============================*/
+
 void gameInfo(int xx)
 {
     if (xx == 5) {
@@ -115,8 +114,9 @@ void displayInfo()
     r.bot = 0;
     r.left = 0;
     ggprint8b(&r, 16, 0xff0000, "Welcome to Ghetto Casino\n");
-    ggprint8b(&r, 16, 0xff0000, "Here you can play SLOTS DICE BlackJack");
-    ggprint8b(&r, 16, 0xff0000, "and maybe even a secert game");
+    ggprint8b(&r, 16, 0xff0000, "Here you can play:");
+    ggprint8b(&r, 16, 0xff0000, "SLOTSS - DICE - BlackJack");
+    ggprint8b(&r, 16, 0xff0000, "You will start out with 1000 GhettoBucks");
     ggprint8b(&r, 16, 0xff0000, "Your Goal is To Earn as much");
     ggprint8b(&r, 16, 0xff0000, "as you can before you lose it all");
     ggprint8b(&r, 16, 0xff0000, "Good Luck and Have Fun Gambling!");
@@ -137,6 +137,10 @@ void infoRetangle()
     glEnd();
     glFlush();
 }
+/*==========================GAME INFO END==============================*/
+
+
+/*=======================INTRO ANIMATION START=========================*/
 void init_background()
 {
     glEnable(GL_BLEND);
@@ -235,18 +239,54 @@ void intro_render()
             intro_logo();
             intro_physics();
             init_background();
-            Rect r;
-            glPushMatrix();
-            glTranslatef(640, 50, 0);
-            glScalef(2.0f, 2.0f, 1);
-            r.bot = 0;
-            r.left = 0;
-            ggprint8b(&r, 16, 0xffffff, "Press Space to Skip");
-            glPopMatrix();
+            intro_text();
         } else {
             introstart = false;
             introplay = 0;
         }
+    }
+}
+void intro_text()
+{
+    Rect r;
+    glPushMatrix();
+    glTranslatef(640, 50, 0);
+    glScalef(2.0f, 2.0f, 1);
+    r.bot = 0;
+    r.left = 0;
+    ggprint8b(&r, 16, 0xffffff, "Press Space to Skip");
+    glPopMatrix();
+
+}
+/*========================INTRO ANIMATION END==========================*/
+
+
+/*=======================BLACKJACK LOGIC START=========================*/
+
+void playBJ()
+{
+    drawBJBackground(1.0, 1.0, 1.0);
+    drawBJShoe(g.xres / 1.13, g.yres / 1.77, 0, 3, 3, 1.0, 1.0, 1.0);
+    initFirstHand();
+
+    //bj.playerTurn = true;
+    if (bj.playerBust == true || bj.dealerBust == true) {
+        dealerHandrecheck();
+        playerHandrecheck();
+        bjPayout();
+    }
+    // animation here
+    // checkDealerHand();
+}
+void hit()
+{
+    if (bj.dealerTurn == true) {
+        bj.dealerHand[bj.dTotalCards - 1] = bj.shoe[bj.shoeCardNum];
+        dealerHands(bj.shoeCardNum);
+    }
+    if (bj.playerTurn == true) {
+        bj.playerHand[bj.dTotalCards - 1] = bj.shoe[bj.shoeCardNum];
+        playerHands(bj.shoeCardNum);
     }
 }
 void dealerHands(int x)
@@ -274,6 +314,29 @@ void dealerHandrecheck()
     if (bj.dealerHand[1] > 1) {
         if (bj.dealerHandTotal < 21 && bj.dealerHandTotal + 10 <= 21)
             bj.dealerHandTotal =+ 10;
+    }// might delete above
+    for (int i = 0; i < 5; i++) {
+        //looks for higher total under 21
+        if (bj.dealerHand[i] == 1 && bj.dealerHandTotal + 10 <= 21) {
+            bj.dealerHandTotal =+ 10;
+        }
+        //looks to lower total if over 21
+        if (bj.dealerHandTotal > 21) {
+            if (bj.dealerHand[i] == 1) {
+                bj.dealerHandTotal =- 10;
+            }
+        }
+    }
+}
+void dealerCheckHand() // checks dealers first 2 cards
+{
+    //offer insurence
+    //if (bj.dealerHand[0] == 1) {
+    //    insureRender == true;
+    //}
+    //dealer 2 card 21, player bust
+    if (bj.dealerHand[0] == 10 && bj.dealerHand[1] == 1) {
+        bj.playerBust = true;
     }
 }
 void playerHands(int x)
@@ -301,26 +364,41 @@ void playerHandrecheck()
     if (bj.playerHand[1] > 1) {
         if (bj.playerHandTotal < 21 && bj.playerHandTotal + 10 <= 21)
             bj.playerHandTotal =+ 10;
+    }// might delete above
+    for (int i = 0; i < 5; i++) {
+        //looks for higher total under 21
+        if (bj.playerHand[i] == 1 && bj.playerHandTotal + 10 <= 21) {
+            bj.playerHandTotal =+ 10;
+        }
+        //looks to lower total if over 21
+        if (bj.playerHandTotal > 21) {
+            if (bj.playerHand[i] == 1) {
+                bj.playerHandTotal =- 10;
+            }
+        }
     }
+
 }
 void bjPayout()
 {
     //double down bet
-    if (doubleDown == true) {
+    if (bj.dDown == true) {
         g.currentBet = g.currentBet * 2;
-        if (bj.playerHandTotal <= 21 &&
-                bj.playerHandTotal > bj.dealerHandTotal) {
+        if ((bj.playerHandTotal <= 21 &&
+                    bj.playerHandTotal > bj.dealerHandTotal)
+                || bj.playerHandTotal == 21) {
             g.currency =+ g.currentBet * 2;
         } else {
             g.currency =- g.currentBet;
         }
+        //bj.dDown == false;
     }
 
     //player win
-    if (bj.playerHandTotal <= 21
-            && bj.playerHandTotal > bj.dealerHandTotal) {
-        g.currency =+ g.currentBet * 2;
-
+    if ((bj.playerHandTotal <= 21
+                && bj.playerHandTotal > bj.dealerHandTotal)
+            || bj.playerHandTotal == 21) {
+        g.currency =+ g.currentBet;
         //dealer wins with 21 /  player bust  / dealer > player
     } else if (bj.dealerHandTotal == 21 || bj.playerHandTotal > 21
             || bj.dealerHandTotal > bj.playerHandTotal) {
@@ -329,25 +407,167 @@ void bjPayout()
         //insure
         g.currency =+ g.currentBet;
     }
+    int payoutType = 0;
+    if (bj.dDown == true) {
+        g.currentBet = g.currentBet * 2;
+        payoutType = 1;
+    }
+    if (bj.insure == true) {
+        payoutType = 2;
+    }
+    if (bj.dDown == true && bj.insure == true) {
+        payoutType = 3;
+    }
+    switch(payoutType) {
+        //normal payout/lose
+        case 0:
+            if ((bj.playerHandTotal == 21) || (bj.playerHandTotal < 21 &&
+                        (bj.playerHandTotal > bj.dealerHandTotal))) {
+                g.currency =+ g.currentBet;
+            } else {
+                g.currency =- g.currentBet;
+            }
+            break;
+            //double down
+        case 1:
+            if ((bj.playerHandTotal < 21 &&
+                        (bj.playerHandTotal > bj.dealerHandTotal))
+                    || bj.playerHandTotal == 21) {
+                g.currency =+ g.currentBet;
+            } else {
+                g.currency =- g.currentBet;
+            }
+            bj.dDown = false;
+            break;
+            //insurance
+        case 2:
+            if ((bj.playerHandTotal == 21) || (bj.playerHandTotal < 21 &&
+                        (bj.playerHandTotal > bj.dealerHandTotal))) {
+                g.currency =+ g.currentBet;
+            } else {
+                g.currentBet = 0;
+            }
+            bj.insure = false;
+            break;
+            //insure and double
+        case 3:
+            if ((bj.playerHandTotal < 21 &&
+                        (bj.playerHandTotal > bj.dealerHandTotal))
+                    || bj.playerHandTotal == 21) {
+                g.currency =+ g.currentBet;
+            } else {
+                g.currentBet = 0;
+            }
+            bj.dDown = false;
+            bj.insure = false;
+            break;
+    }
 }
+bool hitRender = true;
+bool standRender = true;
 void bjButtonRender()
 {
-    renderDoubleButton();
-    if (bj.dealerHand[1] > 0) {
-        renderInsuranceButton();
+    if (bj.dDown == false && bj.playerTurn == true) {
+        renderDoubleButton();
     }
+    if (bj.playerTurn == true && hitRender == true) {
+        renderHitButton();
+    }
+    if (bj.playerTurn == true && standRender == true) {
+        renderStandButton();
+    }
+    bjInfoButton();
+}
+void bjButtonClick(int x, int y)
+{
+    //double down button
+    if (x > 1095 && x < 1243 && y > 525 && y < 570) {
+        cout << "downdown pressed\n";
+        bj.dDown = true;
+    }
+    //hit button
+    if (x > 1095 && x < 1243 && y > 405 && y < 450) {
+        cout << "hit pressed\n";
+        if (bj.playerTurn == true) {
+            hit();
+            bj.playerTurn = false;
+            bj.dealerTurn = true;
+        }
+        if (bj.dealerTurn == true) {
+            hit();
+            bj.dealerTurn = false;
+            bj.playerTurn = true;
+        }
+    }
+    //stand button
+    if (x > 1095 && x < 1243 && y > 465 && y < 510) {
+        cout << "stand pressed\n";
+        if (bj.playerTurn == true) {
+            standRender = false;
+            hitRender = false;
+            bj.playerTurn = false;
+            bj.dealerTurn = true;
+        }
+        if (bj.dealerTurn == true) {
+            bj.dealerTurn = false;
+            bj.playerTurn = true;
+        }
+    }
+    //black jack infomation button
+    if (x > 1160 && x < 1240 && y > 670 && y < 695) {
+        renderBJInfo = !renderBJInfo;
+    }
+}
+void bjInfoRender()
+{
+    if (renderBJInfo == true) {
+        drawBJBackground(0.5, 0.5, 0.5);
+        bjInfo();
+        bjInfoButton();
+    }
+}
+/*=======================BLACKJACK LOGIC END===========================*/
+bool renderBJInfo = false;
+void bjInfo()
+{
+    Rect r;
+    glPushMatrix();
+    glTranslatef(640, 625, 0);
+    glScalef(2.0f, 2.0f, 1);
+    r.bot = 0;
+    r.left = 0;
+    ggprint8b(&r, 16, 0xffffff, "RULES:");
+    ggprint8b(&r, 16, 0xffffff, "Dealer must hit on 17\n");
+    ggprint8b(&r, 16, 0xffffff, " ");
+    ggprint8b(&r, 16, 0xffffff, "Hit:");
+    ggprint8b(&r, 16, 0xffffff, "Draw another card");
+    ggprint8b(&r, 16, 0xffffff, " ");
+    ggprint8b(&r, 16, 0xffffff, "Stand:");
+    ggprint8b(&r, 16, 0xffffff, "No longer be able to draw cards");
+    ggprint8b(&r, 16, 0xffffff, " ");
+    ggprint8b(&r, 16, 0xffffff, "Double:");
+    ggprint8b(&r, 16, 0xffffff, "Will double your current bet");
+    ggprint8b(&r, 16, 0xffffff, "You will only get 1 more card\n");
+    ggprint8b(&r, 16, 0xffffff, " ");
+    ggprint8b(&r, 16, 0xffffff, "INSURANCE:");
+    ggprint8b(&r, 16, 0xffffff, "Offered if dealer first card is ACE");
+    ggprint8b(&r, 16, 0xffffff, "If dealer gets 2 card blackjack");
+    ggprint8b(&r, 16, 0xffffff, "You will not lose your money");
+    ggprint8b(&r, 16, 0xffffff,
+                        "Or you will get double ur money or something");
+    glPopMatrix();
 }
 void renderDoubleButton()
 {
     glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
     glPushMatrix();
-    glTranslatef(1120, 50, 0);
+    glTranslatef(1170, 170, 0);
     glEnable(GL_ALPHA_TEST);
     glAlphaFunc(GL_GREATER, 0.0f);
     glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
     glBegin(GL_QUADS);
     float h = g.tex.buttonImage->height / 6;
-    float w = g.tex.buttonImage->width / 6;
+    float w = g.tex.buttonImage->width / 8;
     glTexCoord2f(0.0f, 0.0f);
     glVertex2f(-w, h); // Top-left
     glTexCoord2f(1.0f, 0.0f);
@@ -362,7 +582,7 @@ void renderDoubleButton()
 
     Rect r;
     glPushMatrix();
-    glTranslatef(1120, 50, 0);
+    glTranslatef(1170, 160, 0);
     glScalef(2.0f, 2.0f, 1);
     r.bot = 0;
     r.left = 0;
@@ -370,17 +590,17 @@ void renderDoubleButton()
     glPopMatrix();
 
 }
-void renderInsuranceButton()
+void renderHitButton()
 {
     glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
     glPushMatrix();
-    glTranslatef(1120, 150, 0);
+    glTranslatef(1170, 290, 0);
     glEnable(GL_ALPHA_TEST);
     glAlphaFunc(GL_GREATER, 0.0f);
     glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
     glBegin(GL_QUADS);
     float h = g.tex.buttonImage->height / 6;
-    float w = g.tex.buttonImage->width / 6;
+    float w = g.tex.buttonImage->width / 8;
     glTexCoord2f(0.0f, 0.0f);
     glVertex2f(-w, h); // Top-left
     glTexCoord2f(1.0f, 0.0f);
@@ -395,10 +615,112 @@ void renderInsuranceButton()
 
     Rect r;
     glPushMatrix();
-    glTranslatef(1120, 150, 0);
+    glTranslatef(1170, 280, 0);
     glScalef(2.0f, 2.0f, 1);
     r.bot = 0;
     r.left = 0;
-    ggprint8b(&r, 16, 0xffffff, "INSURANCE");
+    ggprint8b(&r, 16, 0xffffff, "HIT");
     glPopMatrix();
 }
+void renderStandButton()
+{
+    glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
+    glPushMatrix();
+    glTranslatef(1170, 230, 0);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
+    glBegin(GL_QUADS);
+    float h = g.tex.buttonImage->height / 6;
+    float w = g.tex.buttonImage->width / 8;
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(-w, h); // Top-left
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2f(w, h); // Top-right
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2f(w, -h); // Bottom-right
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex2f(-w, -h); // Botton-left
+    glEnd();
+    glDisable(GL_ALPHA_TEST);
+    glPopMatrix();
+
+    Rect r;
+    glPushMatrix();
+    glTranslatef(1170, 220, 0);
+    glScalef(2.0f, 2.0f, 1);
+    r.bot = 0;
+    r.left = 0;
+    ggprint8b(&r, 16, 0xffffff, "STAND");
+    glPopMatrix();
+}
+void bjInfoButton()
+{
+    glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
+    glPushMatrix();
+    glTranslatef(1200, 35, 0);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
+    glBegin(GL_QUADS);
+    float h = g.tex.buttonImage->height / 12;
+    float w = g.tex.buttonImage->width / 15;
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(-w, h); // Top-left
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2f(w, h); // Top-right
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2f(w, -h); // Bottom-right
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex2f(-w, -h); // Botton-left
+    glEnd();
+    glDisable(GL_ALPHA_TEST);
+    glPopMatrix();
+
+    Rect r;
+    glPushMatrix();
+    glTranslatef(1200, 23.5, 0);
+    glScalef(2.0f, 2.0f, 1);
+    r.bot  = 0;
+    r.left = 0;
+    if (renderBJInfo == false) {
+        ggprint8b(&r, 16, 0xffffff, "INFO");
+    } else if (renderBJInfo == true) {
+        ggprint8b(&r, 16, 0xffffff, "BACK");
+    }
+    glPopMatrix();
+
+}
+/*
+   void renderInsuranceButton()
+   {
+   glColor4f(0.9f, 0.9f, 0.9f, 0.8f);
+   glPushMatrix();
+   glTranslatef(1120, 160, 0);
+   glEnable(GL_ALPHA_TEST);
+   glAlphaFunc(GL_GREATER, 0.0f);
+   glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
+   glBegin(GL_QUADS);
+   float h = g.tex.buttonImage->height / 6;
+   float w = g.tex.buttonImage->width / 8;
+   glTexCoord2f(0.0f, 0.0f);
+   glVertex2f(-w, h); // Top-left
+   glTexCoord2f(1.0f, 0.0f);
+   glVertex2f(w, h); // Top-right
+   glTexCoord2f(1.0f, 1.0f);
+   glVertex2f(w, -h); // Bottom-right
+   glTexCoord2f(0.0f, 1.0f);
+   glVertex2f(-w, -h); // Botton-left
+   glEnd();
+   glDisable(GL_ALPHA_TEST);
+   glPopMatrix();
+
+   Rect r;
+   glPushMatrix();
+   glTranslatef(1120, 150, 0);
+   glScalef(2.0f, 2.0f, 1);
+   r.bot = 0;
+   r.left = 0;
+   ggprint8b(&r, 16, 0xffffff, "INSURANCE");
+   glPopMatrix();
+   }*/
