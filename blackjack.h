@@ -27,6 +27,7 @@ class Blackjack {
     bool playerBust;
     int pTotalCards;
     int dTotalCards;
+    int shoeCardNum;
 
     // GLuint cards;
     float cardWidth;
@@ -59,9 +60,11 @@ class Blackjack {
         playerBust      = false;
         pTotalCards     = 0;
         dTotalCards     = 0;
+        shoeCardNum     = 0;
     }
 };
 
 extern Blackjack bj;
 
 #endif
+
