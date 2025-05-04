@@ -627,7 +627,8 @@ void initFirstHand()
         bj.currentPos++;
     }
     bj.initialhand = true;
-
+    bj.playerTurn = true;
+    
     for (int i = 0; i < 2; i++) {
         bj.playerHand[i] = bj.shoe[bj.currentPos];
         bj.playerHandTotal += bj.shoe[bj.currentPos];
