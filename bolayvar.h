@@ -5,7 +5,8 @@
 extern int  click(int savex, int savey, int& done);
 extern int  check_esc(int x);
 extern void drawBackground();
-extern void drawBJBackground();
+//added in take values to void
+extern void drawBJBackground(float r, float gg, float b);
 extern void drawMenuLogo();
 extern void drawMenuOptions(int x);
 extern void drawButtonTxt();
@@ -16,7 +17,10 @@ void        handleBlackJackGame(int x);
 void        bjUIClickListener(int savex, int savey);
 int         bjUIHoverListener(int savex, int savey, int mouseposition);
 int         checkhover(int savex, int savey, int mouseposition);
-
+//added these two
+extern void initFirstHand();
+extern void drawBJShoe(int x, int y, int z, float xScale, float yScale,
+                                    float r, float gg, float b);
 // blackjack stuff
 extern void initShoe();
 #endif
