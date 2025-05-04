@@ -13,11 +13,14 @@
 #include <ctime>
 #include <iostream>
 #include <random>
+#include "dice.h"
 
 
 using namespace std;
 
 typedef default_random_engine randomize;
+extern Dice dice;
+#define bettingUIActive  (dice.bettingUIActive)
 
 Blackjack bj;
 //=============BEGIN DRAW MENU STUFF==========================================
@@ -185,6 +188,7 @@ int click(int savex, int savey, int& done)
         return 2;
     } else if (savex > 490 && savex < 490 + 300 && savey > 335 &&
                savey < 335 + 75) {
+        bettingUIActive = true;
         printf("[STATE] Dice selected.\n");
         return 3;
     } else if (savex > 490 && savex < 490 + 300 && savey > 425 &&
