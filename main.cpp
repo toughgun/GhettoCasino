@@ -491,6 +491,7 @@ void check_mouse(XEvent* e)
                 break;
                 case 4:
                 bjUIClickListener(savex, savey);
+		bjButtonClick(savex, savey);
                 break;
             }
 		}
@@ -695,6 +696,8 @@ menu_render:
 			case 4:
             	glClear(GL_COLOR_BUFFER_BIT);
                 handleBlackJackGame(mouseposition);
+		bjButtonRender();
+		bjInfoRender();
 				break;
         }
     }
