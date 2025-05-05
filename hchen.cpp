@@ -492,7 +492,7 @@ void bjButtonClick(int x, int y)
             hit();
             bj.playerTurn = false;
             bj.dealerTurn = true;
-        }
+        }//change this to else
         if (bj.dealerTurn == true) {
             hit();
             bj.dealerTurn = false;
@@ -507,7 +507,7 @@ void bjButtonClick(int x, int y)
             hitRender = false;
             bj.playerTurn = false;
             bj.dealerTurn = true;
-        }
+        }// change this to else
         if (bj.dealerTurn == true) {
             bj.dealerTurn = false;
             bj.playerTurn = true;
