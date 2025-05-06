@@ -13,12 +13,12 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <math.h>
-#include "hchen_functions.h"
-#include "global.h"
-#include "image.h"
-#include "bolayvar.h"
-#include "blackjack.h"
-#include "fonts.h"
+#include "include/hchen_functions.h"
+#include "include/global.h"
+#include "include/image.h"
+#include "include/bolayvar.h"
+#include "include/blackjack.h"
+#include "include/fonts.h"
 #include <ctime>
 #include <iostream>
 using namespace std;

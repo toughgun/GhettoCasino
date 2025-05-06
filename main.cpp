@@ -17,16 +17,16 @@
 #include <string.h>
 #include <unistd.h>
 //#include <AL/al.h>
-#include "blackjack.h"
-#include "bolayvar.h"
-#include "button.h"
-#include "dice.h"
-#include "crodriguez4.h"
-#include "fonts.h"
-#include "global.h"
-#include "hchen_functions.h"
-#include "image.h"
-#include "phil_funcs.h"
+#include "include/blackjack.h"
+#include "include/bolayvar.h"
+#include "include/button.h"
+#include "include/dice.h"
+#include "include/crodriguez4.h"
+#include "include/fonts.h"
+#include "include/global.h"
+#include "include/hchen_functions.h"
+#include "include/image.h"
+#include "include/phil_funcs.h"
 #include <iostream>
 
 using namespace std;

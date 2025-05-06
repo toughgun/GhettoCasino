@@ -1,19 +1,19 @@
 // Benjamin Olayvar
 // last revised: 4/30/2025
 //
-#include "blackjack.h"
-#include "button.h"
-#include "fonts.h"
-#include "global.h"
-#include "hchen_functions.h"
-#include "image.h"
+#include "include/blackjack.h"
+#include "include/button.h"
+#include "include/fonts.h"
+#include "include/global.h"
+#include "include/hchen_functions.h"
+#include "include/image.h"
 #include <GL/glx.h>
 #include <X11/Xlib.h>
 #include <algorithm>
 #include <ctime>
 #include <iostream>
 #include <random>
-#include "dice.h"
+#include "include/dice.h"
 
 
 using namespace std;

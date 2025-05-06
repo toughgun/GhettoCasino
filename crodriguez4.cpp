@@ -13,10 +13,10 @@
 #include <sys/wait.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include "x11.h"
-#include "fonts.h"
-#include "crodriguez4.h"
-#include "dice.h"
+#include "include/x11.h"
+#include "include/fonts.h"
+#include "include/crodriguez4.h"
+#include "include/dice.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>

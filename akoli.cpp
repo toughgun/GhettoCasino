@@ -13,13 +13,13 @@
 #include <GL/glx.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include "fonts.h"
+#include "include/fonts.h"
 #include "time.h"
-#include "phil_funcs.h"
-#include "image.h"
-#include "reel.h"
-#include "global.h"
-#include "x11.h"
+#include "include/phil_funcs.h"
+#include "include/image.h"
+#include "include/reel.h"
+#include "include/global.h"
+#include "include/x11.h"
 #include <vector>
 #include <iostream>
 #include <math.h>
@@ -275,9 +275,9 @@ bool initGLTexture(const char *name, GLuint *addr)
 
 int loadGLTextures()
 {
-	initGLTexture("cyl_side_tex.png", &cylinder_side_tex);
-	initGLTexture("cyl_spinner_tex.png", &cylinder_spinner_tex);
-	initGLTexture("reels_tex.png", &reels_tex);
+	initGLTexture("images/cyl_side_tex.png", &cylinder_side_tex);
+	initGLTexture("images/cyl_spinner_tex.png", &cylinder_spinner_tex);
+	initGLTexture("images/reels_tex.png", &reels_tex);
 
 	return 1;
 }
