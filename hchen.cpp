@@ -269,115 +269,68 @@ void playBJ()
     drawBJShoe(g.xres / 1.13, g.yres / 1.77, 0, 3, 3, 1.0, 1.0, 1.0);
     initFirstHand();
 
-    //bj.playerTurn = true;
-    if (bj.playerBust == true || bj.dealerBust == true) {
+    if (bj.playerBust || bj.dealerBust) {
         dealerHandrecheck();
         playerHandrecheck();
         bjPayout();
     }
-    // animation here
-    // checkDealerHand();
 }
+
 void hit()
 {
-    if (bj.dealerTurn == true) {
-        bj.dealerHand[bj.dTotalCards - 1] = bj.shoe[bj.shoeCardNum];
-        dealerHands(bj.shoeCardNum);
+    if (bj.dealerTurn) {
+        Card newCard = bj.shoe[bj.shoeCardNum++];
+        bj.dealerHand[bj.dTotalCards++] = newCard.value;
+        bj.dealerHandTotal += (newCard.value > 10) ? 10 : (newCard.value == 1 ? 11 : newCard.value);
     }
-    if (bj.playerTurn == true) {
-        bj.playerHand[bj.dTotalCards - 1] = bj.shoe[bj.shoeCardNum];
-        playerHands(bj.shoeCardNum);
+    if (bj.playerTurn) {
+        Card newCard = bj.shoe[bj.shoeCardNum++];
+        bj.playerHand[bj.pTotalCards++] = newCard.value;
+        bj.playerHandTotal += (newCard.value > 10) ? 10 : (newCard.value == 1 ? 11 : newCard.value);
     }
 }
+
 void dealerHands(int x)
 {
-    //checks if ACE was card
-    if (bj.shoe[x] != 1) {
-        //if not ace, checks if jack, queen, king
-        if (bj.shoe[x] == 11 || bj.shoe[x] == 12 || bj.shoe[x] == 13) {
-            bj.dealerHand[bj.shoe[x]] =+ bj.shoe[x];
-            bj.dealerHandTotal =+ 10;
-        } else {
-            bj.dealerHand[bj.shoe[x]] =+ bj.shoe[x];
-            bj.dealerHandTotal =+ bj.shoe[x];
-        }
-    } else {
-        if (bj.dealerHandTotal + bj.shoe[x] <= 21)
-            bj.dealerHandTotal =+ bj.shoe[x];
-        else
-            bj.dealerHandTotal =+ 1;
-    }
+    int value = bj.shoe[x].value;
+    bj.dealerHandTotal += (value > 10) ? 10 : (value == 1 ? 11 : value);
 }
+
+void playerHands(int x)
+{
+    int value = bj.shoe[x].value;
+    bj.playerHandTotal += (value > 10) ? 10 : (value == 1 ? 11 : value);
+}
+
 void dealerHandrecheck()
 {
-    //recheck if game end & dealer has ace for greater total
-    if (bj.dealerHand[1] > 1) {
-        if (bj.dealerHandTotal < 21 && bj.dealerHandTotal + 10 <= 21)
-            bj.dealerHandTotal =+ 10;
-    }// might delete above
     for (int i = 0; i < 5; i++) {
-        //looks for higher total under 21
         if (bj.dealerHand[i] == 1 && bj.dealerHandTotal + 10 <= 21) {
-            bj.dealerHandTotal =+ 10;
+            bj.dealerHandTotal += 10;
         }
-        //looks to lower total if over 21
-        if (bj.dealerHandTotal > 21) {
-            if (bj.dealerHand[i] == 1) {
-                bj.dealerHandTotal =- 10;
-            }
+        if (bj.dealerHandTotal > 21 && bj.dealerHand[i] == 1) {
+            bj.dealerHandTotal -= 10;
         }
     }
 }
-void dealerCheckHand() // checks dealers first 2 cards
+
+void playerHandrecheck()
 {
-    //offer insurence
-    //if (bj.dealerHand[0] == 1) {
-    //    insureRender == true;
-    //}
-    //dealer 2 card 21, player bust
+    for (int i = 0; i < 5; i++) {
+        if (bj.playerHand[i] == 1 && bj.playerHandTotal + 10 <= 21) {
+            bj.playerHandTotal += 10;
+        }
+        if (bj.playerHandTotal > 21 && bj.playerHand[i] == 1) {
+            bj.playerHandTotal -= 10;
+        }
+    }
+}
+
+void dealerCheckHand()
+{
     if (bj.dealerHand[0] == 10 && bj.dealerHand[1] == 1) {
         bj.playerBust = true;
     }
-}
-void playerHands(int x)
-{
-    //checks if ACE was card
-    if (bj.shoe[x] != 1) {
-        //if not ace, checks for jack, queen, king
-        if (bj.shoe[x] == 11 || bj.shoe[x] == 12 || bj.shoe[x] == 13) {
-            bj.playerHand[bj.shoe[x]] =+ bj.shoe[x];
-            bj.dealerHandTotal =+ 10;
-        } else {
-            bj.playerHand[bj.shoe[x]] =+ bj.shoe[x];
-            bj.playerHandTotal =+ bj.shoe[x];
-        }
-    } else {
-        if (bj.playerHandTotal + bj.shoe[x] <= 21)
-            bj.playerHandTotal =+  11;
-        else
-            bj.playerHandTotal =+ 1;
-    }
-}
-void playerHandrecheck()
-{
-    //recheck if game end & player has ace for greater total
-    if (bj.playerHand[1] > 1) {
-        if (bj.playerHandTotal < 21 && bj.playerHandTotal + 10 <= 21)
-            bj.playerHandTotal =+ 10;
-    }// might delete above
-    for (int i = 0; i < 5; i++) {
-        //looks for higher total under 21
-        if (bj.playerHand[i] == 1 && bj.playerHandTotal + 10 <= 21) {
-            bj.playerHandTotal =+ 10;
-        }
-        //looks to lower total if over 21
-        if (bj.playerHandTotal > 21) {
-            if (bj.playerHand[i] == 1) {
-                bj.playerHandTotal =- 10;
-            }
-        }
-    }
-
 }
 void bjPayout()
 {

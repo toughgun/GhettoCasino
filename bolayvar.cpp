@@ -3,6 +3,7 @@
 //
 #include "include/blackjack.h"
 #include "include/button.h"
+#include "include/dice.h"
 #include "include/fonts.h"
 #include "include/global.h"
 #include "include/hchen_functions.h"
@@ -13,14 +14,12 @@
 #include <ctime>
 #include <iostream>
 #include <random>
-#include "include/dice.h"
-
 
 using namespace std;
 
 typedef default_random_engine randomize;
-extern Dice dice;
-#define bettingUIActive  (dice.bettingUIActive)
+extern Dice                   dice;
+#define bettingUIActive (dice.bettingUIActive)
 
 Blackjack bj;
 //=============BEGIN DRAW MENU STUFF==========================================
@@ -545,105 +544,60 @@ void dimBackground()
 }
 void initShoe()
 {
-    if (bj.shuffled) {
+    if (bj.shuffled)
         return;
-    }
 
     int cardpos = 0;
-    // Add 24 of each card value 1–9
-    // 4 cards of each value in a deck
-    // * 6 decks in a shoe
-    for (int value = 1; value <= 9; ++value) {
-        for (int count = 0; count < 24; ++count) {
-            bj.shoe[cardpos++] = value;
+
+    // Create 6 decks (6 × 52 = 312 cards)
+    for (int deck = 0; deck < 6; ++deck) {
+        for (int suit = 0; suit < 4; ++suit) {
+            for (int value = 1; value <= 13; ++value) {
+                bj.shoe[cardpos].value = value;
+                bj.shoe[cardpos].suit  = suit;
+                cardpos++;
+            }
         }
     }
 
-    // Add 96 tens (10, J, Q, K all worth 10)
-    // 4 cards of each value in a deck, so 16
-    // * 6 decks in a shoe
-    for (int count = 0; count < 96; ++count) {
-        bj.shoe[cardpos++] = 10;
-    }
+    // Shuffle the shoe
+    std::shuffle(bj.shoe, bj.shoe + bj.maxCards,
+                 std::default_random_engine(time(NULL)));
+    std::cout << "[BLACKJACK] Shoe initialized and shuffled.\n";
 
-    // shuffle the shoe
-    shuffle(bj.shoe, bj.shoe + bj.maxCards, randomize(time(NULL)));
-    cout << "[BLACKJACK] CARDS SHUFFLED, READY TO PLAY" << endl;
-
-    // set the maker to indicate when to shuffle
+    // Set marker
     bj.marker = rand() % 62 + 218;
-    cout << "Marker set At: " << bj.marker << endl;
-
-    // debugging
-    for (int i = 0; i < bj.maxCards; ++i) {
-        cout << bj.shoe[i] << " ";
-    }
-    cout << endl;
-    // TODO: ADD LOGIC FOR ACES
-    //       CAN BE 11 OR 1
-
-    // TODO: ADD LOGIC FOR GAMEPLAY
-    //  SPLIT, DOUBLE, DOUBLE FOR LESS, BLACKJACK
-
-    // PAYOUT 1:1
-    // BLACK JACK PAYOUT 3:2
-    // INSURENCE PAYOUT 2:1
-    // DEALER MUST HIT ON SOFT 17
+    std::cout << "Marker set at: " << bj.marker << std::endl;
 
     bj.shuffled = true;
     bj.showUI   = true;
 }
-void insuranceScam()
-{
-    // Animation and Logic for insurance here
-}
-void checkDealerHand()
-{
-    // If dealer pulls 10 first, dealer always checks to see if they have 21
-    if (bj.dealerHand[0] == 10 && bj.dealerHand[1] == 1) {
-        // Place animation for 10 and Ace here
-
-        bj.wait = true;
-        // debugging
-        cout << "DEALER WINS. 21 BJ" << endl;
-        g.currentBet = 0;
-        bj.showUI    = !bj.showUI;
-    }
-
-    // If dealer pulls Ace first, offer insurence
-    for (int i = 0; i < bj.dealerHandTotal; i++) {
-        if (bj.dealerHand[i] == 1) {
-        }
-    }
-    if (bj.dealerHand[0] == 1) {
-        insuranceScam();
-    }
-}
 void initFirstHand()
 {
     if (!bj.initialhand) {
-        bj.discard[0] = bj.shoe[0];
-        bj.shoe[0]    = 0;
+        bj.discard[0] = bj.shoe[bj.currentPos];
         bj.currentPos++;
     }
+
     bj.initialhand = true;
-    bj.playerTurn = true;
-    
+    bj.playerTurn  = true;
+
+    // Deal two cards to player and dealer
     for (int i = 0; i < 2; i++) {
-        bj.playerHand[i] = bj.shoe[bj.currentPos];
-        bj.playerHandTotal += bj.shoe[bj.currentPos];
-        bj.currentPos++;
-        bj.dealerHand[i] = bj.shoe[bj.currentPos];
-        bj.dealerHandTotal += bj.shoe[bj.currentPos];
-        bj.currentPos++;
+        Card pCard       = bj.shoe[bj.currentPos++];
+        Card dCard       = bj.shoe[bj.currentPos++];
+        bj.playerHand[i] = pCard.value;
+        bj.dealerHand[i] = dCard.value;
+
+        // Face cards (J, Q, K) are worth 10
+        bj.playerHandTotal += (pCard.value > 10) ? 10 : pCard.value;
+        bj.dealerHandTotal += (dCard.value > 10) ? 10 : dCard.value;
     }
+
     printf("Dealer: %d %d\nPlayer: %d %d\n", bj.dealerHand[0], bj.dealerHand[1],
            bj.playerHand[0], bj.playerHand[1]);
 }
-void bjHit()
-{
-    // Logic and Animation for Hit Here
-}
+
 void showUI(int xx)
 {
     drawBJBackground(0.5, 0.5, 0.5);
@@ -691,9 +645,8 @@ void handleBlackJackGame(int x)
     }
     if (bj.showUI) {
         showUI(x);
-        drawCard(12, 0, g.xres / 2, g.yres / 2);
+        // drawCard(12, 0, g.xres / 2, g.yres / 2);
     } else {
-        playBlackJack();
     }
 }
 void handleBlackJackKeys(int x)
@@ -703,7 +656,7 @@ void handleBlackJackKeys(int x)
     if (bj.delt && !bj.wait) {
         switch (x) {
         case XK_space:
-            bjHit();
+            // bjHit();
             break;
 
         case XK_d || XK_D:

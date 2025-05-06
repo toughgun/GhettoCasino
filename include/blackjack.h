@@ -1,6 +1,11 @@
 #ifndef BLACKJACK_H
 #define BLACKJACK_H
 
+struct Card {
+    int value; // 1–13 (Ace to King)
+    int suit;  // 0–3 (Clubs, Diamonds, Hearts, Spades)
+};
+
 class Blackjack {
   public:
     int  maxCards;
@@ -10,8 +15,8 @@ class Blackjack {
     int  betarraypointer;
     int  playerHandTotal, dealerHandTotal;
     int  currentPos;
-    int  shoe[312];
-    int  discard[300];
+    Card shoe[312];
+    Card discard[300]; 
     int  marker;
     bool shuffled;
     bool delt;
