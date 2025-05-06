@@ -3,7 +3,6 @@
 //
 #include "include/blackjack.h"
 #include "include/button.h"
-#include "include/dice.h"
 #include "include/fonts.h"
 #include "include/global.h"
 #include "include/hchen_functions.h"
@@ -14,12 +13,14 @@
 #include <ctime>
 #include <iostream>
 #include <random>
+#include "include/dice.h"
+
 
 using namespace std;
 
 typedef default_random_engine randomize;
-extern Dice                   dice;
-#define bettingUIActive (dice.bettingUIActive)
+extern Dice dice;
+#define bettingUIActive  (dice.bettingUIActive)
 
 Blackjack bj;
 //=============BEGIN DRAW MENU STUFF==========================================
@@ -544,8 +545,7 @@ void dimBackground()
 }
 void initShoe()
 {
-    if (bj.shuffled)
-        return;
+    if (bj.shuffled) return;
 
     int cardpos = 0;
 
@@ -561,8 +561,7 @@ void initShoe()
     }
 
     // Shuffle the shoe
-    std::shuffle(bj.shoe, bj.shoe + bj.maxCards,
-                 std::default_random_engine(time(NULL)));
+    std::shuffle(bj.shoe, bj.shoe + bj.maxCards, std::default_random_engine(time(NULL)));
     std::cout << "[BLACKJACK] Shoe initialized and shuffled.\n";
 
     // Set marker
@@ -570,7 +569,7 @@ void initShoe()
     std::cout << "Marker set at: " << bj.marker << std::endl;
 
     bj.shuffled = true;
-    bj.showUI   = true;
+    bj.showUI = true;
 }
 void initFirstHand()
 {
@@ -580,12 +579,12 @@ void initFirstHand()
     }
 
     bj.initialhand = true;
-    bj.playerTurn  = true;
+    bj.playerTurn = true;
 
     // Deal two cards to player and dealer
     for (int i = 0; i < 2; i++) {
-        Card pCard       = bj.shoe[bj.currentPos++];
-        Card dCard       = bj.shoe[bj.currentPos++];
+        Card pCard = bj.shoe[bj.currentPos++];
+        Card dCard = bj.shoe[bj.currentPos++];
         bj.playerHand[i] = pCard.value;
         bj.dealerHand[i] = dCard.value;
 
@@ -594,8 +593,9 @@ void initFirstHand()
         bj.dealerHandTotal += (dCard.value > 10) ? 10 : dCard.value;
     }
 
-    printf("Dealer: %d %d\nPlayer: %d %d\n", bj.dealerHand[0], bj.dealerHand[1],
-           bj.playerHand[0], bj.playerHand[1]);
+    printf("Dealer: %d %d\nPlayer: %d %d\n",
+        bj.dealerHand[0], bj.dealerHand[1],
+        bj.playerHand[0], bj.playerHand[1]);
 }
 
 void showUI(int xx)
@@ -645,8 +645,9 @@ void handleBlackJackGame(int x)
     }
     if (bj.showUI) {
         showUI(x);
-        // drawCard(12, 0, g.xres / 2, g.yres / 2);
+        //drawCard(12, 0, g.xres / 2, g.yres / 2);
     } else {
+        
     }
 }
 void handleBlackJackKeys(int x)
@@ -656,7 +657,7 @@ void handleBlackJackKeys(int x)
     if (bj.delt && !bj.wait) {
         switch (x) {
         case XK_space:
-            // bjHit();
+            //bjHit();
             break;
 
         case XK_d || XK_D:
