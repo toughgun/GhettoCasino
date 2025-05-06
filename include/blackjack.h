@@ -16,7 +16,7 @@ class Blackjack {
     int  playerHandTotal, dealerHandTotal;
     int  currentPos;
     Card shoe[312];
-    Card discard[300]; 
+    Card discard[300];
     int  marker;
     bool shuffled;
     bool delt;
@@ -30,6 +30,8 @@ class Blackjack {
     bool playerTurn;
     bool dealerBust;
     bool playerBust;
+    bool playerStand;
+    bool dealFirstHand;
     int pTotalCards;
     int dTotalCards;
     int shoeCardNum;
@@ -63,6 +65,8 @@ class Blackjack {
         dDown           = false;
         dealerBust      = false;
         playerBust      = false;
+        playerStand     = false;
+        dealFirstHand   = false;
         pTotalCards     = 0;
         dTotalCards     = 0;
         shoeCardNum     = 0;
@@ -72,4 +76,3 @@ class Blackjack {
 extern Blackjack bj;
 
 #endif
-
