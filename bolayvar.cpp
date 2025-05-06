@@ -655,6 +655,7 @@ void handleBlackJackGame(int x)
         showUI(x);
         //drawCard(12, 0, g.xres / 2, g.yres / 2);
     } else {
+        playBJ();
         
     }
 }
