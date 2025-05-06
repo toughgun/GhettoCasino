@@ -269,37 +269,77 @@ void playBJ()
     drawBJShoe(g.xres / 1.13, g.yres / 1.77, 0, 3, 3, 1.0, 1.0, 1.0);
     initFirstHand();
 
-    if (bj.playerBust || bj.dealerBust) {
+    //bj.pTotalCards =+ 2;
+    //bj.dTotalCards =+ 2;
+    //cout << bj.pTotalCards << "<-player total cards "
+      //  << bj.dTotalCards << "<-dealer total cards\n";
+
+    if (bj.dealerTurn == true) {
+        dealerPlay();
+        bj.dealerTurn = false;
+        if (bj.playerStand == false) {
+            bj.playerTurn = true;
+        }
+    }
+    //checks for bust and does payout & resets values
+    if (bj.playerBust == true || bj.dealerBust == true
+            || bj.pTotalCards == 5 || bj.dTotalCards == 5) {
         dealerHandrecheck();
         playerHandrecheck();
         bjPayout();
+        bj.playerBust = false;
+        bj.dealerBust = false;
+        bj.pTotalCards = 0;
+        bj.dTotalCards = 0;
+        bj.playerStand = false;
+        bj.dealFirstHand = false;
+        standRender = true;
+        hitRender = true;
+        doubleRender = true;
     }
+
 }
 
 void hit()
 {
     if (bj.dealerTurn) {
+        cout << "dealer hit\n";
         Card newCard = bj.shoe[bj.shoeCardNum++];
         bj.dealerHand[bj.dTotalCards++] = newCard.value;
-        bj.dealerHandTotal += (newCard.value > 10) ? 10 : (newCard.value == 1 ? 11 : newCard.value);
+        bj.dealerHandTotal += (newCard.value > 10)
+                    ? 10 : (newCard.value == 1 ? 11 : newCard.value);
+        bj.dTotalCards++;
+        cout << bj.dTotalCards <<"<-dealer current total cards\n";
     }
     if (bj.playerTurn) {
+        cout << " player hit\n";
         Card newCard = bj.shoe[bj.shoeCardNum++];
         bj.playerHand[bj.pTotalCards++] = newCard.value;
-        bj.playerHandTotal += (newCard.value > 10) ? 10 : (newCard.value == 1 ? 11 : newCard.value);
+        bj.playerHandTotal += (newCard.value > 10)
+                    ? 10 : (newCard.value == 1 ? 11 : newCard.value);
+        bj.pTotalCards++;
+        cout << bj.pTotalCards <<"<- player current total cards\n";
     }
 }
-
+void dealerPlay()
+{
+    if (bj.dealerHandTotal <= 17) {
+        cout << "dealer total 17 or under, dealer hit\n";
+        hit();
+    }
+}
 void dealerHands(int x)
 {
     int value = bj.shoe[x].value;
     bj.dealerHandTotal += (value > 10) ? 10 : (value == 1 ? 11 : value);
+    cout << bj.dealerHandTotal << "dealer current hand value\n";
 }
 
 void playerHands(int x)
 {
     int value = bj.shoe[x].value;
     bj.playerHandTotal += (value > 10) ? 10 : (value == 1 ? 11 : value);
+    cout << bj.playerHandTotal << "player current hand value\n";
 }
 
 void dealerHandrecheck()
@@ -334,35 +374,8 @@ void dealerCheckHand()
 }
 void bjPayout()
 {
-    //double down bet
-    if (bj.dDown == true) {
-        g.currentBet = g.currentBet * 2;
-        if ((bj.playerHandTotal <= 21 &&
-                    bj.playerHandTotal > bj.dealerHandTotal)
-                || bj.playerHandTotal == 21) {
-            g.currency =+ g.currentBet * 2;
-        } else {
-            g.currency =- g.currentBet;
-        }
-        //bj.dDown == false;
-    }
-
-    //player win
-    if ((bj.playerHandTotal <= 21
-                && bj.playerHandTotal > bj.dealerHandTotal)
-            || bj.playerHandTotal == 21) {
-        g.currency =+ g.currentBet;
-        //dealer wins with 21 /  player bust  / dealer > player
-    } else if (bj.dealerHandTotal == 21 || bj.playerHandTotal > 21
-            || bj.dealerHandTotal > bj.playerHandTotal) {
-        g.currency =- g.currentBet;
-    } else if (bj.dealerHandTotal == 21 && bj.insure == true) {
-        //insure
-        g.currency =+ g.currentBet;
-    }
     int payoutType = 0;
     if (bj.dDown == true) {
-        g.currentBet = g.currentBet * 2;
         payoutType = 1;
     }
     if (bj.insure == true) {
@@ -418,9 +431,10 @@ void bjPayout()
 }
 bool hitRender = true;
 bool standRender = true;
+bool doubleRender = true;
 void bjButtonRender()
 {
-    if (bj.dDown == false && bj.playerTurn == true) {
+    if (bj.dDown == false && bj.playerTurn == true && doubleRender == true) {
         renderDoubleButton();
     }
     if (bj.playerTurn == true && hitRender == true) {
@@ -435,8 +449,10 @@ void bjButtonClick(int x, int y)
 {
     //double down button
     if (x > 1095 && x < 1243 && y > 525 && y < 570) {
-        cout << "downdown pressed\n";
+        g.currentBet = g.currentBet * 2;
+        printf("downdown pressed Bet is now: %i\n", g.currentBet);
         bj.dDown = true;
+        doubleRender = false;
     }
     //hit button
     if (x > 1095 && x < 1243 && y > 405 && y < 450) {
@@ -445,11 +461,9 @@ void bjButtonClick(int x, int y)
             hit();
             bj.playerTurn = false;
             bj.dealerTurn = true;
-        }//change this to else
-        if (bj.dealerTurn == true) {
-            hit();
-            bj.dealerTurn = false;
-            bj.playerTurn = true;
+            cout <<"Hit Pressed playerturn == " <<bj.playerTurn
+                << " dealerTurn == " << bj.dealerTurn << endl;
+            printf("playerTurn is %d\n", bj.playerTurn);
         }
     }
     //stand button
@@ -458,13 +472,10 @@ void bjButtonClick(int x, int y)
         if (bj.playerTurn == true) {
             standRender = false;
             hitRender = false;
+            doubleRender = false;
             bj.playerTurn = false;
             bj.dealerTurn = true;
         }// change this to else
-        if (bj.dealerTurn == true) {
-            bj.dealerTurn = false;
-            bj.playerTurn = true;
-        }
     }
     //black jack infomation button
     if (x > 1160 && x < 1240 && y > 670 && y < 695) {
@@ -507,7 +518,7 @@ void bjInfo()
     ggprint8b(&r, 16, 0xffffff, "If dealer gets 2 card blackjack");
     ggprint8b(&r, 16, 0xffffff, "You will not lose your money");
     ggprint8b(&r, 16, 0xffffff,
-                        "Or you will get double ur money or something");
+            "Or you will get double ur money or something");
     glPopMatrix();
 }
 void renderDoubleButton()
