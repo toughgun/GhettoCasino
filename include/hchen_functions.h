@@ -20,9 +20,13 @@ extern void playerHands(int x);
 extern void dealerCheckHand();
 extern void dealerHandrecheck();
 extern void playerHandrecheck();
+extern void checkDealerBust();
+extern void checkPlayerBust();
+extern void dealerPlay();
 extern void bjPayout();
 extern bool standRender;
 extern bool hitRender;
+extern bool doubleRender;
 
 extern bool renderBJInfo;
 extern void bjButtonRender();
