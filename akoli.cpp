@@ -489,10 +489,8 @@ void X11_wrapper::swapBuffers()
 void updateBlinkState()
 {
     time_t current_time = time(nullptr);
-    if (difftime(current_time, last_blink_time) >= 0.10) {
-        blink_state = !blink_state;
-        last_blink_time = current_time;
-    }
+    blink_state = !blink_state;
+    last_blink_time = current_time;
 }
 
 int draw(GLvoid)
