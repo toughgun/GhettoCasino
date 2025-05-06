@@ -44,13 +44,12 @@ extern Dice dice;
 
 Global g;
 bool reelsInitialized = false;
-Image img[12] = { "menu_bg.png",   "menu_button.png",
-                "logo.png",      "menu_bg_devscreen.png",
-                "slot_face.png", "blackjacktable.png",
-                "chipSheet.png", "shoe.png",
-                "reelFaceSheet.png", "cardsSheet.png",
-                "cup.png", "dicetable.png",
-                };
+Image img[11] = { "images/menu_bg.png",   "images/menu_button.png",
+                "images/logo.png",      "images/slot_face.png", 
+                "images/blackjacktable.png", "images/chipSheet.png",
+                "images/shoe.png", "images/reelFaceSheet.png", 
+                "images/cardsSheet.png", "images/cup.png", 
+                "images/dicetable.png" };
 class X11_wrapper {
   private:
     Display*   dpy;
@@ -305,15 +304,14 @@ void init_opengl(void)
     g.tex.backImage   = &img[0];
     g.tex.buttonImage = &img[1];
     g.tex.menuLogo    = &img[2];
-    g.tex.devImage    = &img[3];
-    g.tex.slotImage   = &img[4];
-    g.tex.bjImage     = &img[5];
-    g.tex.chipImage   = &img[6];
-    g.tex.shoeImage   = &img[7];
-    g.tex.reelImage   = &img[8];
-    g.tex.cardImage   = &img[9];
-    g.tex.cupImage    = &img[10];
-    g.tex.diceImage   = &img[11];
+    g.tex.slotImage   = &img[3];
+    g.tex.bjImage     = &img[4];
+    g.tex.chipImage   = &img[5];
+    g.tex.shoeImage   = &img[6];
+    g.tex.reelImage   = &img[7];
+    g.tex.cardImage   = &img[8];
+    g.tex.cupImage    = &img[9];
+    g.tex.diceImage   = &img[10];
     //
     // create menu logo
     glGenTextures(1, &g.tex.menulogotex);
@@ -368,7 +366,7 @@ void init_opengl(void)
     glBindTexture(GL_TEXTURE_2D, g.tex.shoetex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    unsigned char* shoe = buildAlphaData(&img[7]);
+    unsigned char* shoe = buildAlphaData(&img[6]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  shoe);
     free(shoe);
@@ -380,7 +378,7 @@ void init_opengl(void)
     glBindTexture(GL_TEXTURE_2D, g.tex.slottex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    unsigned char* slotface = buildAlphaData(&img[4]);
+    unsigned char* slotface = buildAlphaData(&img[3]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  slotface);
     //
@@ -415,7 +413,7 @@ void init_opengl(void)
     glBindTexture(GL_TEXTURE_2D, g.tex.chiptex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    unsigned char* chip = buildAlphaData(&img[6]);
+    unsigned char* chip = buildAlphaData(&img[5]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  chip);
     free(chip);
@@ -427,7 +425,7 @@ void init_opengl(void)
     glBindTexture(GL_TEXTURE_2D, g.tex.reeltex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    unsigned char* reel = buildAlphaData(&img[8]);
+    unsigned char* reel = buildAlphaData(&img[7]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  reel);
     free(reel);
@@ -439,7 +437,7 @@ void init_opengl(void)
     glBindTexture(GL_TEXTURE_2D, g.tex.cardtex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    unsigned char* card = buildGreyAlphaData(&img[9]);
+    unsigned char* card = buildGreyAlphaData(&img[8]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  card);
     free(card);
@@ -582,6 +580,8 @@ void physics()
     switch (gameState) {
     case 2: // black jack
         break;
+    case 4:
+    break;
     }
 }
 
@@ -696,8 +696,8 @@ menu_render:
 			case 4:
             	glClear(GL_COLOR_BUFFER_BIT);
                 handleBlackJackGame(mouseposition);
-		bjButtonRender();
-		bjInfoRender();
+		        bjButtonRender();
+		        bjInfoRender();
 				break;
         }
     }

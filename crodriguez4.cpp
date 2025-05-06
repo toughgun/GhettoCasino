@@ -75,7 +75,7 @@ void updateUIForWindowSize(void)
 /* Load cup.png as RGBA texture into DiceCupTex */
 void loadCupTexture(void)
 {
-    Image cup("cup.png");
+    Image cup("images/cup.png");
     if (!cup.data) {
         fprintf(stderr,"[ERROR] cup.png not found\n");
         return;
@@ -98,7 +98,7 @@ void loadCupTexture(void)
 void loadChipTextures(void)
 /* chips.png == one horizontal strip: blue, green, yellow, red */
 {
-    Image strip("chipSheet.png");          /* 4 × 1 grid  */
+    Image strip("images/chipSheet.png");          /* 4 × 1 grid  */
     if (!strip.data) {
         fprintf(stderr, "[ERROR] chips.png not found\n");
         return;
@@ -131,7 +131,7 @@ void loadChipTextures(void)
 /* Slice diceSheet.png into 4×6 tiles and upload each to diceTex */
 void loadDiceTextures(void)
 {
-    Image sheet("diceSheet.png");              /* 600×900: 4×6 tiles */
+    Image sheet("images/diceSheet.png");              /* 600×900: 4×6 tiles */
     if (!sheet.data) {
         fprintf(stderr, "[ERROR] diceSheet.png not found\n");
         return;
