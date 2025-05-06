@@ -579,9 +579,11 @@ void initFirstHand()
     }
 
     bj.initialhand = true;
-    bj.playerTurn = true;
-
+    if (bj.playerTurn == false && bj.dealerTurn == false) {
+        bj.playerTurn = true;
+    }
     // Deal two cards to player and dealer
+    if (bj.dealFirstHand == false) {
     for (int i = 0; i < 2; i++) {
         Card pCard = bj.shoe[bj.currentPos++];
         Card dCard = bj.shoe[bj.currentPos++];
@@ -592,10 +594,16 @@ void initFirstHand()
         bj.playerHandTotal += (pCard.value > 10) ? 10 : pCard.value;
         bj.dealerHandTotal += (dCard.value > 10) ? 10 : dCard.value;
     }
+    bj.pTotalCards =+ 2;
+    bj.dTotalCards =+ 2;
+    printf("players total cards: %i\n", bj.pTotalCards);
+    printf("dealer total cards: %i\n", bj.dTotalCards);
 
     printf("Dealer: %d %d\nPlayer: %d %d\n",
         bj.dealerHand[0], bj.dealerHand[1],
         bj.playerHand[0], bj.playerHand[1]);
+    bj.dealFirstHand = true;
+    }
 }
 
 void showUI(int xx)
