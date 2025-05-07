@@ -31,6 +31,7 @@ class Blackjack {
     bool dealerBust;
     bool playerBust;
     bool playerStand;
+    bool dealerStand;
     bool dealFirstHand;
     int pTotalCards;
     int dTotalCards;
@@ -66,6 +67,7 @@ class Blackjack {
         dealerBust      = false;
         playerBust      = false;
         playerStand     = false;
+        dealerStand     = false;
         dealFirstHand   = false;
         pTotalCards     = 0;
         dTotalCards     = 0;
