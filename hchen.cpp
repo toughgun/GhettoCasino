@@ -326,14 +326,15 @@ void check2CardBJ()
 }
 void hit()
 {
-    if (bj.dealerTurn && bj.dealerStand == false) {
+    if (bj.dealerTurn && bj.dealerHandTotal <= 17) {
         //cout << "dealer hit\n";
         Card newCard = bj.shoe[bj.shoeCardNum++];
         bj.dealerHand[bj.dTotalCards++] = newCard.value;
         bj.dealerHandTotal += (newCard.value > 10)
                     ? 10 : (newCard.value == 1 ? 11 : newCard.value);
         printf("**DEALER DRAWED %i\n", newCard.value);
-        printf("**DEALER HAND CURRENT TOTAL VALUE: %i**\n", bj.dealerHandTotal);
+        printf("**DEALER HAND CURRENT TOTAL VALUE: %i**\n", 
+                                            bj.dealerHandTotal);
         cout << "**DEALER CURRENT HAND: ";
         for (int i = 0; i < 5; i++) {
             cout << bj.dealerHand[i] << " ";
@@ -350,7 +351,8 @@ void hit()
             sortHands();
             bj.dealerHandTotal = dealerHands();
             if (bj.dealerHandTotal > 21) {
-                printf("Dealer bust current total: %i\n", bj.dealerHandTotal);
+                printf("Dealer bust current total: %i\n", 
+                                                    bj.dealerHandTotal);
                 bj.dealerBust = true;
                 bj.dealerTurn = false;
                 bj.playerTurn = false;
@@ -380,7 +382,8 @@ void hit()
             sortHands();
             bj.playerHandTotal = playerHands();
             if (bj.playerHandTotal > 21) {
-                printf("--PLAYER BUSTED CURRENT TOTAL: %i--\n", bj.playerHandTotal);
+                printf("--PLAYER BUSTED CURRENT TOTAL: %i--\n", 
+                                                    bj.playerHandTotal);
                 bj.playerBust = true;
                 bj.dealerTurn = false;
                 bj.playerTurn = false;
@@ -394,7 +397,7 @@ void hit()
 void dealerPlay()
 {
     if (bj.dealerHandTotal <= 17 && bj.dTotalCards < 5) {
-        cout << "**DEALER CHOOSEN HIT**t\n";
+        cout << "**DEALER CHOOSEN HIT**\n";
         hit();
         bj.dealerTurn = false;
         bj.playerTurn = true;
@@ -493,7 +496,7 @@ void bjPayout()
             printf("--CURRENT CURRENCY: %i--\n", g.currency);
         } else if (bj.dealerHandTotal == bj.playerHandTotal) {
             printf("--DRAW--\n");
-            g.currentBet = 0;
+            g.currency += g.currentBet;
         } else {
             printf("--YOU LOST %i BUCKS--\n", g.currentBet);
             //g.currency -= g.currentBet;
@@ -504,12 +507,15 @@ void bjPayout()
         case 1:
             if (bj.dealerBust == true || (bj.playerHandTotal < 21 
                             && bj.playerHandTotal > bj.dealerHandTotal)) {
-                printf("--YOU WON %i BUCKS--\n", g.currentBet);
-                g.currency += g.currentBet * 2;
+                printf("--YOU WON %i BUCKS--\n", g.currentBet * 2);
+                g.currency += g.currentBet * 3;
                 printf("--CURRENT CURRENCY: %i--\n", g.currency);
+            } else if (bj.dealerHandTotal == bj.playerHandTotal) {
+                printf("--DRAW--");
+                g.currency += g.currentBet;
             } else {
                 printf("--YOU LOST %i BUCKS--\n", g.currentBet);
-                //g.currency -= g.currentBet;
+                g.currency -= g.currentBet;
                 printf("--CURRENT CURRENCY: %i--\n", g.currency);
             }
             bj.dDown = false;
@@ -563,7 +569,8 @@ bool standRender = true;
 bool doubleRender = true;
 void bjButtonRender()
 {
-    if (bj.dDown == false && bj.playerTurn == true && doubleRender == true) {
+    if (bj.dDown == false && bj.playerTurn == true 
+                                && doubleRender == true) {
         renderDoubleButton();
     }
     if (bj.playerTurn == true && hitRender == true) {
@@ -581,14 +588,19 @@ void bjButtonClick(int x, int y)
         if (bj.dDown == false) {
             //g.currentBet = g.currentBet * 2;
             printf("--PLAYER CHOOSEN DOUBLEDOWN BET IS NOW: %i--\n", 
-                                                            g.currentBet);
+                                                     g.currentBet * 2);
             bj.dDown = true;
             doubleRender = false;
             hitRender = false;
             standRender = false;
+            if (bj.playerTurn == true) {
+                hit();
+            }
             bj.playerTurn = false;
-            bj.dealerTurn = true;
-            hit();
+
+            if (bj.dealerStand == false) {
+                bj.dealerTurn = true;
+            }
         }
     }
     //hit button
