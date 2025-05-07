@@ -43,6 +43,9 @@ struct Texture {
     // reel
     Image* reelImage;
     GLuint reeltex;       
+    // t8
+    Image* t8Image;
+    GLuint t8tex;       
     float  xc[2];
     float  yc[2];
 };

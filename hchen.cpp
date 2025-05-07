@@ -225,7 +225,7 @@ void intro_logo()
 void intro_render()
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    if (introplay == 1) {
+    if (introplay == 2) {
         if (!introstart) {
             init_intro_logo();
             start_time = time(nullptr);

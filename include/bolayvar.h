@@ -12,6 +12,7 @@ extern void drawMenuOptions(int x);
 extern void drawButtonTxt();
 extern void beginSlots();
 extern void initBensTexture();
+extern void t8Intro();
 void        beginBJPlay();
 void        handleBlackJackGame(int x);
 void        bjUIClickListener(int savex, int savey);

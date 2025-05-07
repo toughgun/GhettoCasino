@@ -44,12 +44,12 @@ extern Dice dice;
 
 Global g;
 bool reelsInitialized = false;
-Image img[11] = { "images/menu_bg.png",   "images/menu_button.png",
+Image img[] = { "images/menu_bg.png",   "images/menu_button.png",
                 "images/logo.png",      "images/slot_face.png", 
                 "images/blackjacktable.png", "images/chipSheet.png",
                 "images/shoe.png", "images/reelFaceSheet.png", 
                 "images/cardsSheet.png", "images/cup.png", 
-                "images/dicetable.png" };
+                "images/dicetable.png", "images/t8.png" };
 class X11_wrapper {
   private:
     Display*   dpy;
@@ -312,6 +312,7 @@ void init_opengl(void)
     g.tex.cardImage   = &img[8];
     g.tex.cupImage    = &img[9];
     g.tex.diceImage   = &img[10];
+    g.tex.t8Image     = &img[11];
     //
     // create menu logo
     glGenTextures(1, &g.tex.menulogotex);
@@ -442,6 +443,18 @@ void init_opengl(void)
                  card);
     free(card);
     //
+    // create t8
+    glGenTextures(1, &g.tex.t8tex);
+    w = g.tex.t8Image->width;
+    h = g.tex.t8Image->height;
+    glBindTexture(GL_TEXTURE_2D, g.tex.t8tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE,
+                 g.tex.t8Image->data);
+    g.tex.xc[0] = 1.0;
+    g.tex.yc[1] = 1.0;
+    //
     initialize_fonts();
 }
 
@@ -567,7 +580,7 @@ int check_keys(XEvent* e)
             // Out like a light, ayy,
             exit(666);
         }
-        if (key == XK_space && introplay == 1) {
+        if (key == XK_space && introplay == 2) {
             introplay  = 0;
             introstart = false;
         }
@@ -588,6 +601,10 @@ void physics()
 void render()
 {
     if (introplay == 1) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        t8Intro();
+    } else if (introplay == 2) {
+        glClear(GL_COLOR_BUFFER_BIT);
         intro_render();
     } else {
         switch (gameState) {

@@ -13,7 +13,9 @@
 #include <ctime>
 #include <iostream>
 #include <random>
+#include <unistd.h>
 #include "include/dice.h"
+#include "include/x11.h"
 
 
 using namespace std;
@@ -678,6 +680,49 @@ void handleBlackJackKeys(int x)
 //====================END BLACK JACK STUFF====================================
 //
 //====================BEGIN BACKUP SLOT STUFF================================
+void t8Intro()
+{
+    if (introplay == 1) {
+    const int cols = 4;
+    const int rows = 18;
+    const int totalFrames = 75;
+    const float frameW = 1.0f / (float)cols;
+    const float frameH = 1.0f / (float)rows;
+
+    const float epsilon = 0.0000f; // to avoid edge bleed
+
+    for (int frame = 0; frame < totalFrames; ++frame) {
+        int fx = frame % cols;
+        int fy = frame / cols;
+
+        float tx0 = fx * frameW + epsilon;
+        float tx1 = (fx + 1) * frameW - epsilon;
+        float ty0 = fy * frameH + epsilon;
+        float ty1 = (fy + 1) * frameH - epsilon;
+
+        // Setup screen-space orthographic projection
+
+        glClear(GL_COLOR_BUFFER_BIT);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, g.tex.t8tex);
+
+        glColor3f(1.0f, 1.0f, 1.0f);
+
+        glBegin(GL_QUADS);
+            glTexCoord2f(tx0, ty1); glVertex2i(0,        0);
+            glTexCoord2f(tx0, ty0); glVertex2i(0,        g.yres);
+            glTexCoord2f(tx1, ty0); glVertex2i(g.xres,   g.yres);
+            glTexCoord2f(tx1, ty1); glVertex2i(g.xres,   0);
+        glEnd();
+        
+        x11.swapBuffers();
+        usleep(1000000 / 24); // 24 FPS
+    }
+    introplay = 2;
+    }
+    
+}
+
 void drawSlotFace()
 {
     glColor4f(1.0, 1.0, 1.0, 0.9f);
