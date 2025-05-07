@@ -309,10 +309,10 @@ void playBJ()
 }
 void check2CardBJ()
 {
-    if (((bj.dealerHand[0] == 10 && bj.dealerHand[1] == 1) ||
-                (bj.dealerHand[0] == 1 && bj.dealerHand[1] == 10)) &&
-                ((bj.playerHand[0] == 10 && bj.playerHand[1] == 1) ||
-                (bj.playerHand[0] == 1 && bj.playerHand[1] == 10))) {
+    if (((bj.dealerHand[0] >= 10 && bj.dealerHand[1] == 1) ||
+                (bj.dealerHand[0] == 1 && bj.dealerHand[1] >= 10)) &&
+                ((bj.playerHand[0] >= 10 && bj.playerHand[1] == 1) ||
+                (bj.playerHand[0] == 1 && bj.playerHand[1] >= 10))) {
         payoutType = 4;
     }
     if ((bj.dealerHand[0] >= 10 && bj.dealerHand[1] == 1) ||
@@ -359,7 +359,7 @@ void hit()
             }
         }
     }
-    if (bj.playerTurn) {
+    if (bj.playerTurn == true && bj.playerStand == false) {
         //cout << " player hit\n";
         Card newCard = bj.shoe[bj.shoeCardNum++];
         bj.playerHand[bj.pTotalCards++] = newCard.value;
@@ -489,7 +489,7 @@ void bjPayout()
     switch(payoutType) {
         //normal payout/lose
         case 0:
-        if (bj.dealerBust == true || (bj.playerHandTotal < 21 
+        if (bj.dealerBust == true || (bj.playerHandTotal <= 21 
                         && bj.playerHandTotal > bj.dealerHandTotal)) {
             printf("--YOU WON %i BUCKS--\n", g.currentBet);
             g.currency += g.currentBet * 2;
@@ -505,7 +505,7 @@ void bjPayout()
             break;
         //double down
         case 1:
-            if (bj.dealerBust == true || (bj.playerHandTotal < 21 
+            if (bj.dealerBust == true || (bj.playerHandTotal <= 21 
                             && bj.playerHandTotal > bj.dealerHandTotal)) {
                 printf("--YOU WON %i BUCKS--\n", g.currentBet * 2);
                 g.currency += g.currentBet * 3;
@@ -622,8 +622,8 @@ void bjButtonClick(int x, int y)
             standRender = false;
             hitRender = false;
             doubleRender = false;
-            bj.playerStand = true;
             bj.playerTurn = false;
+            bj.playerStand = true;
             if (bj.dealerBust == false){
                 bj.dealerTurn = true;
             }
