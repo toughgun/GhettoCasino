@@ -14,19 +14,22 @@ extern bool introstart;
 extern void intro_text();
 
 extern void playBJ();
+extern void check2CardBJ();
 extern void hit();
-extern void dealerHands(int x);
-extern void playerHands(int x);
+//extern void dealerHands(int x);
+//extern void playerHands(int x);
+//extern void dealerHands();
+//extern void playerHands();
+extern int dealerHands();
+extern int playerHands();
 extern void dealerCheckHand();
-extern void dealerHandrecheck();
-extern void playerHandrecheck();
-extern void checkDealerBust();
-extern void checkPlayerBust();
 extern void dealerPlay();
+extern void sortHands();
 extern void bjPayout();
 extern bool standRender;
 extern bool hitRender;
 extern bool doubleRender;
+extern int payoutType;
 
 extern bool renderBJInfo;
 extern void bjButtonRender();
