@@ -37,6 +37,7 @@ GLUquadricObj *quadratic;	// Storage object
 GLuint cylinder_side_tex;
 GLuint cylinder_spinner_tex;
 GLuint reels_tex;
+GLuint slot_face_tex;
 
 GLfloat L_Ambient[]  = { 0.5f, 0.5f, 0.5f, 1.0f };
 GLfloat L_Diffuse[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -72,6 +73,7 @@ void quit(int retcode)
 	glDeleteTextures(1, &cylinder_side_tex);
 	glDeleteTextures(1, &cylinder_spinner_tex);
 	glDeleteTextures(1, &reels_tex);
+	glDeleteTextures(1, &slot_face_tex);
 	exit(retcode);
 }
 
@@ -261,16 +263,52 @@ void Reel::spin()
 	}
 }
 
+unsigned char* buildAlphaPData(Image* img)
+{
+    int width = img->width;
+    int height = img->height;
+    unsigned char* data = img->data;
+    unsigned char* newdata = (unsigned char*)malloc(width * height * 4);
+    unsigned char* ptr = newdata;
+
+    for (int i = 0; i < width * height * 3; i += 3) {
+        unsigned char r = data[i + 0];
+        unsigned char g = data[i + 1];
+        unsigned char b = data[i + 2];
+
+        *ptr++ = r;
+        *ptr++ = g;
+        *ptr++ = b;
+
+        // Make pure black (0,0,0) transparent, else fully opaque
+        if (r == 0 && g == 0 && b == 0)
+            *ptr++ = 0;
+        else
+            *ptr++ = 255;
+    }
+
+    return newdata;
+}
+
 bool initGLTexture(const char *name, GLuint *addr)
 {
-	surface = loadPNG(name);
-	glGenTextures(1, addr);
-	glBindTexture(GL_TEXTURE_2D, *addr);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, surface->width, surface->height,
-		     0, GL_RGB, GL_UNSIGNED_BYTE, surface->data);
-	return true;
+    Image img(name);
+    if (!img.data) {
+        std::cerr << "Failed to load: " << name << std::endl;
+        return false;
+    }
+
+    unsigned char* rgba = buildAlphaPData(&img);
+
+    glGenTextures(1, addr);
+    glBindTexture(GL_TEXTURE_2D, *addr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width, img.height,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+
+    free(rgba);
+    return true;
 }
 
 int loadGLTextures()
@@ -278,6 +316,7 @@ int loadGLTextures()
 	initGLTexture("images/cyl_side_tex.png", &cylinder_side_tex);
 	initGLTexture("images/cyl_spinner_tex.png", &cylinder_spinner_tex);
 	initGLTexture("images/reels_tex.png", &reels_tex);
+	initGLTexture("images/slot_face.png", &slot_face_tex);
 
 	return 1;
 }
@@ -493,11 +532,61 @@ void updateBlinkState()
     last_blink_time = current_time;
 }
 
+void slotface()
+{
+    glPushMatrix();
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, slot_face_tex);
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, g.xres, 0, g.yres, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 1.0f); glVertex2f(0.0f, 0.0f); // Bottom-left
+        glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f, g.yres); // Top-left
+        glTexCoord2f(1.0f, 0.0f); glVertex2f(g.xres, g.yres); // Top-right
+        glTexCoord2f(1.0f, 1.0f); glVertex2f(g.xres, 0.0f); // Bottom-right
+    glEnd();
+
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+
+    glPopMatrix();
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+
+    glDisable(GL_ALPHA_TEST);
+    glDisable(GL_BLEND);
+}
+
 int draw(GLvoid)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
+
+	gluLookAt(0.0f, 0.10f, 0.60f,  // Camera position
+	          0.0f, 0.0f, 0.0f,  // Look-at point
+	          0.0f, 1.0f, 0.0f); // Up vector
+
 	drawReels();
+	slotface();
 
 	glDisable(GL_LIGHTING);
 	glMatrixMode(GL_PROJECTION);
