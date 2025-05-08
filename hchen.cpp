@@ -241,7 +241,7 @@ void intro_physics()
 
     if (elapsed < 9.0f && elapsed > 1.0f) {
         logoFade += 0.03f;
-        offset = sinf(elapsed * 2.0f) * 0.01f;
+        offset = sinf(elapsed * 2.0f) * 0.0039f;
         g.tex.logo_yc[0] += offset;
         g.tex.logo_yc[1] += offset;
     }
