@@ -327,7 +327,7 @@ int initGL(GLvoid)
 		std::cout << "loadGLTextures() success\n";
 	}
 	glShadeModel(GL_SMOOTH);
-	glClearColor(0.1f, 0.25f, 0.25f, 1.0f);
+	glClearColor(0.0f/255.0f, 87.0f/255.0f, 173.0f/255.0f, 1.0f);
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LINE_SMOOTH);
@@ -603,17 +603,17 @@ int draw(GLvoid)
 	r.bot = g.yres - 30;
 	r.left = 10;
 	r.center = 0;
-	ggprint16(&r, 32, 0x00ffffff, "```Welcome to the Ghetto```");
+	ggprint16(&r, 32, 0x00551705, "```Welcome to the Ghetto```");
 
 	Rect r2;
-	r2.bot = g.yres - 50;
-	r2.left = 10;
+	r2.bot = g.yres - 610;
+	r2.left = 500;
 	r2.center = 0;
 	ggprint16(&r2, 32, 0x00ffffff, "Press SPACE to spin the reels!");
 
 	Rect r3;
-	r3.bot = g.yres - 30;
-	r3.left = 1000;
+	r3.bot = g.yres - 500;
+	r3.left = 1100;
 	r3.center = 0;
 	std::string str_obj = "Chips: " + std::to_string(g.currency);
 	const char* chip_str = str_obj.c_str();
@@ -622,15 +622,15 @@ int draw(GLvoid)
 	if (isWinner) {
 		Rect x1;
 		x1.bot = g.yres - 50;
-		x1.left = 500;
+		x1.left = 473;
 		x1.center = 0;
 		Rect x2;
 		x2.bot = g.yres - 70;
-		x2.left = 500;
+		x2.left = 473;
 		x2.center = 0;
 		Rect x3;
 		x3.bot = g.yres - 90;
-		x3.left = 500;
+		x3.left = 473;
 		x3.center = 0;
 		g.currency += 10;
 		if (blink_state) {
@@ -643,7 +643,7 @@ int draw(GLvoid)
 	else if (Reel::all_stopped()) {
 		Rect x4;
 		x4.bot = g.yres - 50;
-		x4.left = 500;
+		x4.left = 520;
 		x4.center = 0;
 		ggprint16(&x4, 32, 0x00ffff00, "         No se Jose!");
 		if (IRS) {
