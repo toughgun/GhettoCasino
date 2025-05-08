@@ -707,7 +707,6 @@ menu_render:
 
 				if (resultState != IDLE)
 					renderResult();
-			    
                 break;
 
 			case 4:

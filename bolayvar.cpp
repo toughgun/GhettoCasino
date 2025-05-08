@@ -207,21 +207,34 @@ int click(int savex, int savey, int& done)
 }
 int checkhover(int savex, int savey, int mouseposition)
 {
-    if (savex > 490 && savex < 490 + 300 && savey > 250 && savey < 250 + 75) {
-        mouseposition = 1;
-    } else if (savex > 490 && savex < 490 + 300 && savey > 335 &&
-               savey < 335 + 75) {
-        mouseposition = 2;
-    } else if (savex > 490 && savex < 490 + 300 && savey > 425 &&
-               savey < 425 + 75) {
-        mouseposition = 3;
-    } else if (savex > 490 && savex < 490 + 300 && savey > 512 &&
-               savey < 512 + 75) {
-        mouseposition = 4;
-    } else if (savex > 1162 && savex < 1238 && savey > 672 && savey < 696) {
-        mouseposition = 5;
-    } else {
-        mouseposition = 0;
+    if(bj.showUI) {
+        if (savex > 490 && savex < 490 + 300 && savey > 250 && savey < 250 + 75) {
+            mouseposition = 1;
+        } else if (savex > 490 && savex < 490 + 300 && savey > 335 &&
+                savey < 335 + 75) {
+            mouseposition = 2;
+        } else if (savex > 490 && savex < 490 + 300 && savey > 425 &&
+                savey < 425 + 75) {
+            mouseposition = 3;
+        } else if (savex > 490 && savex < 490 + 300 && savey > 512 &&
+                savey < 512 + 75) {
+            mouseposition = 4;
+        } else if (savex > 1162 && savex < 1238 && savey > 672 && savey < 696) {
+            mouseposition = 5;
+        } else {
+            mouseposition = 0;
+        }
+    }
+
+    if (bj.insure) {
+        if (savex > 490 && savex < 490 + 300 && savey > 512 &&
+                savey < 512 + 75) {
+            mouseposition = 4;
+        } else if (savex > 1162 && savex < 1238 && savey > 672 && savey < 696) {
+            mouseposition = 5;
+        } else {
+            mouseposition = 0;
+        }  
     }
     return mouseposition;
 }
@@ -423,84 +436,121 @@ void drawChipText()
     ggprint8b(&r[0], 16, 0xffffff, "5");
     glPopMatrix();
 }
-void drawBetText()
+void drawUIText()
 {
     Rect r[2];
     char betStr[64];
-    // current Bet
-    if (g.currentBet < g.currency) {
+    if (bj.showUI) {
+        // current Bet
+        if (g.currentBet < g.currency) {
+            glPushMatrix();
+            glTranslatef(g.xres / 2, g.yres / 2.745, 0);
+            glScalef(3.5f, 3.5f, 1); // scale up 500%
+            r[0].bot  = 0;
+            r[0].left = 0;
+            sprintf(betStr, "%d", g.currentBet);
+            ggprint8b(&r[0], 16, 0xffffff, betStr);
+            glPopMatrix();
+        } else {
+            glPushMatrix();
+            glTranslatef(g.xres / 2, g.yres / 2.745, 0);
+            glScalef(3.5f, 3.5f, 1); // scale up 500%
+            r[0].bot  = 0;
+            r[0].left = 0;
+            ggprint8b(&r[0], 16, 0xffffff, "ALL IN");
+            glPopMatrix();
+            bj.allIn = true;
+        }
+        // min bet max info
         glPushMatrix();
-        glTranslatef(g.xres / 2, g.yres / 2.745, 0);
-        glScalef(3.5f, 3.5f, 1); // scale up 500%
+        glTranslatef(g.xres / 2, g.yres / 3.1, 0);
+        glScalef(1.5f, 1.5f, 1); // scale up 500%
         r[0].bot  = 0;
         r[0].left = 0;
-        sprintf(betStr, "%d", g.currentBet);
+        sprintf(betStr, "Minimum Bet: 5 | Maxiumum Bet: %d", g.currency);
         ggprint8b(&r[0], 16, 0xffffff, betStr);
         glPopMatrix();
-    } else {
+        // CUrrent balance
         glPushMatrix();
-        glTranslatef(g.xres / 2, g.yres / 2.745, 0);
-        glScalef(3.5f, 3.5f, 1); // scale up 500%
+        glTranslatef(g.xres / 10.53, g.yres / 720, 0);
+        glScalef(5.0f, 5.0f, 1); // scale up 500%
         r[0].bot  = 0;
         r[0].left = 0;
-        ggprint8b(&r[0], 16, 0xffffff, "ALL IN");
+        sprintf(betStr, "%d", g.currency);
+        ggprint8b(&r[0], 16, 0xffffff, betStr);
         glPopMatrix();
-        bj.allIn = true;
-    }
-    // min bet max info
-    glPushMatrix();
-    glTranslatef(g.xres / 2, g.yres / 3.1, 0);
-    glScalef(1.5f, 1.5f, 1); // scale up 500%
-    r[0].bot  = 0;
-    r[0].left = 0;
-    sprintf(betStr, "Minimum Bet: 5 | Maxiumum Bet: %d", g.currency);
-    ggprint8b(&r[0], 16, 0xffffff, betStr);
-    glPopMatrix();
-    // CUrrent balance
-    glPushMatrix();
-    glTranslatef(g.xres / 10.53, g.yres / 720, 0);
-    glScalef(5.0f, 5.0f, 1); // scale up 500%
-    r[0].bot  = 0;
-    r[0].left = 0;
-    sprintf(betStr, "%d", g.currency);
-    ggprint8b(&r[0], 16, 0xffffff, betStr);
-    glPopMatrix();
-    // wallet text
-    glPushMatrix();
-    glTranslatef(g.xres / 10.53, g.yres / 12.53, 0);
-    glScalef(4.0f, 4.0f, 1); // scale up 500%
-    r[0].bot  = 0;
-    r[0].left = 0;
-    ggprint8b(&r[0], 16, 0xffffff, "wallet");
-    glPopMatrix();
+        // wallet text
+        glPushMatrix();
+        glTranslatef(g.xres / 10.53, g.yres / 12.53, 0);
+        glScalef(4.0f, 4.0f, 1); // scale up 500%
+        r[0].bot  = 0;
+        r[0].left = 0;
+        ggprint8b(&r[0], 16, 0xffffff, "wallet");
+        glPopMatrix();
 
-    // play button
-    if (g.currentBet >= 5) {
-        glPushMatrix();
-        glTranslatef(g.xres / 2, g.yres / 4.45, 0);
-        glScalef(5.0f, 5.0f, 1); // scale up 500%
-        r[0].bot  = 0;
-        r[0].left = 0;
-        ggprint8b(&r[0], 16, 0xffffff, "PLAY");
-        glPopMatrix();
-    } else {
-        glPushMatrix();
-        glTranslatef(g.xres / 2, g.yres / 4.45, 0);
-        glScalef(5.0f, 5.0f, 1); // scale up 500%
-        r[0].bot  = 0;
-        r[0].left = 0;
-        ggprint8b(&r[0], 16, 0xc8c8c8, "PLAY");
-        glPopMatrix();
-    }
-    // buttonIdleState(g.xres/2, g.yres/5.5, 0, 8.5, 8.5, 0.7, 0, 0);
-    if (g.currentBet >= 5) {
-        glPushMatrix();
-        glTranslatef(g.xres / 2, g.yres / 6.35, 0);
-        glScalef(3.0f, 3.0f, 1); // scale up 500%
-        r[0].bot  = 0;
-        r[0].left = 0;
-        ggprint8b(&r[0], 16, 0xffffff, "undo");
-        glPopMatrix();
+        // play button
+        if (g.currentBet >= 5) {
+            glPushMatrix();
+            glTranslatef(g.xres / 2, g.yres / 4.45, 0);
+            glScalef(5.0f, 5.0f, 1); // scale up 500%
+            r[0].bot  = 0;
+            r[0].left = 0;
+            ggprint8b(&r[0], 16, 0xffffff, "PLAY");
+            glPopMatrix();
+        } else {
+            glPushMatrix();
+            glTranslatef(g.xres / 2, g.yres / 4.45, 0);
+            glScalef(5.0f, 5.0f, 1); // scale up 500%
+            r[0].bot  = 0;
+            r[0].left = 0;
+            ggprint8b(&r[0], 16, 0xc8c8c8, "PLAY");
+            glPopMatrix();
+        }
+        // buttonIdleState(g.xres/2, g.yres/5.5, 0, 8.5, 8.5, 0.7, 0, 0);
+        if (g.currentBet >= 5) {
+            glPushMatrix();
+            glTranslatef(g.xres / 2, g.yres / 6.35, 0);
+            glScalef(3.0f, 3.0f, 1); // scale up 500%
+            r[0].bot  = 0;
+            r[0].left = 0;
+            ggprint8b(&r[0], 16, 0xffffff, "undo");
+            glPopMatrix();
+        }
+    } else if (bj.insure) {
+            glPushMatrix();
+            glTranslatef(g.xres / 2, g.yres / 4.45, 0);
+            glScalef(5.0f, 5.0f, 1); // scale up 500%
+            r[0].bot  = 0;
+            r[0].left = 0;
+            ggprint8b(&r[0], 16, 0xc8c8c8, "YES");
+            glPopMatrix();
+            // show current bet
+            glPushMatrix();
+            glTranslatef(g.xres / 2, g.yres / 2.745, 0);
+            glScalef(3.5f, 3.5f, 1); // scale up 500%
+            r[0].bot  = 0;
+            r[0].left = 0;
+            sprintf(betStr, "%d", g.currentBet);
+            ggprint8b(&r[0], 16, 0xffffff, betStr);
+            glPopMatrix();
+            // CUrrent balance
+            glPushMatrix();
+            glTranslatef(g.xres / 10.53, g.yres / 720, 0);
+            glScalef(5.0f, 5.0f, 1); // scale up 500%
+            r[0].bot  = 0;
+            r[0].left = 0;
+            sprintf(betStr, "%d", g.currency);
+            ggprint8b(&r[0], 16, 0xffffff, betStr);
+            glPopMatrix();
+            // wallet text
+            glPushMatrix();
+            glTranslatef(g.xres / 10.53, g.yres / 12.53, 0);
+            glScalef(4.0f, 4.0f, 1); // scale up 500%
+            r[0].bot  = 0;
+            r[0].left = 0;
+            ggprint8b(&r[0], 16, 0xffffff, "wallet");
+            glPopMatrix();
+
     }
 }
 void drawBJShoe(int x, int y, int z, float xScale, float yScale, float r,
@@ -601,8 +651,8 @@ void initFirstHand()
     printf("players total cards: %i\n", bj.pTotalCards);
     printf("dealer total cards: %i\n", bj.dTotalCards);
 
-    printf("Dealer: %d %d\nPlayer: %d %d\n",
-        bj.dealerHand[0], bj.dealerHand[1],
+    printf("Dealer: %d \nPlayer: %d %d\n",
+        bj.dealerHand[0],
         bj.playerHand[0], bj.playerHand[1]);
     bj.dealFirstHand = true;
     }
@@ -610,34 +660,50 @@ void initFirstHand()
 
 void showUI(int xx)
 {
-    drawBJBackground(0.5, 0.5, 0.5);
-    drawBJShoe(g.xres / 1.13, g.yres / 1.77, 0, 3, 3, 0.5, 0.5, 0.5);
-    drawChipsFull(g.xres / 2, g.yres / 1.82, 0, 5, 5);
-    drawChipText();
-    buttonIdleState(g.xres / 2, g.yres / 2.53, 0, 4, 6, 0, 0, 0); // black bet
-    buttonIdleState(g.xres / 10.53, g.yres / 24, 0, 5.5, 5, 0, 0,
-                    0); // black wallet
+    if (bj.showUI && !bj.insure) {
+        drawBJBackground(0.5, 0.5, 0.5);
+        drawBJShoe(g.xres / 1.13, g.yres / 1.77, 0, 3, 3, 0.5, 0.5, 0.5);
+        drawChipsFull(g.xres / 2, g.yres / 1.82, 0, 5, 5);
+        drawChipText();
+        buttonIdleState(g.xres / 2, g.yres / 2.53, 0, 4, 6, 0, 0, 0); // black bet
+        buttonIdleState(g.xres / 10.53, g.yres / 24, 0, 5.5, 5, 0, 0,
+                        0); // black wallet
 
-    // play button
-    if (g.currentBet >= 5) {
-        if (xx == 6) {
-            buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 1.0, 0);
+        // play button
+        if (g.currentBet >= 5) {
+            if (xx == 6) {
+                buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 1.0, 0);
+            } else {
+                buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 0.75, 0);
+            }
         } else {
-            buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 0.75, 0);
+            buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 0.5, 0);
         }
-    } else {
-        buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0, 0.5, 0);
+
+        // undo button
+        if (g.currentBet >= 5) {
+            if (xx == 7) {
+                buttonIdleState(g.xres / 2, g.yres / 5.5, 0, 8.5, 8.5, 1.0, 0, 0);
+            } else {
+                buttonIdleState(g.xres / 2, g.yres / 5.5, 0, 8.5, 8.5, 0.75, 0, 0);
+            }
+        }
     }
 
-    // undo button
-    if (g.currentBet >= 5) {
-        if (xx == 7) {
-            buttonIdleState(g.xres / 2, g.yres / 5.5, 0, 8.5, 8.5, 1.0, 0, 0);
+    if (bj.insure) {
+        if (xx == 10) {
+            buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 0.5, 1.0, 0.0);
         } else {
-            buttonIdleState(g.xres / 2, g.yres / 5.5, 0, 8.5, 8.5, 0.75, 0, 0);
+            buttonIdleState(g.xres / 2, g.yres / 3.75, 0, 5, 5, 1.0, 0.5, 0.0);
+        }
+
+        if (xx == 11) {
+            buttonIdleState(g.xres / 2, g.yres / 5.5, 0, 5, 5, 0.0, 1.0, 0.0);
+        } else {
+            buttonIdleState(g.xres / 2, g.yres / 5.5, 0, 5, 5,  0.0, 5.0, 0.0);            
         }
     }
-    drawBetText();
+    drawUIText();
 }
 void playBlackJack()
 {
@@ -654,11 +720,11 @@ void handleBlackJackGame(int x)
         initShoe();
     }
     if (bj.showUI) {
+        bj.insure = true;
         showUI(x);
         //drawCard(12, 0, g.xres / 2, g.yres / 2);
     } else {
-        playBJ();
-        
+        playBJ();  
     }
 }
 void handleBlackJackKeys(int x)
