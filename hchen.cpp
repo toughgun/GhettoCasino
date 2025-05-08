@@ -1,5 +1,5 @@
 //Haonan Chen
-//May 6, 2025
+//May 7, 2025
 //
 //This file has
 //intro animation
@@ -24,15 +24,7 @@
 #include <iostream>
 using namespace std;
 
-time_t current_time = 0;
-time_t start_time = 0;
-int introplay = 1;
-bool introstart = false;
 bool disInfo = false;
-float centerX;
-float centerY;
-float logoPosY = 0.0f;
-float fade = 0.0f;
 
 /*===========================GAME INFO START============================*/
 
@@ -140,14 +132,22 @@ void infoRetangle()
 }
 /*==========================GAME INFO END==============================*/
 
-
+float centerX;
+float centerY;
+float logoPosY = 0.0f;
+float logoFade = 0.0f;
+float backFade = 0.0f;
+time_t current_time = 0;
+time_t start_time = 0;
+int introplay = 1;
+bool introstart = false;
 /*=======================INTRO ANIMATION START=========================*/
 void init_background()
 {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glColor4f(1.0f, 1.0f, 1.0f, fade);
+    glColor4f(1.0f, 1.0f, 1.0f, backFade);
 
     glPushMatrix();
     glBindTexture(GL_TEXTURE_2D, g.tex.backTexture);
@@ -168,41 +168,19 @@ void init_background()
 }
 void init_intro_logo()
 {
-    g.tex.logo_xc[0] = 0.0f;  // Left of the texture
-    g.tex.logo_xc[1] = 1.0f;  // Right of the texture
-    g.tex.logo_yc[0] = 0.0f;  // Start at the top of the texture
-    g.tex.logo_yc[1] = 1.0f;  // Start at the bottom of the texture
-    logoPosY = g.yres + 150.0f;
-}
-void intro_physics()
-{
-    float elapsedTime = time(nullptr) - start_time;
-    float startY = g.yres + 150.0f;
-    float endY = g.yres / 2.0f;
-    float duration = 5.0f;
-    float t = elapsedTime / duration;
-
-    if (elapsedTime >= 9.0f)
-        return;
-
-    if (t > 1.0f)
-        t = 1.0f;
-
-    logoPosY = startY * (1.0f - t) + endY * t;
-
-    if (elapsedTime > 4.5f) {
-        fade += 0.08f;
-        if (fade > 1.0f) {
-            fade = 1.0f;
-        }
-    }
+    g.tex.logo_xc[0] = 0.0f;
+    g.tex.logo_xc[1] = 1.0f; 
+    g.tex.logo_yc[0] = 0.0f;  
+    g.tex.logo_yc[1] = 1.0f;  
+    logoPosY = g.yres * 0.8f;
 }
 void intro_logo()
 {
-    float centerX = g.xres / 2.0f;
-    float centerY = logoPosY;
-
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    centerX = g.xres / 2.0f;
+    centerY = logoPosY;
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1.0f, 1.0f, 1.0f, logoFade); 
     glPushMatrix();
     glTranslatef(centerX, centerY, 0.0f);
 
@@ -212,16 +190,61 @@ void intro_logo()
     float w = g.tex.menuLogo->width / 2.0f;
 
     glBegin(GL_QUADS);
-    glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[0]);
-    glVertex2f(-w,  h);
-    glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[0]);
-    glVertex2f( w,  h);
-    glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[1]);
-    glVertex2f( w, -h);
-    glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[1]);
-    glVertex2f(-w, -h);
+    glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[0]); glVertex2f(-w,  h);
+    glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[0]); glVertex2f( w,  h);
+    glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[1]); glVertex2f( w, -h);
+    glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[1]); glVertex2f(-w, -h);
     glEnd();
     glPopMatrix();
+    glDisable(GL_BLEND);
+}
+void callMenuButton(int x, int y)
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4f(1.0f, 1.0f, 1.0f, backFade);
+    glPushMatrix();
+    glTranslatef(x, y, 0);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
+    glBegin(GL_QUADS);
+    float h = g.tex.buttonImage->height / 4;
+    float w = g.tex.buttonImage->width / 4;
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex2f(-w, h);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex2f(w, h);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex2f(w, -h); 
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex2f(-w, -h);
+    glEnd();
+    glDisable(GL_ALPHA_TEST);
+    glPopMatrix();
+    glDisable(GL_BLEND);
+}
+void callAllMenuButton()
+{
+    callMenuButton(g.xres / 2, 160);
+    callMenuButton(g.xres / 2, 245);
+    callMenuButton(g.xres / 2, 330);
+    callMenuButton(g.xres / 2, 415);
+}
+void intro_physics()
+{
+    float elapsed = time(nullptr) - start_time;
+    float offset;
+
+    if (elapsed < 9.0f && elapsed > 1.0f) {
+        logoFade += 0.03f;
+        offset = sinf(elapsed * 2.0f) * 0.01f;
+        g.tex.logo_yc[0] += offset;
+        g.tex.logo_yc[1] += offset;
+    }
+    if (elapsed > 5.0f) {
+        backFade += 0.08f;
+    }
 }
 void intro_render()
 {
@@ -235,11 +258,12 @@ void intro_render()
         }
 
         current_time = time(nullptr);
-        if (current_time - start_time < 8.0f) {
+        if (current_time - start_time < 9.0f) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             intro_logo();
             intro_physics();
             init_background();
+            callAllMenuButton();
             intro_text();
         } else {
             introstart = false;
