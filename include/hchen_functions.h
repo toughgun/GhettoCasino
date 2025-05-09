@@ -1,5 +1,6 @@
 #ifndef HCHEN_H
 #define HCHEN_H
+#include <ctime>
 
 extern void gameInfo(int xx);
 extern void displayInfo();
@@ -39,4 +40,5 @@ extern void renderStandButton();
 extern void bjInfoRender();
 extern void bjInfo();
 extern void bjInfoButton();
+extern time_t start_time;
 #endif

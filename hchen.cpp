@@ -1,27 +1,27 @@
-//Haonan Chen
-//May 7, 2025
+// Haonan Chen
+// May 7, 2025
 //
-//This file has
-//intro animation
-//info display
-//black jack logic n stuff
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+// This file has
+// intro animation
+// info display
+// black jack logic n stuff
+#include "include/blackjack.h"
+#include "include/bolayvar.h"
+#include "include/fonts.h"
+#include "include/global.h"
+#include "include/hchen_functions.h"
+#include "include/image.h"
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include <math.h>
-#include "include/hchen_functions.h"
-#include "include/global.h"
-#include "include/image.h"
-#include "include/bolayvar.h"
-#include "include/blackjack.h"
-#include "include/fonts.h"
-#include <ctime>
 #include <algorithm>
 #include <iostream>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
 using namespace std;
 
 bool disInfo = false;
@@ -81,10 +81,10 @@ void gameInfo(int xx)
     r.bot  = 0;
     r.left = 0;
     if (disInfo == false) {
-        //r.left = -32;
+        // r.left = -32;
         ggprint8b(&r, 16, 0xffffff, "INFO");
-    } else if ( disInfo == true) {
-        //r.left = -15;
+    } else if (disInfo == true) {
+        // r.left = -15;
         ggprint8b(&r, 16, 0xffffff, "BACK");
     }
     glPopMatrix();
@@ -104,7 +104,7 @@ void displayInfo()
     glPushMatrix();
     glTranslatef(100, 520, 0);
     glScalef(3.0f, 3.0f, 1);
-    r.bot = 0;
+    r.bot  = 0;
     r.left = 0;
     ggprint8b(&r, 16, 0xffffff, "Welcome to Ghetto Casino\n");
     ggprint8b(&r, 16, 0xffffff, "Here you can play:");
@@ -120,9 +120,9 @@ void infoRetangle()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor4f(0.0f, 0.0f, 0.0f, 0.8f);
-    float x = 50.0f;
-    float y = 100.0f;
-    float width = 800.0f;
+    float x      = 50.0f;
+    float y      = 100.0f;
+    float width  = 800.0f;
     float height = 500.0f;
     glBegin(GL_QUADS);
     glVertex2f(x, y);
@@ -135,15 +135,15 @@ void infoRetangle()
 }
 /*==========================GAME INFO END==============================*/
 
-float centerX;
-float centerY;
-float logoPosY = 0.0f;
-float logoFade = 0.0f;
-float backFade = 0.0f;
+float  centerX;
+float  centerY;
+float  logoPosY     = 0.0f;
+float  logoFade     = 0.0f;
+float  backFade     = 0.0f;
 time_t current_time = 0;
-time_t start_time = 0;
-int introplay = 1;
-bool introstart = false;
+time_t start_time   = 0;
+int    introplay    = 1;
+bool   introstart   = false;
 /*=======================INTRO ANIMATION START=========================*/
 void init_background()
 {
@@ -172,10 +172,10 @@ void init_background()
 void init_intro_logo()
 {
     g.tex.logo_xc[0] = 0.0f;
-    g.tex.logo_xc[1] = 1.0f; 
-    g.tex.logo_yc[0] = 0.0f;  
-    g.tex.logo_yc[1] = 1.0f;  
-    logoPosY = g.yres * 0.8f;
+    g.tex.logo_xc[1] = 1.0f;
+    g.tex.logo_yc[0] = 0.0f;
+    g.tex.logo_yc[1] = 1.0f;
+    logoPosY         = g.yres * 0.8f;
 }
 void intro_logo()
 {
@@ -183,7 +183,7 @@ void intro_logo()
     centerY = logoPosY;
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glColor4f(1.0f, 1.0f, 1.0f, logoFade); 
+    glColor4f(1.0f, 1.0f, 1.0f, logoFade);
     glPushMatrix();
     glTranslatef(centerX, centerY, 0.0f);
 
@@ -193,10 +193,14 @@ void intro_logo()
     float w = g.tex.menuLogo->width / 2.0f;
 
     glBegin(GL_QUADS);
-    glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[0]); glVertex2f(-w,  h);
-    glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[0]); glVertex2f( w,  h);
-    glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[1]); glVertex2f( w, -h);
-    glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[1]); glVertex2f(-w, -h);
+    glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[0]);
+    glVertex2f(-w, h);
+    glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[0]);
+    glVertex2f(w, h);
+    glTexCoord2f(g.tex.logo_xc[1], g.tex.logo_yc[1]);
+    glVertex2f(w, -h);
+    glTexCoord2f(g.tex.logo_xc[0], g.tex.logo_yc[1]);
+    glVertex2f(-w, -h);
     glEnd();
     glPopMatrix();
     glDisable(GL_BLEND);
@@ -219,7 +223,7 @@ void callMenuButton(int x, int y)
     glTexCoord2f(1.0f, 0.0f);
     glVertex2f(w, h);
     glTexCoord2f(1.0f, 1.0f);
-    glVertex2f(w, -h); 
+    glVertex2f(w, -h);
     glTexCoord2f(0.0f, 1.0f);
     glVertex2f(-w, -h);
     glEnd();
@@ -269,7 +273,7 @@ void intro_render()
             intro_text();
         } else {
             introstart = false;
-            introplay = 0;
+            introplay  = 0;
         }
     }
 }
@@ -279,25 +283,23 @@ void intro_text()
     glPushMatrix();
     glTranslatef(640, 50, 0);
     glScalef(2.0f, 2.0f, 1);
-    r.bot = 0;
+    r.bot  = 0;
     r.left = 0;
     ggprint8b(&r, 16, 0xffffff, "Press Space to Skip");
     glPopMatrix();
-
 }
 /*========================INTRO ANIMATION END==========================*/
 
-int payoutType = 0;
+int           payoutType = 0;
 static time_t pauseStart = 0;
-static bool pausing = false;
+static bool   pausing    = false;
 /*=======================BLACKJACK LOGIC START=========================*/
 void playBJ()
 {
     // set game status
 
     drawBJBackground(1.0f, 1.0f, 1.0f);
-    drawBJShoe(g.xres/1.13f, g.yres/1.77f, 0, 3, 3,
-               1.0f, 1.0f, 1.0f);
+    drawBJShoe(g.xres / 1.13f, g.yres / 1.77f, 0, 3, 3, 1.0f, 1.0f, 1.0f);
     initFirstHand();
     renderHands();
     renderTotals();
@@ -305,48 +307,46 @@ void playBJ()
     if (bj.playerStand && !bj.dealerStand && !bj.dealerBust) {
         dealerPlay();
     }
-    bool handOver = bj.playerBust
-                || bj.dealerBust
-                || (bj.playerStand && bj.dealerStand);
+    bool handOver =
+        bj.playerBust || bj.dealerBust || (bj.playerStand && bj.dealerStand);
 
-    //static time_t pauseStart = 0;
-    //static bool pausing = false;
+    // static time_t pauseStart = 0;
+    // static bool pausing = false;
 
     if (handOver) {
         if (!pausing) {
             pausing    = true;
             pauseStart = time(nullptr);
             printf("[BJ] Reveal pause start\n");
-        }
-        else if (difftime(time(nullptr), pauseStart) >= 3.0) {
+        } else if (difftime(time(nullptr), pauseStart) >= 3.0) {
             pausing = false;
             printf("[BJ] Hand complete -> payout\n");
             bjPayout();
             for (int i = 0; i < 5; ++i) {
-                bj.playerHand[i] = bj.dealerHand[i] =
-                bj.playerSuit[i] = bj.dealerSuit[i] = 0;
+                bj.playerHand[i] = bj.dealerHand[i] = bj.playerSuit[i] =
+                    bj.dealerSuit[i]                = 0;
             }
             bj.playerHandTotal = 0;
             bj.dealerHandTotal = 0;
-            bj.pTotalCards = 0;
-            bj.dTotalCards = 0;
-            bj.playerBust = false;
-            bj.dealerBust = false;
-            bj.playerStand = false;
-            bj.dealerStand = false;
-            bj.dDown = false;
-            bj.insure = false;
-            bj.initialhand = false;
-            bj.dealFirstHand= false;
-            bj.hideHole = true;
-            bj.showUI = true;
-            g.currentBet = 0;
-            g.gameInProgress = false;
-            bj.gameInProgress = false;
-            standRender = true;
-            hitRender = true;
-            doubleRender = true;
-            payoutType = 0;
+            bj.pTotalCards     = 0;
+            bj.dTotalCards     = 0;
+            bj.playerBust      = false;
+            bj.dealerBust      = false;
+            bj.playerStand     = false;
+            bj.dealerStand     = false;
+            bj.dDown           = false;
+            bj.insure          = false;
+            bj.initialhand     = false;
+            bj.dealFirstHand   = false;
+            bj.hideHole        = true;
+            bj.showUI          = true;
+            g.currentBet       = 0;
+            g.gameInProgress   = false;
+            bj.gameInProgress  = false;
+            standRender        = true;
+            hitRender          = true;
+            doubleRender       = true;
+            payoutType         = 0;
             printf("[BJ] Awaiting new bet\n");
         }
     }
@@ -354,15 +354,15 @@ void playBJ()
 void check2CardBJ()
 {
     if ((bj.dealerHand[0] >= 10 && bj.dealerHand[1] == 1) ||
-            (bj.dealerHand[0] == 1 && bj.dealerHand[1] >= 10)) {
+        (bj.dealerHand[0] == 1 && bj.dealerHand[1] >= 10)) {
         bj.playerBust = true;
     } else if (((bj.dealerHand[0] >= 10 && bj.dealerHand[1] == 1) ||
                 (bj.dealerHand[0] == 1 && bj.dealerHand[1] >= 10)) &&
-                ((bj.playerHand[0] >= 10 && bj.playerHand[1] == 1) ||
+               ((bj.playerHand[0] >= 10 && bj.playerHand[1] == 1) ||
                 (bj.playerHand[0] == 1 && bj.playerHand[1] >= 10))) {
         payoutType = 2;
     } else if ((bj.playerHand[0] >= 10 && bj.playerHand[1] == 1) ||
-                (bj.playerHand[0] == 1 && bj.playerHand[1] >= 10)) {
+               (bj.playerHand[0] == 1 && bj.playerHand[1] >= 10)) {
         bj.dealerBust = true;
     }
 }
@@ -370,14 +370,14 @@ void hit()
 {
     /* ------------- PLAYER -------------- */
     if (bj.playerTurn && !bj.playerStand && bj.pTotalCards < 5) {
-        Card nc = bj.shoe[bj.shoeCardNum++];
+        Card nc                       = bj.shoe[bj.shoeCardNum++];
         bj.playerHand[bj.pTotalCards] = nc.value;
         bj.playerSuit[bj.pTotalCards] = nc.suit;
         ++bj.pTotalCards;
-        bj.playerHandTotal += (nc.value > 10) ? 10 :
-                              (nc.value == 1 ? 11 : nc.value);
-        printf("--PLAYER TOTAL NOW %d  (cards %d)--\n",
-               bj.playerHandTotal, bj.pTotalCards);
+        bj.playerHandTotal +=
+            (nc.value > 10) ? 10 : (nc.value == 1 ? 11 : nc.value);
+        printf("--PLAYER TOTAL NOW %d  (cards %d)--\n", bj.playerHandTotal,
+               bj.pTotalCards);
         if (bj.playerHandTotal > 21) {
             printf("**RECHECKING PLAYER HAND**");
             bj.playerHandTotal = 0;
@@ -396,14 +396,14 @@ void dealerPlay()
 {
     printf("[BJ] Dealer turn starts at %d\n", bj.dealerHandTotal);
     while (bj.dealerHandTotal <= 16 && bj.dTotalCards < 5) {
-        Card nc = bj.shoe[bj.shoeCardNum++];
+        Card nc                       = bj.shoe[bj.shoeCardNum++];
         bj.dealerHand[bj.dTotalCards] = nc.value;
         bj.dealerSuit[bj.dTotalCards] = nc.suit;
         ++bj.dTotalCards;
-        bj.dealerHandTotal += (nc.value > 10) ? 10
-                                : (nc.value == 1 ? 11 : nc.value);
-        printf("**DEALER TOTAL %d (cards %d)**\n",
-               bj.dealerHandTotal, bj.dTotalCards);
+        bj.dealerHandTotal +=
+            (nc.value > 10) ? 10 : (nc.value == 1 ? 11 : nc.value);
+        printf("**DEALER TOTAL %d (cards %d)**\n", bj.dealerHandTotal,
+               bj.dTotalCards);
         if (bj.dealerHandTotal > 21) {
             bj.dealerHandTotal = 0;
             sortHands();
@@ -421,12 +421,12 @@ void dealerPlay()
     }
     bj.dealerTurn = false;
 }
-//void dealerHands(int x)
+// void dealerHands(int x)
 int dealerHands()
 {
     int dealerHandValue = 0;
-    int aceCount = 0;
-    int bestTotal = 0;
+    int aceCount        = 0;
+    int bestTotal       = 0;
     for (int i = 0; i < 5; i++) {
         if (bj.dealerHand[i] == 0) {
             continue;
@@ -439,8 +439,8 @@ int dealerHands()
         }
     }
     bestTotal = dealerHandValue + aceCount;
-    if (aceCount > 0 && dealerHandValue + 11 + (aceCount-1) <= 21) {
-        bestTotal = dealerHandValue + 11 + (aceCount-1);
+    if (aceCount > 0 && dealerHandValue + 11 + (aceCount - 1) <= 21) {
+        bestTotal = dealerHandValue + 11 + (aceCount - 1);
     }
     printf("**DEALER HAND VALUE AFTER BUST CHECK: %i**\n", bestTotal);
     return bestTotal;
@@ -448,8 +448,8 @@ int dealerHands()
 int playerHands()
 {
     int playerHandValue = 0;
-    int aceCount = 0;
-    int bestTotal = 0;
+    int aceCount        = 0;
+    int bestTotal       = 0;
     for (int i = 0; i < 5; i++) {
         if (bj.playerHand[i] == 0) {
             continue;
@@ -461,9 +461,9 @@ int playerHands()
             playerHandValue += bj.playerHand[i];
         }
     }
-    bestTotal = playerHandValue + aceCount;  
-    if (aceCount > 0 && playerHandValue + 11 + (aceCount-1) <= 21) {
-        bestTotal = playerHandValue + 11 + (aceCount-1);
+    bestTotal = playerHandValue + aceCount;
+    if (aceCount > 0 && playerHandValue + 11 + (aceCount - 1) <= 21) {
+        bestTotal = playerHandValue + 11 + (aceCount - 1);
     }
     printf("--PLAYLER HAND VALUE AFTER BUST CHECK: %i--\n", bestTotal);
     return bestTotal;
@@ -482,88 +482,88 @@ void dealerCheckHand()
 }
 void bjPayout()
 {
-    //int payoutType = 0;
+    // int payoutType = 0;
     if (bj.dDown == true) {
         payoutType = 1;
         printf("Payment type set to double\n");
     }
-    switch(payoutType) {
-        //normal payout/lose
-        case 0:
-            if (bj.dealerBust) {
-                printf("--YOU WON %i BUCKS--\n", g.currentBet);
-                g.currency += g.currentBet * 2;
-                printf("--CURRENT CURRENCY: %i--\n", g.currency);
-            } else if (bj.playerHandTotal <= 21 
-                        && bj.playerHandTotal > bj.dealerHandTotal) {
-                printf("--YOU WON %i BUCKS--\n", g.currentBet);
-                g.currency += g.currentBet * 2;
-                printf("--CURRENT CURRENCY: %i--\n", g.currency);
-            } else if (bj.dealerHandTotal == bj.playerHandTotal) {
-                printf("--STANDARD DRAW--\n");
-                g.currency += g.currentBet;
-            } else {
-                printf("--YOU LOST %i BUCKS--\n", g.currentBet);
-                //g.currency -= g.currentBet;
-                printf("--CURRENT CURRENCY: %i--\n", g.currency);
-            }
-            break;
-        //double down
-        case 1:
-            if (bj.dealerBust) {
-                printf("--YOU WON %i BUCKS--\n", g.currentBet * 2);
-                g.currency += g.currentBet * 3;
-                printf("--CURRENT CURRENCY: %i--\n", g.currency);
-            } else if (bj.playerHandTotal <= 21 
-                            && bj.playerHandTotal > bj.dealerHandTotal) {
-                printf("--YOU WON %i BUCKS--\n", g.currentBet * 2);
-                g.currency += g.currentBet * 3;
-                printf("--CURRENT CURRENCY: %i--\n", g.currency);
-            } else if (bj.dealerHandTotal == bj.playerHandTotal) {
-                printf("--DOUBLEDOWN DRAW--");
-                g.currency += g.currentBet;
-            } else {
-                printf("--YOU LOST %i BUCKS--\n", g.currentBet);
-                g.currency -= g.currentBet;
-                printf("--CURRENT CURRENCY: %i--\n", g.currency);
-            }
-            bj.dDown = false;
-            break;
-        case 2:
-            printf("--DRAW--\n");
-            g.currency += g.currentBet;
+    switch (payoutType) {
+    // normal payout/lose
+    case 0:
+        if (bj.dealerBust) {
+            printf("--YOU WON %i BUCKS--\n", g.currentBet);
+            g.currency += g.currentBet * 2;
             printf("--CURRENT CURRENCY: %i--\n", g.currency);
-            break;
+        } else if (bj.playerHandTotal <= 21 &&
+                   bj.playerHandTotal > bj.dealerHandTotal) {
+            printf("--YOU WON %i BUCKS--\n", g.currentBet);
+            g.currency += g.currentBet * 2;
+            printf("--CURRENT CURRENCY: %i--\n", g.currency);
+        } else if (bj.dealerHandTotal == bj.playerHandTotal) {
+            printf("--STANDARD DRAW--\n");
+            g.currency += g.currentBet;
+        } else {
+            printf("--YOU LOST %i BUCKS--\n", g.currentBet);
+            // g.currency -= g.currentBet;
+            printf("--CURRENT CURRENCY: %i--\n", g.currency);
+        }
+        break;
+    // double down
+    case 1:
+        if (bj.dealerBust) {
+            printf("--YOU WON %i BUCKS--\n", g.currentBet * 2);
+            g.currency += g.currentBet * 3;
+            printf("--CURRENT CURRENCY: %i--\n", g.currency);
+        } else if (bj.playerHandTotal <= 21 &&
+                   bj.playerHandTotal > bj.dealerHandTotal) {
+            printf("--YOU WON %i BUCKS--\n", g.currentBet * 2);
+            g.currency += g.currentBet * 3;
+            printf("--CURRENT CURRENCY: %i--\n", g.currency);
+        } else if (bj.dealerHandTotal == bj.playerHandTotal) {
+            printf("--DOUBLEDOWN DRAW--");
+            g.currency += g.currentBet;
+        } else {
+            printf("--YOU LOST %i BUCKS--\n", g.currentBet);
+            g.currency -= g.currentBet;
+            printf("--CURRENT CURRENCY: %i--\n", g.currency);
+        }
+        bj.dDown = false;
+        break;
+    case 2:
+        printf("--DRAW--\n");
+        g.currency += g.currentBet;
+        printf("--CURRENT CURRENCY: %i--\n", g.currency);
+        break;
     }
 }
-bool hitRender = true;
-bool standRender = true;
+bool hitRender    = true;
+bool standRender  = true;
 bool doubleRender = true;
 void bjButtonRender()
 {
     if (!bj.dDown && bj.playerTurn && doubleRender && !bj.showUI) {
-        //if (!bj.playerTurn) {
-        //    usleep(100000);
-        //}
+        // if (!bj.playerTurn) {
+        //     usleep(100000);
+        // }
         renderDoubleButton();
     }
     if (bj.playerTurn == true && hitRender == true && !bj.showUI) {
-        //if (!bj.playerTurn) {
-        //    usleep(100000);
-        //}
+        // if (!bj.playerTurn) {
+        //     usleep(100000);
+        // }
         renderHitButton();
     }
     if (bj.playerTurn == true && standRender == true && !bj.showUI) {
-        //if (!bj.playerTurn) {
-        //    usleep(100000);
-        //}
+        // if (!bj.playerTurn) {
+        //     usleep(100000);
+        // }
         renderStandButton();
     }
     bjInfoButton();
 }
 void bjButtonClick(int x, int y)
 {
-    //double down button
+    // double down button
     if (x > 1095 && x < 1243 && y > 525 && y < 570) {
         if (bj.playerTurn && !bj.dDown && bj.pTotalCards < 5) {
             printf("--PLAYER CHOSE DOUBLE DOWN--\n");
@@ -572,12 +572,12 @@ void bjButtonClick(int x, int y)
             printf("--BET IS NOW: %i--\n", g.currentBet * 2);
             hit();
             bj.playerStand = true;
-            bj.hideHole   = false;
+            bj.hideHole    = false;
             printf("--Dealer hole revealed: %d (suit %d)--\n",
                    bj.dealerHand[1], bj.dealerSuit[1]);
         }
     }
-    //hit button
+    // hit button
     if (x > 1095 && x < 1243 && y > 405 && y < 450) {
         if (bj.playerTurn && !bj.playerStand && !bj.playerBust &&
             bj.pTotalCards < 5) {
@@ -588,18 +588,18 @@ void bjButtonClick(int x, int y)
             }
         }
     }
-    //stand button
+    // stand button
     if (x > 1095 && x < 1243 && y > 465 && y < 510) {
         if (bj.playerTurn && !bj.playerStand) {
             printf("--PLAYER CHOSE STAND--\n");
             bj.playerStand = true;
             bj.playerTurn  = false;
-            bj.hideHole    = false; 
+            bj.hideHole    = false;
             printf("--Dealer hole revealed: %d (suit %d)--\n",
                    bj.dealerHand[1], bj.dealerSuit[1]);
         }
     }
-    //info button
+    // info button
     if (x > 1160 && x < 1240 && y > 670 && y < 695) {
         renderBJInfo = !renderBJInfo;
     }
@@ -620,7 +620,7 @@ void bjInfo()
     glPushMatrix();
     glTranslatef(640, 625, 0);
     glScalef(2.0f, 2.0f, 1);
-    r.bot = 0;
+    r.bot  = 0;
     r.left = 0;
     ggprint8b(&r, 16, 0xffffff, "RULES:");
     ggprint8b(&r, 16, 0xffffff, "Dealer must hit on 16 or less\n");
@@ -640,7 +640,7 @@ void bjInfo()
     ggprint8b(&r, 16, 0xffffff, "If dealer gets 2 card blackjack");
     ggprint8b(&r, 16, 0xffffff, "You will not lose your money");
     ggprint8b(&r, 16, 0xffffff,
-            "Or you will get double ur money or something");
+              "Or you will get double ur money or something");
     glPopMatrix();
 }
 void renderDoubleButton()
@@ -670,11 +670,10 @@ void renderDoubleButton()
     glPushMatrix();
     glTranslatef(1170, 160, 0);
     glScalef(2.0f, 2.0f, 1);
-    r.bot = 0;
+    r.bot  = 0;
     r.left = 0;
     ggprint8b(&r, 16, 0xffffff, "DOUBLE");
     glPopMatrix();
-
 }
 void renderHitButton()
 {
@@ -703,7 +702,7 @@ void renderHitButton()
     glPushMatrix();
     glTranslatef(1170, 280, 0);
     glScalef(2.0f, 2.0f, 1);
-    r.bot = 0;
+    r.bot  = 0;
     r.left = 0;
     ggprint8b(&r, 16, 0xffffff, "HIT");
     glPopMatrix();
@@ -735,7 +734,7 @@ void renderStandButton()
     glPushMatrix();
     glTranslatef(1170, 220, 0);
     glScalef(2.0f, 2.0f, 1);
-    r.bot = 0;
+    r.bot  = 0;
     r.left = 0;
     ggprint8b(&r, 16, 0xffffff, "STAND");
     glPopMatrix();
@@ -775,5 +774,4 @@ void bjInfoButton()
         ggprint8b(&r, 16, 0xffffff, "BACK");
     }
     glPopMatrix();
-
 }
