@@ -64,6 +64,7 @@ class Global {
     float h;
     bool  exec;
     bool  initialSlotPosSet;
+    bool  gameInProgress;
     // Betting variables
     int currency;   // Starting currency (chips)
     int currentBet; // Current bet amount
@@ -79,6 +80,7 @@ class Global {
         //
         exec = true;
         initialSlotPosSet = false;
+        gameInProgress    = false;
         currency = 1000;     // Start with 1000 chips
         currentBet = 0;      // Initial bet is 0
     }

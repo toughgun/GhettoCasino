@@ -357,6 +357,7 @@ void reveal_dice(void)
     } else {
         g.winstreak = 0;
     }
+    g.gameInProgress = false;
     printf("[INFO] %d + %d = %d — %s\n",
            die1, die2, total, win ? "WIN" : "LOSS");
 }
@@ -795,6 +796,7 @@ void finalizeBet(void)
 	printf("[INFO] Bet locked at %d - starting dice.\n", g.currentBet);
 	g.currency -= g.currentBet;
 	bettingUIActive = false;
+    g.gameInProgress = true;
 	Start_Dice();
 }
 void resetBet(void)

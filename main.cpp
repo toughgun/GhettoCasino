@@ -503,7 +503,7 @@ void check_mouse(XEvent* e)
                 break;
                 case 4:
                 bjUIClickListener(savex, savey);
-		bjButtonClick(savex, savey);
+		        bjButtonClick(savex, savey);
                 break;
             }
 		}
@@ -617,6 +617,7 @@ menu_render:
 				drawMenuOptions(mouseposition);
 				drawButtonTxt();
 				gameInfo(mouseposition);
+                resetBet();
 				if (disInfo == true) {
 					glClear(GL_COLOR_BUFFER_BIT);
 					drawBackground();

@@ -293,6 +293,8 @@ static bool pausing = false;
 /*=======================BLACKJACK LOGIC START=========================*/
 void playBJ()
 {
+    // set game status
+
     drawBJBackground(1.0f, 1.0f, 1.0f);
     drawBJShoe(g.xres/1.13f, g.yres/1.77f, 0, 3, 3,
                1.0f, 1.0f, 1.0f);
@@ -339,6 +341,7 @@ void playBJ()
             bj.hideHole = true;
             bj.showUI = true;
             g.currentBet = 0;
+            g.gameInProgress = false;
             bj.gameInProgress = false;
             standRender = true;
             hitRender = true;
@@ -357,7 +360,7 @@ void check2CardBJ()
                 (bj.dealerHand[0] == 1 && bj.dealerHand[1] >= 10)) &&
                 ((bj.playerHand[0] >= 10 && bj.playerHand[1] == 1) ||
                 (bj.playerHand[0] == 1 && bj.playerHand[1] >= 10))) {
-        payoutType = 4;
+        payoutType = 2;
     } else if ((bj.playerHand[0] >= 10 && bj.playerHand[1] == 1) ||
                 (bj.playerHand[0] == 1 && bj.playerHand[1] >= 10)) {
         bj.dealerBust = true;
@@ -365,32 +368,6 @@ void check2CardBJ()
 }
 void hit()
 {
-    /* ------------ DEALER -------------- */
-    if (bj.dealerTurn && bj.dealerHandTotal <= 17) {
-        Card nc = bj.shoe[bj.shoeCardNum++];
-        bj.dealerHand[bj.dTotalCards] = nc.value;
-        bj.dealerSuit[bj.dTotalCards] = nc.suit;
-        ++bj.dTotalCards;
-        bj.dealerHandTotal += (nc.value > 10) ? 10 :
-                              (nc.value == 1 ? 11 : nc.value);
-
-        printf("**DEALER DREW %d  (suit %d)**\n", nc.value, nc.suit);
-        printf("**DEALER TOTAL NOW %d  (cards %d)**\n",
-               bj.dealerHandTotal, bj.dTotalCards);
-        if (bj.dealerHandTotal > 21) {
-            printf("**RECHECKING DEALER HAND**");
-            bj.dealerHandTotal = 0;
-            sortHands();
-            bj.dealerHandTotal = dealerHands();
-            if (bj.dealerHandTotal > 21) {
-                printf("**DEALER BUSTS AFTER ACE ADJUST → %d**\n",
-                       bj.dealerHandTotal);
-                bj.dealerBust = true;
-            }
-        }
-        return;
-    }
-    /* --------------Dealer Turn Ends----------------- */
     /* ------------- PLAYER -------------- */
     if (bj.playerTurn && !bj.playerStand && bj.pTotalCards < 5) {
         Card nc = bj.shoe[bj.shoeCardNum++];
@@ -399,7 +376,6 @@ void hit()
         ++bj.pTotalCards;
         bj.playerHandTotal += (nc.value > 10) ? 10 :
                               (nc.value == 1 ? 11 : nc.value);
-        printf("--PLAYER DREW %d  (suit %d)--\n", nc.value, nc.suit);
         printf("--PLAYER TOTAL NOW %d  (cards %d)--\n",
                bj.playerHandTotal, bj.pTotalCards);
         if (bj.playerHandTotal > 21) {
@@ -426,7 +402,6 @@ void dealerPlay()
         ++bj.dTotalCards;
         bj.dealerHandTotal += (nc.value > 10) ? 10
                                 : (nc.value == 1 ? 11 : nc.value);
-        printf("**DEALER DREW %d (suit %d)**\n", nc.value, nc.suit);
         printf("**DEALER TOTAL %d (cards %d)**\n",
                bj.dealerHandTotal, bj.dTotalCards);
         if (bj.dealerHandTotal > 21) {
@@ -512,12 +487,6 @@ void bjPayout()
         payoutType = 1;
         printf("Payment type set to double\n");
     }
-    if (bj.insure == true) {
-        payoutType = 2;
-    }
-    if (bj.dDown == true && bj.insure == true) {
-        payoutType = 3;
-    }
     switch(payoutType) {
         //normal payout/lose
         case 0:
@@ -560,44 +529,7 @@ void bjPayout()
             }
             bj.dDown = false;
             break;
-        //insurance
         case 2:
-            if (bj.dealerBust == true || (bj.playerHandTotal < 21 
-                            && bj.playerHandTotal > bj.dealerHandTotal)) {
-                printf("--YOU WON %i BUCKS--\n", g.currentBet);
-                g.currency += g.currentBet;
-                printf("Curreny: %i\n", g.currency);
-            } else if (bj.dealerHandTotal == bj.playerHandTotal) {
-                printf("--DRAW--\n");
-                g.currentBet = 0;
-            } else {
-                printf("--YOU LOST %i BUCKS--\n", g.currentBet);
-                //g.currency -= g.currentBet;
-                printf("--CURRENT CURRENY: %i--\n", g.currency);
-            }
-            bj.insure = false;
-            break;
-            //insure and double
-        case 3:
-            if ((bj.playerHandTotal < 21 &&
-                        (bj.playerHandTotal > bj.dealerHandTotal))
-                    || bj.playerHandTotal == 21) {
-                printf("You won %i bucks\n", g.currentBet);
-                g.currency += g.currentBet;
-                printf("Curreny: %i\n", g.currency);
-            } else if (bj.dealerHandTotal == bj.playerHandTotal) {
-                printf("--DRAW--\n");
-                g.currentBet = 0;
-                printf("--CURRENT CURRENCY: %i--\n", g.currency);
-            } else {
-                printf("You lost %i bucks\n", g.currentBet);
-                //g.currentBet = 0;
-                printf("Curreny: %i\n", g.currency);
-            }
-            bj.dDown = false;
-            bj.insure = false;
-            break;
-        case 4:
             printf("--DRAW--\n");
             g.currency += g.currentBet;
             printf("--CURRENT CURRENCY: %i--\n", g.currency);
@@ -691,7 +623,7 @@ void bjInfo()
     r.bot = 0;
     r.left = 0;
     ggprint8b(&r, 16, 0xffffff, "RULES:");
-    ggprint8b(&r, 16, 0xffffff, "Dealer must hit on 17\n");
+    ggprint8b(&r, 16, 0xffffff, "Dealer must hit on 16 or less\n");
     ggprint8b(&r, 16, 0xffffff, " ");
     ggprint8b(&r, 16, 0xffffff, "Hit:");
     ggprint8b(&r, 16, 0xffffff, "Draw another card");

@@ -207,7 +207,7 @@ int click(int savex, int savey, int& done)
 }
 int checkhover(int savex, int savey, int mouseposition)
 {
-    if(bj.showUI && !bj.insure) {
+    if(!bj.showUI && !bj.insure) {
         if (savex > 490 && savex < 490 + 300 && savey > 250 && savey < 250 + 75) {
             mouseposition = 1; // Menu Slots
         } else if (savex > 490 && savex < 490 + 300 && savey > 335 &&
@@ -224,9 +224,7 @@ int checkhover(int savex, int savey, int mouseposition)
         } else {
             mouseposition = 0;
         }
-    }
-
-    if (bj.showUI && bj.insure) {
+    } else if (bj.showUI && bj.insure) {
         if (savex > 490 && savex < 490 + 300 && savey > 512 &&
                 savey < 512 + 75) {
             mouseposition = 4;
@@ -246,29 +244,25 @@ void bjUIClickListener(int savex, int savey)
     if (!bj.allIn && bj.showUI) {
         if (savex > 445 && savex < 531 && savey > 280 && savey < 365) {
             g.currentBet += 5;
-            // g.currency -= 5;
             bj.betarray[bj.betarraypointer++] = 5;
         } else if (savex > 445 + (100 * 1) && savex < 531 + (100 * 1) &&
                    savey > 280 && savey < 365) {
             g.currentBet += 10;
-            // g.currency -= 10;
             bj.betarray[bj.betarraypointer++] = 10;
         } else if (savex > 445 + (100 * 2) && savex < 531 + (100 * 2) &&
                    savey > 280 && savey < 365) {
             g.currentBet += 25;
-            // g.currency -= 25;
             bj.betarray[bj.betarraypointer++] = 25;
         } else if (savex > 445 + (100 * 3) && savex < 531 + (100 * 3) &&
                    savey > 280 && savey < 365) {
             g.currentBet += 100;
-            // g.currency -= 100;
             bj.betarray[bj.betarraypointer++] = 100;
         }
     }
     if (bj.showUI && savex > 522 && savex < 758 && savey > 498 && savey < 554) {
         bj.showUI         = false;
         bj.allIn          = false;
-        bj.gameInProgress = true;
+        g.gameInProgress  = true;
         g.currency -= g.currentBet;
 
         for (int i = 0; i < bj.betarraypointer + 1; i++) {
@@ -292,19 +286,6 @@ void bjUIClickListener(int savex, int savey)
     if (bj.showUI && g.currentBet >= g.currency) {
         g.currentBet = g.currency;
     }
-    /*
-        // correct the total amount in the array for undo
-        if (bj.allIn) {
-            g.currentBet = g.currency;
-
-            int temp = 0;
-            for (int i = 0; i < bj.betarraypointer - 1; i++) {
-                temp += bj.betarray[i];
-            }
-            temp = temp - bj.currency;
-            bj.betarray[bj.betarraypointer - 1] = temp;
-        }
-    */
 }
 int bjUIHoverListener(int savex, int savey, int mouseposition)
 {
@@ -672,7 +653,7 @@ void initFirstHand()
     printf("players total cards: %i\n", bj.pTotalCards);
     printf("dealer total cards: %i\n", bj.dTotalCards);
 
-    printf("Dealer: %d \nPlayer: %d %d\n",
+    printf("Dealer: %d \nPlayer: %d, %d\n",
         bj.dealerHand[0],
         bj.playerHand[0], bj.playerHand[1]);
     bj.dealFirstHand = true;
@@ -729,22 +710,12 @@ void showUI(int xx)
     }
     drawUIText();
 }
-void playBlackJack()
-{
-    drawBJBackground(1.0, 1.0, 1.0);
-    drawBJShoe(g.xres / 1.13, g.yres / 1.77, 0, 3, 3, 1.0, 1.0, 1.0);
-    initFirstHand();
-
-    // animation here
-    // checkDealerHand();
-}
 void handleBlackJackGame(int x)
 {
     if (!bj.shuffled) {
         initShoe();
     }
     if (bj.showUI) {
-        //bj.insure = true;
         showUI(x);
         //drawCard(12, 0, g.xres / 2, g.yres / 2);
     } else {
@@ -1029,12 +1000,16 @@ int check_esc(int x)
         break;
     // dice case
     case 3:
+    if (!g.gameInProgress) {
         x = 0;
+    }
         break;
     // black jack case
     case 4:
+        if (!g.gameInProgress) {
         x           = 0;
         bj.shuffled = false;
+        }
         break;
     }
     return x;
