@@ -470,6 +470,7 @@ void check_mouse(XEvent* e)
 	}
 	if (e->type == ButtonPress) {
 		if (gameState == 3) {
+                        printf("x: %d | y: %d\n",savex,savey);
             if (bettingUIActive) {
                 processBettingInput(e->xbutton.x, e->xbutton.y, e->xbutton.button);
                 return;
@@ -625,38 +626,6 @@ menu_render:
 				break;
 
 			case 2:
-                /*
-				// render_slots();
-				cout << "[INFO] Rendering Slot game.\n";
-				//////From Phil's main///////////////////////////
-				//drawSlotFace();
-				srand(time(0));
-				for (int x = 0; x < 3; ++x) {
-					reels[x] = new Reel();
-				}
-
-				if (initGL() == 1) {
-					printf("Successfully initialized OpenGL.\n");
-				}
-
-				resize(g.xres, g.yres);
-                
-				while (gameState == 2) {
-                    
-                    while (x11.getXPending()) {
-                        XEvent e = x11.getXNextEvent();
-                        check_keys(&e);  // Process key events
-                    }
-                    
-                    
-					draw();
-					x11.swapBuffers();
-                    if (gameState != 2) {
-                        //render_dice();
-                        break;
-                    }
-				}
-                */
                if (!reelsInitialized) {
                     cout << "[INFO] Initializing Slot game.\n";
                     for (int x = 0; x < 3; ++x) {

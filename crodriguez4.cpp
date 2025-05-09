@@ -20,12 +20,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include "include/blackjack.h"
+
 
 using namespace std;
 
-// click add bettingUI
-// drawtextclick()
-/* global dice object + convenient aliases to preserve old references */
+
 Dice dice;
 /* ---------- new global ---------- */
 static GLuint chipTex[4] = {0, 0, 0, 0};
@@ -48,6 +48,154 @@ GLuint DiceCupTex = 0;
 extern Global g;
 extern X11_wrapper x11;
 
+static inline void push_ortho(void)
+{
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0, g.xres, 0, g.yres, -1, 1);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+}
+
+/* ===================================================== *
+*  Dice ‑ INFO overlay & button                         *
+* ===================================================== */
+bool renderDiceInfo = false;
+
+/* quick helper – draws textured square at (x,y) */
+static inline void drawButtonQuad(float x, float y)
+{
+    float h = g.tex.buttonImage->height / 12.0f;
+    float w = g.tex.buttonImage->width  / 15.0f;
+
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.0f);
+    glBindTexture(GL_TEXTURE_2D, g.tex.buttontex);
+
+    glBegin(GL_QUADS);
+        glTexCoord2f(0,0); glVertex2f(x-w, y+h);   /* TL */
+        glTexCoord2f(1,0); glVertex2f(x+w, y+h);   /* TR */
+        glTexCoord2f(1,1); glVertex2f(x+w, y-h);   /* BR */
+        glTexCoord2f(0,1); glVertex2f(x-w, y-h);   /* BL */
+    glEnd();
+
+    glDisable(GL_ALPHA_TEST);
+}
+
+/* ---- diceInfoButton (draw) ---- */
+void diceInfoButton(void)
+{
+    GLboolean texWas = glIsEnabled(GL_TEXTURE_2D);
+    if (!texWas) glEnable(GL_TEXTURE_2D);
+
+    glColor4f(.95f,.95f,.95f,.85f);
+    glPushMatrix();
+    glTranslatef(g.xres - 80,           /*   right  */
+                 g.yres - 35, 0);       /* ↑ top    */
+    drawButtonQuad(0,0);
+    glPopMatrix();
+
+    Rect r = {0,0,0,0,0};
+    glPushMatrix();
+    glTranslatef(g.xres - 80, g.yres - 46.5f, 0);
+    glScalef(2,2,1);
+    r.center = 1;
+    ggprint8b(&r, 16, 0xffffff,
+              renderDiceInfo ? "BACK" : "INFO");
+    glPopMatrix();
+
+    if (!texWas) glDisable(GL_TEXTURE_2D);
+}
+
+/* ---- diceInfoButtonClick (hit‑test) ---- */
+bool diceInfoButtonClick(int mx, int my)
+/* receives *window* coords: origin top‑left */
+{
+    //float w = g.tex.buttonImage->width  / 15.0f;
+    //float h = g.tex.buttonImage->height / 12.0f;
+
+    int left =  1161;
+    int right = 1238;
+    int top =   22;                      /* distance from top edge   */
+    int bot =   44;           /* a few px slop            */
+
+    /* no y‑flip here – use raw window coordinates */
+    if (mx > left && mx < right && my > top && my < bot) {
+        renderDiceInfo = !renderDiceInfo;
+        return true;
+    }
+    return false;
+}
+
+/* -------------------------------------------------------- *
+* Dice Info overlay – centred card, relaxed line spacing
+* -------------------------------------------------------- */
+void diceInfoOverlay(void)
+{
+    if (!renderDiceInfo)
+        return;
+
+    push_ortho();
+
+    /* ----- centred card geometry ------------------------ */
+    const float cardW = g.xres * 0.70f; /* 70 % of window width  */
+    const float cardH = g.yres * 0.50f; /* 45 % of window height */
+    const float lx    = (g.xres - cardW) * 0.5f; /* left  x */
+    const float by    = (g.yres - cardH) * 0.55f;/* bottom y */
+    const float rx    = lx + cardW;               /* right  x */
+    const float ty    = by + cardH;               /* top    y */
+
+    /* save texture state */
+    GLboolean texOn = glIsEnabled(GL_TEXTURE_2D);
+    if (texOn) glDisable(GL_TEXTURE_2D);
+
+    /* ----- draw translucent card ------------------------ */
+    glColor4f(0, 0, 0, .75f);
+    glBegin(GL_QUADS);
+        glVertex2f(lx, by);
+        glVertex2f(rx, by);
+        glVertex2f(rx, ty);
+        glVertex2f(lx, ty);
+    glEnd();
+
+    if (texOn) glEnable(GL_TEXTURE_2D);     /* font needs it */
+
+    /* ----- text ----------------------------------------- */
+    const int fsTitle = 32;   /* font sizes: title & body   */
+    const int fsBody  = 18;
+    const int vGap    = 28;   /* vertical gap between lines */
+
+    Rect r;
+    r.center = 1;
+    r.left   = g.xres / 2;
+    r.bot    = ty - 60;       /* start a little below top   */
+
+    ggprint16(&r, fsTitle, 0xffffff, "DICE GAME RULES");
+
+    /* move down & switch to slightly smaller font */
+    r.bot -= vGap * 0.7f; 
+    ggprint16(&r, fsBody, 0xffffff,
+            "1)  The cup will shake for seven seconds so start praying");
+
+    r.bot -= vGap;
+    ggprint16(&r, fsBody, 0xffffff,
+            "2)  Choose  UNDER  OVER  or  EXACT");
+
+    r.bot -= vGap * 0.8f;
+    ggprint16(&r, fsBody, 0xffffff,
+            "     - UNDER  : total below 7");
+    r.bot -= vGap * 0.8f;
+    ggprint16(&r, fsBody, 0xffffff,
+            "     - OVER   : total above 7");
+    r.bot -= vGap * 0.8f;
+    ggprint16(&r, fsBody, 0xffffff,
+            "     - EXACT  : total equals 7");
+
+    r.bot -= vGap * 1.0f;
+    ggprint16(&r, fsBody, 0xffffff,
+            "3)  Wins payout is 2x       ");
+}
+ 
 /*==================*/
 /*     helpers      */
 /*==================*/
@@ -67,8 +215,8 @@ static inline void seed_rng_once(void)
 /* Re‑compute dice cup size whenever window resizes */
 void updateUIForWindowSize(void)
 {
-    dice.cupWidth  = g.xres * 0.10f;
-    dice.cupHeight = g.yres * 0.10f;
+    dice.cupWidth  = g.xres * 0.25f;
+    dice.cupHeight = g.yres * 0.25f;
 }
 
 /* ------ texture loading ------ */
@@ -227,14 +375,6 @@ static void cupPhysics(void)
 /* ---------------------*/
 /*  rendering helpers   */
 /* ---------------------*/
-static inline void push_ortho(void)
-{
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, g.xres, 0, g.yres, -1, 1);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-}
 void drawDiceBackground()
 {
     glColor3f(1.0, 1.0, 1.0);
@@ -442,15 +582,21 @@ void renderBettingUI(void)
     t.left   = g.xres / 2;
     t.bot    = g.yres * 0.07f;
     ggprint16(&t, 24, 0xffffffff, "%s", info);
-}
 
+    /* small top‑right button + overlay */
+    diceInfoButton();
+    diceInfoOverlay();
+}
 /*  Choice UI    */
 void renderChoiceUI(void)
 {
-    int y = g.yres/4;
+    int y = g.yres/6;
     draw_button_colored(g.xres/2-160,y,100,40,"UNDER",.4f,.5f,1);
     draw_button_colored(g.xres/2-50 ,y,100,40,"EXACT",1,.5f,0);
     draw_button_colored(g.xres/2+60 ,y,100,40,"OVER" ,.5f,1,.5f);
+    /* small top‑right button + overlay */
+    diceInfoButton();
+    diceInfoOverlay();
 }
 /*  Result UI    */
 void renderResultUI(void)
@@ -499,11 +645,13 @@ void renderResultUI(void)
                         0.2f,0.6f,1);
     draw_button_colored(cx + 20, y, bw, bh, "SAME BET",
                         0.1f,0.8f,0.1f);
+    diceInfoButton();
+    diceInfoOverlay();
 }
 
 void renderRevealButton(void)
 {
-    draw_button_colored(g.xres/2-50, g.yres/4-60,
+    draw_button_colored(g.xres/2-50, g.yres/6-60,
                         100,40,"REVEAL",.8f,.1f,.1f);
 }
 
@@ -523,6 +671,10 @@ void renderResult(void)
 /*  Mouse / click handlers    */
 void handleResultInput(int mx,int my)
 {
+    
+    if (diceInfoButtonClick(mx, my))
+        return;
+
     my = g.yres - my;
     float bw = g.xres*0.18f;
     float bh = g.yres*0.08f;
@@ -552,10 +704,13 @@ void handleResultInput(int mx,int my)
 
 void handleChoiceInput(int mx,int my)
 {
+    if (diceInfoButtonClick(mx, my))
+        return;
+
     my = g.yres - my;
     const int bw = 100;
     const int bh = 40;
-    int topY = g.yres/4;
+    int topY = g.yres/6;
 
     if (isInsideRect(mx, my, g.xres/2 - 160, topY, bw, bh))
         playerChoice = UNDER;
@@ -568,17 +723,26 @@ void handleChoiceInput(int mx,int my)
 
     choiceUIActive = false;
     revealUIActive = true;
+    diceInfoButton();
+    diceInfoOverlay();
 }
 
 void handleRevealClick(int mx, int my)
 {
+    if (diceInfoButtonClick(mx,my))
+        return;
+
     my = g.yres - my;
-    if (isInsideRect(mx, my, g.xres/2 - 50, g.yres/4 - 60, 100, 40))
+    if (isInsideRect(mx, my, g.xres/2 - 50, g.yres/6 - 60, 100, 40))
         reveal_dice();
 }
 
 void processBettingInput(int mx, int my, int /*button*/)
 {
+    /* FIRST: give raw screen coords to the helper */
+    if (diceInfoButtonClick(mx, my))
+        return;
+
     my = g.yres - my;                       /* y-flip */
 
     /* ----- rectangle buttons (+/- and BET!) ------------------------ */
@@ -637,6 +801,87 @@ void resetBet(void)
 {
     g.currentBet = 0;
 }
+
+/* Black jack Logic for player and dealer*/ 
+extern void drawCard(int num,int suit,float posx,float posy);
+
+/* draw face‑down card (index 0 of sprite) ------------------------------- */
+inline void drawCardBack(float x, float y)
+{
+    drawCard(0, 0, x, y);           /* suit arg ignored for index 0 */
+}
+
+/* render both hands ----------------------------------------------------- */
+void renderHands()
+{
+    float w       = bj.cardWidth;        /* half-width for offset */
+    float spacing = 20.0f;               /* gap between cards      */
+    float off     = w + spacing;
+    /* ── Player ── */
+    int pn = bj.pTotalCards > 0 ? bj.pTotalCards : 1;
+    float totalP = off * (pn - 1);
+    float startPx = g.xres/2.0f - totalP/2.0f;
+    float py      = g.yres * 0.35f;
+    for (int i = 0; i < bj.pTotalCards; ++i)
+        drawCard(bj.playerHand[i], bj.playerSuit[i],
+                 startPx + off*i, py);
+    /* ── Dealer ── */
+    int dn = bj.dTotalCards > 0 ? bj.dTotalCards : 1;
+    float totalD = off * (dn - 1);
+    float startDx = g.xres/2.0f - totalD/2.0f;
+    float dy      = g.yres * 0.65f;
+    /* first card face-up */
+    drawCard(bj.dealerHand[0], bj.dealerSuit[0],
+             startDx, dy);
+    /* second card back or face */
+    if (bj.hideHole)
+        drawCardBack(startDx + off, dy);
+    else
+        drawCard(bj.dealerHand[1], bj.dealerSuit[1],
+                 startDx + off, dy);
+    /* any extra cards */
+    for (int i = 2; i < bj.dTotalCards; ++i)
+        drawCard(bj.dealerHand[i], bj.dealerSuit[i],
+                 startDx + off*i, dy);
+}
+
+/* totals next to hands--------- */
+void renderTotals()
+{
+    char buf[8];
+    Rect r;
+
+    // ─── Player total above their hand ────────────────────────────────
+    int playerVal = bj.playerHandTotal;
+    sprintf(buf, "%d", playerVal);
+    {
+        // match the Y you used for renderHands()
+        float py = g.yres * 0.35f + bj.cardHeight + 10.0f;
+        glPushMatrix();
+        glTranslatef(g.xres/2.0f, py, 0);
+        r.bot = r.left = 0;
+        ggprint07(&r, 16, 0xffffff, buf);
+        glPopMatrix();
+    }
+
+    // ─── Dealer total below their hand ────────────────────────────────
+    int dealerVis = bj.hideHole
+                  ? ((bj.dealerHand[0] > 10) ? 10
+                    : (bj.dealerHand[0] == 1)   ? 11
+                                                : bj.dealerHand[0])
+                  : bj.dealerHandTotal;
+    sprintf(buf, "%d", dealerVis);
+    {
+        float dy = g.yres * 0.65f - bj.cardHeight - 10.0f;
+        glPushMatrix();
+        glTranslatef(g.xres/2.0f, dy, 0);
+        r.bot = r.left = 0;
+        ggprint07(&r, 16, 0xffffff, buf);
+        glPopMatrix();
+    }
+}
+/*End of BlackJack logic*/
+
 /*----------------------*/
 /* Credits functionality*/
 /*----------------------*/
@@ -679,10 +924,10 @@ static void show_child_credits_window()
             XDrawString(dpy, win, gc, 20, 80,
                         " Christian Rodriguez", 20);
             XDrawString(dpy, win, gc, 20, 110,
-                        " Philp Lakes", 12);
+                        " Philip lakes", 12);
             XDrawString(dpy, win, gc, 20, 140,
                         " Haonan Chen", 12);
-            XDrawString(dpy, win, gc, 20, 170, " Benjamin Olayvar", 4);
+            XDrawString(dpy, win, gc, 20, 170, " Benjamin Olayvar", 17);
         }
         if (e.type == KeyPress || e.type == DestroyNotify)
             done = true;
