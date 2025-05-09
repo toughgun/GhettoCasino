@@ -226,7 +226,7 @@ int checkhover(int savex, int savey, int mouseposition)
         }
     }
 
-    if (bj.insure) {
+    if (!bj.insure) {
         if (savex > 490 && savex < 490 + 300 && savey > 512 &&
                 savey < 512 + 75) {
             mouseposition = 4;
